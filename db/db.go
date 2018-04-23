@@ -57,6 +57,7 @@ type StateDb struct { // qrl
 }
 
 type Hash256 []byte
+type MagicId uint32
 
 type BlockIndexRecord struct {
 	Version        int32
