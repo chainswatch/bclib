@@ -26,28 +26,30 @@ message Message {
 		FILTER_CLEAR = 19;
 		MERKLE_BLOCK = 20;
 	}
-	fixed32 magic = 1; // Transmitted as 0xF9BEB4D9 in NBO
-	Command command = 2;
-	uint32 payload_length = 3;
-	uint32 checksum = 4;
-	bytes payload = 5;
+	fixed32 magic = 1; // Transmitted as 0xF9BEB4D9 in NBO (mainnet)
+	Command command = 2; // ASCII string
+	uint32 length = 3; // Length of payload in bytes
+	uint32 checksum = 4; // First 4 bytes of sha256(sha256(payload))
+	bytes payload = 5; // The actual data
 }
 
 message Block {
-	uint32 version = 1;
-	bytes previous_block = 2;
-	bytes merkle_root = 3;
+  // uint32 length
+	uint32 version = 1; // Block version number
+	bytes prev_block = 2; // 32 byte hash of prev block
+	bytes merkle_root = 3; // 32 byte merkle root hash
 	uint32 timestamp = 4;
 	uint32 bits = 5;
 	uint32 nonce = 6;
 	Coinbase coinbase = 7;
+  // intXX transaction_count
 	repeated Transaction transactions = 8;
 }
 
 message Coinbase {
 	uint32 version = 1;
 	CoinbaseInput input = 2;
-	repeated TransactionOutput outputs = 3;
+	repeated TxOutput outputs = 3;
 }
 
 message CoinbaseInput {
@@ -58,8 +60,10 @@ message CoinbaseInput {
 
 message Transaction {
 	uint32 version = 1 ;
-	repeated TransactionInput inputs = 2;
-	repeated TransactionOutput outputs = 3;
+  // intXX transaction_count
+	repeated TxInput inputs = 2;
+  // intXX transaction_count
+	repeated TxOutput outputs = 3;
 	uint32 lock_time = 4;
 }
 
@@ -268,14 +272,14 @@ message Script {
 	repeated Operation operations = 1;
 }
 
-message TransactionInput {
+message TxInput {
 	bytes outpoint_ref = 1;
 	uint32 outpoint_index = 2;
 	Script sig_script = 3;
 	sint32 sequence = 4;
 }
 
-message TransactionOutput {
+message TxOutput {
 	uint32 value = 1;
 	Script pk_script = 2;
 }
@@ -299,14 +303,14 @@ message InventoryVector {
 }
 
 message Version {
-	uint32 version = 1;
+	uint32 version = 1; // protocol version of the node
 	uint64 services = 2;
 	uint64 timestamp = 3;
-	NetAddress addr_to = 4;
-	NetAddress addr_from = 5;
+	NetAddress addr_to = 4; // net address of receiver
+	NetAddress addr_from = 5; // net address of emitter
 	uint64 nonce = 6;
 	string user_agent = 7;
-	uint32 start_height = 8;
+	uint32 start_height = 8; // last block received by emitter
 	bool relay = 9;
 }
 

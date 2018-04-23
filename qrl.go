@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	//"github.com/golang/protobuf/proto"
 	"app/db"
-	"app/generated"
+	"app/generated/qrl"
 )
 
 func binToHstr(vec []byte) string {
