@@ -6,8 +6,6 @@ import (
   "errors"
   "fmt"
 	"app/generated/btc"
-  "time"
-  "encoding/hex"
 )
 
 // TODO: Maybe can optimize
@@ -38,10 +36,11 @@ type MagicId uint32
 // TODO: Currently won't return any error
 func parseBlockHeaderFromFile(blockFile *BlockFile, block *btc.Block) error {
   var length = blockFile.ReadUint32() // TODO: Store it?
+  fmt.Println("BlockHeader length", length)
 	block.Version = blockFile.ReadInt32()
 	block.PrevBlock = blockFile.ReadBytes(32)
 	block.MerkleRoot = blockFile.ReadBytes(32)
-	block.Timestamp = int32(time.Unix(int64(blockFile.ReadUint32()), 0))
+	block.Timestamp = blockFile.ReadUint32()
 	block.Bits = blockFile.ReadUint32() // TODO: Parse this as mantissa?
 	block.Nonce = blockFile.ReadUint32()
 
@@ -50,6 +49,7 @@ func parseBlockHeaderFromFile(blockFile *BlockFile, block *btc.Block) error {
 
 func parseBlockTransactionFromFile(blockFile *BlockFile) (*btc.Transaction, error) {
 	curPos, err := blockFile.Seek(0, 1)
+  fmt.Println("CurPos:", curPos)
 	if err != nil {
 		return nil, err
 	}
@@ -74,37 +74,40 @@ func parseBlockTransactionFromFile(blockFile *BlockFile) (*btc.Transaction, erro
 	}
 
 	for i := uint64(0); i < txInputLength; i++ {
-		input := TxInput{}
-		input.Hash = blockFile.ReadBytes(32)
-		input.Index = blockFile.ReadUint32() // TODO: Not sure if correctly read
+		input := &btc.TxInput{}
+		input.OutpointHash = blockFile.ReadBytes(32)
+		input.OutpointIndex = blockFile.ReadUint32() // TODO: Not sure if correctly read
 		scriptLength := blockFile.ReadVarint()
-		input.Script = blockFile.ReadBytes(scriptLength)
-		input.Sequence = blockFile.ReadUint32()
-		tx.Vin = append(tx.Vin, input)
+    fmt.Println("scriptLength:", scriptLength)
+		// input.SigScript = blockFile.ReadBytes(scriptLength) // TODO
+		// input.Sequence = blockFile.ReadUint32()
+		tx.Inputs = append(tx.Inputs, input)
 	}
 
 	txOutputLength := blockFile.ReadVarint()
 	for i := uint64(0); i < txOutputLength; i++ {
-		output := TxOutput{}
-		output.Value = int64(blockFile.ReadUint64())
+		output := &btc.TxOutput{}
+		output.Value = uint32(blockFile.ReadUint64())
 		scriptLength := blockFile.ReadVarint()
-		output.Script = blockFile.ReadBytes(scriptLength)
-		tx.Vout = append(tx.Vout, output)
+    fmt.Println("scriptLength:", scriptLength)
+		// output.Script = blockFile.ReadBytes(scriptLength)
+		tx.Outputs = append(tx.Outputs, output)
 	}
 
 	if (txFlag&1) == 1 && allowWitness {
 		txFlag ^= 1 // Not sure what this is for
 		for i := uint64(0); i < txInputLength; i++ {
 			witnessCount := blockFile.ReadVarint()
-			tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
+			// tx.Inputs[i].ScriptWitness = make([][]byte, witnessCount)
 			for j := uint64(0); j < witnessCount; j++ {
 				length := blockFile.ReadVarint()
-				tx.Vin[i].ScriptWitness[j] = blockFile.ReadBytes(length)
+        fmt.Println("Length:", length)
+				// tx.Inputs[i].ScriptWitness[j] = blockFile.ReadBytes(length)
 			}
 		}
 	}
 
-	tx.Locktime = blockFile.ReadUint32()
+	tx.LockTime = blockFile.ReadUint32()
 
 	return tx, nil
 }
@@ -114,17 +117,17 @@ func parseBlockTransactionsFromFile(blockFile *BlockFile, block *btc.Block) erro
   transactionCount := blockFile.ReadVarint() // TODO: Store it?
 	//fmt.Printf("Total txns: %d\n", block.TransactionCount)
 	for t := uint64(0); t < transactionCount; t++ {
-		tx, err := ParseBlockTransactionFromFile(blockFile)
+		tx, err := parseBlockTransactionFromFile(blockFile)
 		if err != nil {
 			return err
 		}
-		block.Transactions = append(block.Transactions, *tx)
+		block.Transactions = append(block.Transactions, tx)
 	}
 
 	return nil
 }
 
-func parseBlockFromFile(blockFile *BlockFile, magicHeader MagicId) (*btc.Block, error) {
+func parseBlockFromFile(blockFile *BlockFile) (*btc.Block, error) {
 	block := &btc.Block{}
 
 	curPos, err := blockFile.Seek(0, 1)
@@ -134,20 +137,23 @@ func parseBlockFromFile(blockFile *BlockFile, magicHeader MagicId) (*btc.Block, 
 
 	// Read and validate Magic ID
   magicId := MagicId(blockFile.ReadUint32())
+  fmt.Println("Magic ID:", magicId)
+  /*
 	if magicId != magicHeader {
 		blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
 		return nil, errors.New("Invalid block header: Can't find Magic ID")
 	}
+  */
 
 	// Read header fields
-	err = ParseBlockHeaderFromFile(blockFile, block)
+	err = parseBlockHeaderFromFile(blockFile, block)
 	if err != nil {
 		blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
 		return nil, err
 	}
 
 	// Parse transactions
-	err = ParseBlockTransactionsFromFile(blockFile, block)
+	err = parseBlockTransactionsFromFile(blockFile, block)
 	if err != nil {
 		blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
 		return nil, err
@@ -156,7 +162,7 @@ func parseBlockFromFile(blockFile *BlockFile, magicHeader MagicId) (*btc.Block, 
 	return block, nil
 }
 
-func newBlockFromFile(blockchainDataDir string, magicHeader MagicId, num uint32, pos uint32) (*btc.Block, error) {
+func newBlockFromFile(blockchainDataDir string, num uint32, pos uint32) (*btc.Block, error) {
 	// Open file for reading
 	blockFile, err := NewBlockFile(blockchainDataDir, num)
 	if err != nil {
@@ -171,23 +177,23 @@ func newBlockFromFile(blockchainDataDir string, magicHeader MagicId, num uint32,
 		return nil, err
 	}
 
-	return ParseBlockFromFile(blockFile, magicHeader)
+	return parseBlockFromFile(blockFile)
 }
 
 func getBlock(indexDb *db.IndexDb, dataDir string) {
-  result, err := db.GetBlockIndexRecordByBigEndianHex(indexDb, args[1])
+  result, err := db.GetBlockIndexRecordByBigEndianHex(indexDb, "000000002c05cc2e78923c34df87fd108b22221ac6076c18f3ade378a4d915e9")
   if err != nil {
     log.Fatal(err)
   }
   fmt.Printf("%+v\n", result)
 
-  block, err := NewBlockFromFile(dataDir, uint32(result.NFile), result.NDataPos)
+  block, err := newBlockFromFile(dataDir, uint32(result.NFile), result.NDataPos)
   if err != nil {
     log.Fatal(err)
   }
 
   fmt.Printf("%+v\n", block)
-  fmt.Printf("First Txid: %s\n", hex.EncodeToString(ReverseHex(block.Transactions[0].Txid())))
+  // fmt.Printf("First Txid: %s\n", hex.EncodeToString(reverseHex(block.Transactions[0].Txid())))
 }
 
 func btcWatcher(dataDir string) {

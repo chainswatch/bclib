@@ -273,14 +273,16 @@ message Script {
 }
 
 message TxInput {
-	bytes outpoint_ref = 1;
-	uint32 outpoint_index = 2;
+	bytes outpoint_hash = 1; // doubled SHA256-hashed of a (previous) to-be-used transaction 
+	uint32 outpoint_index = 2; // non negative integer indexing an output of the to-be-used transaction
+  // varint script_length
 	Script sig_script = 3;
-	sint32 sequence = 4;
+	uint32 sequence = 4; //	normally 0xFFFFFFFF; irrelevant unless transaction's lock_time is > 0 
 }
 
 message TxOutput {
 	uint32 value = 1;
+  // varint pk_script_length
 	Script pk_script = 2;
 }
 
