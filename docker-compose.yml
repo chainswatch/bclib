@@ -1,0 +1,20 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: postgres
+    volumes:
+      - ./data/db/1_users.sql:/docker-entrypoint-initdb.d/1_users.sql
+      - ./data/db/2_roles.sql:/docker-entrypoint-initdb.d/2_roles.sql
+      - ./data/db/3_rel_users_roles.sql:/docker-entrypoint-initdb.d/3_rel_users_roles.sql
+    ports:
+      - "5432"
+    restart: unless-stopped
+
+networks:
+  default:
+    external:
+      name: mynet

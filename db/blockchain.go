@@ -58,21 +58,6 @@ type StateDb struct { // qrl
 
 type MagicId uint32
 
-type BlockHeader struct {
-  Version        int32
-  Height         int32
-  Status         uint32
-  NTx            uint32
-  NFile          int32
-  NDataPos       uint32
-  NUndoPos       uint32
-  HashPrev       []byte
-  HashMerkleRoot []byte
-  NTime          time.Time
-  NBits          uint32
-  NNonce         uint32
-}
-
 func GetBlockHeader(indexDb *IndexDb, blockHash []byte) (*BlockHeader, error) {
   fmt.Printf("blockHash: %v, %d bytes\n", blockHash, len(blockHash))
 
@@ -116,7 +101,7 @@ func NewBlockHeader(b []byte) *BlockHeader {
   record.Version = dataBuf.Shift32bit()
   record.HashPrev = dataBuf.ShiftBytes(32)
   record.HashMerkleRoot = dataBuf.ShiftBytes(32)
-  record.NTime = time.Unix(int64(dataBuf.ShiftU32bit()), 0)
+  record.Timestamp = time.Unix(int64(dataBuf.ShiftU32bit()), 0)
   record.NBits = dataBuf.ShiftU32bit()
   record.NNonce = dataBuf.ShiftU32bit()
 
@@ -147,16 +132,4 @@ func OpenStateDb(dataDir string) (*StateDb, error) {
 
 func GetReindexing(indexDb *IndexDb) (bool, error) {
   return indexDb.Has([]byte("R"), nil)
-}
-
-// TODO: Maybe can optimize
-func reverseHex(b []byte) []byte {
-  newb := make([]byte, len(b))
-  copy(newb, b)
-  for i := len(newb)/2 - 1; i >= 0; i-- {
-    opp := len(newb) - 1 - i
-    newb[i], newb[opp] = newb[opp], newb[i]
-  }
-
-  return newb
 }
