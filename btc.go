@@ -6,6 +6,7 @@ import (
   "errors"
   "fmt"
 	"app/generated/btc"
+  "encoding/hex"
 )
 
 // TODO: Maybe can optimize
@@ -180,14 +181,31 @@ func newBlockFromFile(blockchainDataDir string, num uint32, pos uint32) (*btc.Bl
 	return parseBlockFromFile(blockFile)
 }
 
-func getBlock(indexDb *db.IndexDb, dataDir string) {
-  result, err := db.GetBlockIndexRecordByBigEndianHex(indexDb, "000000002c05cc2e78923c34df87fd108b22221ac6076c18f3ade378a4d915e9")
-  if err != nil {
-    log.Fatal(err)
-  }
-  fmt.Printf("%+v\n", result)
+func getBlockHeaders(indexDb *db.IndexDb, blockHash []byte, nBlocks int) (bool, error) {
+  blockHashInBytes := make([]byte, hex.DecodedLen(len(blockHash)))
+  n, err := hex.Decode(blockHashInBytes, blockHash)
+	if err != nil {
+		return true, err
+	}
+	// Reverse hex to get the LittleEndian order
+	// blockHashInBytes = reverseHex(blockHashInBytes)
+  blockHashInBytes = reverseHex(blockHashInBytes[:n])
 
-  block, err := newBlockFromFile(dataDir, uint32(result.NFile), result.NDataPos)
+  header, err := db.GetBlockHeader(indexDb, blockHashInBytes)
+  fmt.Printf("%+v\n", header)
+
+  for i := 1; i < nBlocks; i++ {
+    header, err = db.GetBlockHeader(indexDb, header.HashPrev)
+    if err != nil {
+      log.Fatal(err)
+    }
+    fmt.Printf("%+v\n", header)
+  }
+  return true, nil
+}
+
+func getBlock(dataDir string, nFile uint32, nDataPos uint32) {
+  block, err := newBlockFromFile(dataDir, nFile, nDataPos)
   if err != nil {
     log.Fatal(err)
   }
@@ -201,5 +219,6 @@ func btcWatcher(dataDir string) {
 	defer indexDb.Close()
 
   failIfReindexing(indexDb)
-  getBlock(indexDb, dataDir)
+  getBlockHeaders(indexDb, []byte("000000002c05cc2e78923c34df87fd108b22221ac6076c18f3ade378a4d915e9"), 12)
+  // db.DbInit()
 }
