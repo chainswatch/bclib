@@ -35,12 +35,12 @@ message Message {
 
 message Block {
   // uint32 length
-	uint32 version = 1; // Block version number
-	bytes prev_block = 2; // 32 byte hash of prev block
-	bytes merkle_root = 3; // 32 byte merkle root hash
-	uint32 timestamp = 4;
-	uint32 bits = 5;
-	uint32 nonce = 6;
+	uint32 n_version = 1; // Block version number
+	bytes hash_prev = 2; // 32 byte hash of prev block
+	bytes hash_merkle_root = 3; // 32 byte merkle root hash
+	uint32 n_time = 4;
+	uint32 n_bits = 5;
+	uint32 n_nonce = 6;
 	Coinbase coinbase = 7;
   // intXX transaction_count
 	repeated Transaction transactions = 8;

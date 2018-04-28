@@ -1,29 +1,13 @@
 package db
 
 import (
+  "github.com/syndtr/goleveldb/leveldb"
+  "github.com/syndtr/goleveldb/leveldb/opt"
   "github.com/jinzhu/gorm"
-  _ "github.com/jinzhu/gorm/dialects/postgres"
+  _ "github.com/jinzhu/gorm/dialects/postgres" // trivial postgres interactions
   "log"
   "fmt"
-  "time"
 )
-
-type BlockHeader struct {
-  gorm.Model
-  // ID        uint `gorm:"primary_key"`
-  Version        int32
-  Height         int32    `gorm:"primary_key;unique"`
-  Status         uint32
-  NTx            uint32
-  NFile          int32
-  NDataPos       uint32
-  NUndoPos       uint32
-  HashPrev       []byte
-  HashMerkleRoot []byte
-  Timestamp      time.Time
-  NBits          uint32
-  NNonce         uint32
-}
 
 const (
   host     = "watchers_db_1"
@@ -33,7 +17,8 @@ const (
   dbname   = "postgres"
 )
 
-func DbInit() *gorm.DB {
+// Init connects to Postgres DB
+func Init() *gorm.DB {
   psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
   fmt.Println(psqlInfo)
   db, err := gorm.Open("postgres", psqlInfo)
@@ -41,4 +26,15 @@ func DbInit() *gorm.DB {
     log.Fatal(err)
   }
   return db
+}
+
+func OpenIndexDb(dataDir string) (*leveldb.DB, error) {
+  db, err := leveldb.OpenFile(dataDir + "/blocks/index", &opt.Options{
+    ReadOnly: true,
+  })
+  if err != nil {
+    fmt.Println("Error:", err)
+    return nil, err
+  }
+  return db, nil
 }

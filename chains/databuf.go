@@ -1,4 +1,4 @@
-package db
+package chains
 
 import "encoding/binary"
 
@@ -76,4 +76,16 @@ func (buf *DataBuf) ShiftVarint() uint64 {
 	}
 
 	return n
+}
+
+// TODO: Maybe can optimize
+func reverseHex(b []byte) []byte {
+  newb := make([]byte, len(b))
+  copy(newb, b)
+  for i := len(newb)/2 - 1; i >= 0; i-- {
+    opp := len(newb) - 1 - i
+    newb[i], newb[opp] = newb[opp], newb[i]
+  }
+
+  return newb
 }

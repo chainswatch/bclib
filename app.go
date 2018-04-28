@@ -1,9 +1,9 @@
 package main
 
-func main() {
-  //var qrlDataDir string = "./data/qrl/.qrl/data"
-  var btcDataDir string = "./data/btc"
+import (
+  "app/chains"
+)
 
-  btcWatcher(btcDataDir)
-  //qrlWatcher(qrlDataDir)
+func main() {
+  chains.ChainsWatcher()
 }

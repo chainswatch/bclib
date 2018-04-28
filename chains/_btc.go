@@ -1,25 +1,14 @@
-package main
+// +build ignore
+package chains
 
 import (
   "app/db"
+  //"app/chains"
   "log"
   "errors"
   "fmt"
-  "app/generated/btc"
   "encoding/hex"
 )
-
-// TODO: Maybe can optimize
-func reverseHex(b []byte) []byte {
-  newb := make([]byte, len(b))
-  copy(newb, b)
-  for i := len(newb)/2 - 1; i >= 0; i-- {
-    opp := len(newb) - 1 - i
-    newb[i], newb[opp] = newb[opp], newb[i]
-  }
-
-  return newb
-}
 
 func failIfReindexing(indexDb *db.IndexDb) {
   result, err := db.GetReindexing(indexDb)
@@ -31,19 +20,17 @@ func failIfReindexing(indexDb *db.IndexDb) {
   }
 }
 
-type MagicId uint32
-
 // Parse the header fields except the MagicId
 // TODO: Currently won't return any error
-func parseBlockHeaderFromFile(blockFile *BlockFile, block *btc.Block) error {
+func parseBlockHeaderFromFile(blockFile *BlockFile, block *btc.BlockHeader) error {
   var length = blockFile.ReadUint32() // TODO: Store it?
   fmt.Println("BlockHeader length", length)
-  block.Version = blockFile.ReadInt32()
-  block.PrevBlock = blockFile.ReadBytes(32)
-  block.MerkleRoot = blockFile.ReadBytes(32)
-  block.Timestamp = blockFile.ReadUint32()
-  block.Bits = blockFile.ReadUint32() // TODO: Parse this as mantissa?
-  block.Nonce = blockFile.ReadUint32()
+  block.nVersion = blockFile.ReadInt32()
+  block.hashPrev = blockFile.ReadBytes(32)
+  block.hashMerkleRoot = blockFile.ReadBytes(32)
+  block.nTime = blockFile.ReadUint32()
+  block.nBits = blockFile.ReadUint32() // TODO: Parse this as mantissa?
+  block.nNonce = blockFile.ReadUint32()
 
   return nil
 }
@@ -136,8 +123,8 @@ func parseBlockFromFile(blockFile *BlockFile) (*btc.Block, error) {
   }
 
   // Read and validate Magic ID
-  magicId := MagicId(blockFile.ReadUint32())
-  fmt.Println("Magic ID:", magicId)
+  magicID := uint32(blockFile.ReadUint32())
+  fmt.Println("Magic ID:", magicID)
   /*
   if magicId != magicHeader {
     blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
@@ -209,7 +196,7 @@ func getBlockHeaders(indexDb *db.IndexDb, blockHash []byte, nBlocks int) (bool, 
     if i == 0 {
       header, err = db.GetBlockHeader(indexDb, blockHashInBytes)
     } else {
-      header, err = db.GetBlockHeader(indexDb, header.HashPrev)
+      header, err = db.GetBlockHeader(indexDb, header.hashPrev)
     }
     if err != nil {
       log.Fatal(err)
@@ -228,5 +215,5 @@ func btcWatcher(dataDir string) {
   defer indexDb.Close()
 
   failIfReindexing(indexDb)
-  getBlockHeaders(indexDb, []byte("000000002c05cc2e78923c34df87fd108b22221ac6076c18f3ade378a4d915e9"), 2)
+  getBlockHeaders(indexDb, []byte("000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506"), 1)
 }

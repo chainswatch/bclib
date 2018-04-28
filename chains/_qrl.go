@@ -1,4 +1,5 @@
-package main
+// +build ignore
+package chains
 
 import (
 	"fmt"
@@ -8,7 +9,7 @@ import (
 	"encoding/json"
 	//"github.com/golang/protobuf/proto"
 	"app/db"
-	"app/generated/qrl"
+	//"app/generated/qrl"
 )
 
 func binToHstr(vec []byte) string {
@@ -19,21 +20,21 @@ func binToHstr(vec []byte) string {
 	return buffer.String()
 }
 
-func GetHeaderhashByHeight(stateDb *db.StateDb, blockHeight []byte) ([]byte, error) {
+func getHeaderhashByHeight(stateDb *db.StateDb, blockHeight []byte) ([]byte, error) {
 	data, err := stateDb.Get(blockHeight, nil)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println(string(data))
-	block_number_mapping := &qrl.BlockNumberMapping {}
-	if err := json.Unmarshal(data, block_number_mapping); err != nil {
+	blockNumberMapping := &qrl.BlockNumberMapping {}
+	if err := json.Unmarshal(data, blockNumberMapping); err != nil {
 		return nil, err
 	}
 	// fmt.Println(bin2hstr(block_number_mapping.Headerhash))
 	return block_number_mapping.Headerhash, nil
 }
 
-func GetBlockByHeaderHash(stateDb *db.StateDb, headerHash []byte) (*qrl.Block, error) {
+func getBlockByHeaderHash(stateDb *db.StateDb, headerHash []byte) (*qrl.Block, error) {
 	data, err := stateDb.Get([]byte(binToHstr(headerHash)), nil)
 	if err != nil {
 		log.Fatal(err)
@@ -52,8 +53,8 @@ func qrlWatcher(dataDir string) {
 
 	//json_data = self._db.get_raw(bin2hstr(header_hash).encode())
 	//data, err := indexDb.Get(append([]byte("t"), txHash...), nil)
-	headerHash,_ := GetHeaderhashByHeight(stateDb, []byte("1000"))
-	GetBlockByHeaderHash(stateDb, headerHash)
+	headerHash,_ := getHeaderhashByHeight(stateDb, []byte("1000"))
+	getBlockByHeaderHash(stateDb, headerHash)
 	//fmt.Println(block)
 	/*
 	s := bin2hstr(block_number_mapping.Headerhash)
