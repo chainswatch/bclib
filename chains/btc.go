@@ -51,6 +51,12 @@ const (
   BLOCK_OPT_WITNESS = 128 //!< block data in blk*.data was received with a witness-enforcing client
 )
 
+/*
+func GetBestBlock(chainstateDb *ChainstateDb) ([]byte, error) {
+	return chainstateDb.Get([]byte("B"), nil)
+}
+*/
+
 // BtcBlockIndexRecord contains index records parameters specitic to BTC
 type BtcBlockHeader struct {
   IndexDb           *leveldb.DB
@@ -60,8 +66,8 @@ type BtcBlockHeader struct {
 
 // Parse raw data bytes
 // https://github.com/bitcoin/bitcoin/blob/v0.15.1/src/chain.h#L387L407
-func (btc BtcBlockHeader) getBlockHeader() {
-  // fmt.Printf("blockHash: %v, %d bytes\n", blockHash, len(blockHash))
+func (btc *BtcBlockHeader) getBlockHeader() {
+  //fmt.Printf("Begin: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
 
   // Get data
   data, err := btc.IndexDb.Get(append([]byte("b"), btc.HashPrevBlock...), nil)
@@ -94,10 +100,12 @@ func (btc BtcBlockHeader) getBlockHeader() {
   }
 
   btc.NVersion = dataBuf.Shift32bit()
+  btc.HashBlock = append([]byte(nil), btc.HashPrevBlock...)
   btc.HashPrevBlock = dataBuf.ShiftBytes(32)
   btc.HashMerkleRoot = dataBuf.ShiftBytes(32)
   btc.NTime = time.Unix(int64(dataBuf.ShiftU32bit()), 0)
   btc.NBits = dataBuf.ShiftU32bit()
   btc.NNonce = dataBuf.ShiftU32bit()
   fmt.Printf("%+v\n", btc)
+  //fmt.Printf("End: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
 }

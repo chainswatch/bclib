@@ -6,7 +6,6 @@ import (
   "time"
   "fmt"
   "encoding/hex"
-  // "github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 type chains interface {
@@ -31,12 +30,12 @@ type TxOutput struct {
 }
 
 type Transaction struct {
-	hash     Hash256 // not actually in blockchain data; for caching
-	Version  int32
-	Locktime uint32
-	Vin      []TxInput
-	Vout     []TxOutput
-	StartPos uint64 // not actually in blockchain data
+	Hash          Hash256 // not actually in blockchain data; for caching
+	Version       int32
+	Locktime      uint32
+	Vin           []TxInput
+	Vout          []TxOutput
+	StartPos      uint64 // not actually in blockchain data
 }
 
 // BlockIndexRecord contains general index records parameters
@@ -49,7 +48,8 @@ type BlockHeader struct {
   NFile          int32
   NDataPos       uint32
   NUndoPos       uint32
-  HashPrevBlock  Hash256  // previous block hash
+  HashBlock       Hash256  `gorm:"-"` // current block hash
+  HashPrevBlock   Hash256  // previous block hash
   HashMerkleRoot Hash256  //
   NTime          time.Time  //
   NBits          uint32     //
