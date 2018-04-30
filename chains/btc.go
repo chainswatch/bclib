@@ -2,14 +2,21 @@ package chains
 
 import (
   "github.com/syndtr/goleveldb/leveldb"
-  "time"
-  "fmt"
 )
 
 // btc holds structs and methods used to parse
 // the bitcoin blockchain
 
 type Hash256 []byte
+type MagicID uint32
+
+// BtcBlockIndexRecord contains index records parameters specitic to BTC
+type BtcBlock struct {
+  IndexDb       *leveldb.DB
+  DataDir       string
+  MagicID       MagicID
+  Block
+}
 
 const (
   //! Unused.
@@ -50,62 +57,3 @@ const (
 
   BLOCK_OPT_WITNESS = 128 //!< block data in blk*.data was received with a witness-enforcing client
 )
-
-/*
-func GetBestBlock(chainstateDb *ChainstateDb) ([]byte, error) {
-	return chainstateDb.Get([]byte("B"), nil)
-}
-*/
-
-// BtcBlockIndexRecord contains index records parameters specitic to BTC
-type BtcBlockHeader struct {
-  IndexDb           *leveldb.DB
-  hash              []byte
-  BlockHeader
-}
-
-// Parse raw data bytes
-// https://github.com/bitcoin/bitcoin/blob/v0.15.1/src/chain.h#L387L407
-func (btc *BtcBlockHeader) getBlockHeader() {
-  //fmt.Printf("Begin: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
-
-  // Get data
-  data, err := btc.IndexDb.Get(append([]byte("b"), btc.HashPrevBlock...), nil)
-  if err != nil {
-    fmt.Printf("Error")
-  }
-  // fmt.Printf("rawBlockHeader: %v\n", data)
-
-  // Parse the raw bytes
-  dataBuf := NewDataBuf(data)
-  //fmt.Printf("rawData: %v\n", b)
-  //dataHex := hex.EncodeToString(b)
-  //fmt.Printf("rawData: %v\n", dataHex)
-
-  // Discard first varint
-  // FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
-  dataBuf.ShiftVarint()
-
-  btc.NHeight = int32(dataBuf.ShiftVarint())
-  btc.NStatus = uint32(dataBuf.ShiftVarint())
-  btc.NTx = uint32(dataBuf.ShiftVarint())
-  if btc.NStatus & (BLOCK_HAVE_DATA|BLOCK_HAVE_UNDO) > 0 {
-    btc.NFile = int32(dataBuf.ShiftVarint())
-  }
-  if btc.NStatus & BLOCK_HAVE_DATA > 0 {
-    btc.NDataPos = uint32(dataBuf.ShiftVarint())
-  }
-  if btc.NStatus & BLOCK_HAVE_UNDO > 0 {
-    btc.NUndoPos = uint32(dataBuf.ShiftVarint())
-  }
-
-  btc.NVersion = dataBuf.Shift32bit()
-  btc.HashBlock = append([]byte(nil), btc.HashPrevBlock...)
-  btc.HashPrevBlock = dataBuf.ShiftBytes(32)
-  btc.HashMerkleRoot = dataBuf.ShiftBytes(32)
-  btc.NTime = time.Unix(int64(dataBuf.ShiftU32bit()), 0)
-  btc.NBits = dataBuf.ShiftU32bit()
-  btc.NNonce = dataBuf.ShiftU32bit()
-  fmt.Printf("%+v\n", btc)
-  //fmt.Printf("End: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
-}

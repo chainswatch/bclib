@@ -18,7 +18,7 @@ const (
 )
 
 // Init connects to Postgres DB
-func Init() *gorm.DB {
+func PgInit() *gorm.DB {
   psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
   fmt.Println(psqlInfo)
   db, err := gorm.Open("postgres", psqlInfo)

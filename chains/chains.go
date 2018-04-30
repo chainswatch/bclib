@@ -1,15 +1,7 @@
 package chains
 
-import (
-  "app/db"
-  "github.com/jinzhu/gorm"
-  "time"
-  "fmt"
-  "encoding/hex"
-)
-
 type chains interface {
-  getBlockHeader()
+  getBlockHeaders(int)
   // getBlockHeader()
   // getBlock()
 }
@@ -38,63 +30,18 @@ type Transaction struct {
 	StartPos      uint64 // not actually in blockchain data
 }
 
-// BlockIndexRecord contains general index records parameters
-// It defines the structure of the postgres table
-type BlockHeader struct {
-  NVersion       int32    // Version
-  NHeight        int32    `gorm:"primary_key;unique"`
-  NStatus        uint32
-  NTx            uint32
-  NFile          int32
-  NDataPos       uint32
-  NUndoPos       uint32
-  HashBlock       Hash256  `gorm:"-"` // current block hash
-  HashPrevBlock   Hash256  // previous block hash
-  HashMerkleRoot Hash256  //
-  NTime          time.Time  //
-  NBits          uint32     //
-  NNonce         uint32     //
-  TargetDifficulty  uint32 // bits
-}
-
-type Block struct {
-  gorm.Model
-  BlockHeader
-  Length        uint32
-  Transactions  []Transaction `gorm:"-"` // don't store
-}
-
-func getBlockHeaders(c chains, nBlocks int) (bool, error) {
-
-  // pg := db.Init()
-  // pg.AutoMigrate(&BlockIndexRecord{})
-  // defer pg.Close()
-  for i := 0; i < nBlocks; i++ {
-    c.getBlockHeader() // TODO: Errors checks
-    // Copy, then insert in DB
-    // pg.Create(&)
-  }
-  // pg.Table("block_headers").Count(&count)
-  // fmt.Println(count, "RECORDS")
-  return true, nil
+// TODO: Rename
+func BlockHeaderScanner(c chains, nBlocks int) {
+  c.getBlockHeaders(nBlocks)
 }
 
 func ChainsWatcher() {
   //var qrlDataDir string = "./data/qrl/.qrl/data"
 
-  var btcDataDir = "./chains/data/btc"
+  btcBlock := &BtcBlock{}
+  btcBlock.DataDir = "./chains/data/btc"
 
-  blockHashStart := []byte("000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506")
-  blockHashInBytes := make([]byte, hex.DecodedLen(len(blockHashStart)))
-  n, err := hex.Decode(blockHashInBytes, blockHashStart)
-  if err != nil {
-    fmt.Println(err)
-  }
-  btcBlockHeader := &BtcBlockHeader{}
-  // Reverse hex to get the LittleEndian order
-  btcBlockHeader.HashPrevBlock = reverseHex(blockHashInBytes[:n])
-  btcBlockHeader.IndexDb, _ = db.OpenIndexDb(btcDataDir) // TODO: Error handling
-  defer btcBlockHeader.IndexDb.Close()
   // failIfReindexing(indexDb)
-  getBlockHeaders(btcBlockHeader, 5)
+  btcBlock.getBlockHashInBytes([]byte("000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506"))
+  BlockHeaderScanner(btcBlock, 5)
 }
