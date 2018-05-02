@@ -1,15 +1,40 @@
-package chains
+package chains 
 
 import (
   "time"
-  "github.com/jinzhu/gorm"
+  // "github.com/jinzhu/gorm"
 )
+
+type Script []byte
+type Hash256 []byte
+
+type TxInput struct {
+  TransactionID     uint
+  Hash              Hash256     `gorm:"-"`
+	Index             uint32
+	Script            Script
+	Sequence          uint32
+  ScriptWitness     [][]byte    `gorm:"-"`
+}
+
+type TxOutput struct {
+	Value             int64
+	Script            Script
+}
+
+type Transaction struct {
+	NVersion          int32
+  TxInputs          []TxInput
+  TxOutputs         []TxOutput  `gorm:"-"`
+	Locktime          uint32
+	// StartPos      uint64 // not actually in blockchain data
+}
 
 // BlockIndexRecord contains general index records parameters
 // It defines the structure of the postgres table
 type BlockHeader struct {
   NVersion          int32    // Version
-  NHeight           int32    `gorm:"primary_key;unique"`
+  NHeight           int32    `gorm:"primary_key"` // NOT NULL & UNIQUE (TODO: Combination primary key)
   NStatus           uint32
   NTx               uint32
   NFile             int32
@@ -25,7 +50,9 @@ type BlockHeader struct {
 }
 
 type Block struct {
-  gorm.Model
+  CreatedAt     time.Time
+  UpdatedAt     time.Time
+  DeletedAt     *time.Time
   BlockHeader
   Length        uint32
   Transactions  []Transaction `gorm:"-"` // don't store

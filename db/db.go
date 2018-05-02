@@ -17,16 +17,27 @@ const (
   dbname   = "postgres"
 )
 
-// Init connects to Postgres DB
-func PgInit() *gorm.DB {
+func ConnectPg() *gorm.DB {
   psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
   fmt.Println(psqlInfo)
-  db, err := gorm.Open("postgres", psqlInfo)
+  pg, err := gorm.Open("postgres", psqlInfo)
   if err != nil {
     log.Fatal(err)
   }
-  return db
+  return pg
 }
+
+func GetFlag(db *leveldb.DB, name []byte) (bool, error) {
+	command := append([]byte("F"), byte(len(name)))
+	command = append(command, name...)
+	data, err := db.Get(command, nil)
+	if err != nil {
+		return false, err
+	}
+
+	return data[0] == []byte("1")[0], nil
+}
+
 
 func OpenIndexDb(dataDir string) (*leveldb.DB, error) {
   db, err := leveldb.OpenFile(dataDir + "/blocks/index", &opt.Options{

@@ -1,18 +1,20 @@
 package chains
 
 import (
+  _ "app/db"
   "github.com/syndtr/goleveldb/leveldb"
+  "os"
 )
 
 // btc holds structs and methods used to parse
 // the bitcoin blockchain
 
-type Hash256 []byte
 type MagicID uint32
 
 // BtcBlockIndexRecord contains index records parameters specitic to BTC
 type BtcBlock struct {
   IndexDb       *leveldb.DB
+	file          *os.File
   DataDir       string
   MagicID       MagicID
   Block

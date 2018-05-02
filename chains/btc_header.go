@@ -49,16 +49,25 @@ func (btc *BtcBlock) getBlockHeader() {
   btc.NTime = time.Unix(int64(dataBuf.ShiftU32bit()), 0)
   btc.NBits = dataBuf.ShiftU32bit()
   btc.NNonce = dataBuf.ShiftU32bit()
-  fmt.Printf("%+v\n", btc)
+  //fmt.Printf("%+v\n", btc)
   //fmt.Printf("End: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
+}
+
+func (btc *BtcBlock) getBlockHashInBytes(hash []byte) {
+  blockHashInBytes := make([]byte, hex.DecodedLen(len(hash)))
+  n, err := hex.Decode(blockHashInBytes, hash)
+  if err != nil {
+    fmt.Println(err)
+  }
+  // Reverse hex to get the LittleEndian order
+  btc.HashPrevBlock = reverseHex(blockHashInBytes[:n])
 }
 
 func (btc *BtcBlock) getBlockHeaders(nBlocks int) {
   btc.IndexDb, _ = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
   defer btc.IndexDb.Close()
 
-  pg := db.PgInit()
-  pg.AutoMigrate(&Block{})
+  pg := db.ConnectPg()
   defer pg.Close()
   for i := 0; i < nBlocks; i++ {
     btc.getBlockHeader() // TODO: Errors checks
@@ -71,14 +80,4 @@ func (btc *BtcBlock) getBlockHeaders(nBlocks int) {
   var count int
   pg.Table("blocks").Count(&count)
   fmt.Println(count, "RECORDS")
-}
-
-func (btc *BtcBlock) getBlockHashInBytes(hash []byte) {
-  blockHashInBytes := make([]byte, hex.DecodedLen(len(hash)))
-  n, err := hex.Decode(blockHashInBytes, hash)
-  if err != nil {
-    fmt.Println(err)
-  }
-  // Reverse hex to get the LittleEndian order
-  btc.HashPrevBlock = reverseHex(blockHashInBytes[:n])
 }

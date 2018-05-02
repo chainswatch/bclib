@@ -1,82 +1,142 @@
 package chains
 
 import (
+  "app/db"
   "fmt"
 )
 
-func (btc *BtcBlock) ParseBlockTransactionsFromFile(blockFile *BlockFile) error {
-	// Read transaction count to know how many transactions to parse
-  TransactionCount := blockFile.ReadVarint()
+// Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
+const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
+
+/*
+* Basic transaction serialization format:
+* - int32_t nVersion
+* - std::vector<CTxIn> vin
+* - std::vector<CTxOut> vout
+* - uint32_t nLockTime
+*
+* Extended transaction serialization format:
+* - int32_t nVersion
+* - unsigned char dummy = 0x00
+* - unsigned char flags (!= 0)
+* - std::vector<CTxIn> vin
+* - std::vector<CTxOut> vout
+* - if (flags & 1):
+*   - CTxWitness wit;
+* - uint32_t nLockTime
+*/
+
+func (btc *BtcBlock) parseBlockTransactionFromFile() (*Transaction, error) {
+  // curPos, err := btc.Seek(0, 1)
+  allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
+
+  tx := &Transaction{}
+  // tx.StartPos = uint64(curPos)
+  tx.NVersion = btc.ReadInt32() // 
+
+  // Check for extended transaction serialization format
+  var txInputLength uint64
+  var txFlag byte
+  // Try to read. Look for dummy
+  p, _ := btc.Peek(1)
+  if p[0] == 0 {
+    // We are dealing with extended transaction
+    btc.ReadByte()          // dummy (0x00)
+    txFlag = btc.ReadByte() // flags (!=0)
+    if (txFlag != 0) {
+      txInputLength = btc.ReadVarint()
+    }
+  } else {
+    txInputLength = btc.ReadVarint()
+  }
+
+  for i := uint64(0); i < txInputLength; i++ {
+    input := TxInput{}
+    input.Hash = btc.ReadBytes(32)
+    input.Index = btc.ReadUint32() // TODO: Not sure if correctly read
+    scriptLength := btc.ReadVarint()
+    input.Script = btc.ReadBytes(scriptLength)
+    input.Sequence = btc.ReadUint32()
+    tx.TxInputs = append(tx.TxInputs, input)
+  }
+
+  txOutputLength := btc.ReadVarint()
+  for i := uint64(0); i < txOutputLength; i++ {
+    output := TxOutput{}
+    output.Value = int64(btc.ReadUint64())
+    scriptLength := btc.ReadVarint()
+    output.Script = btc.ReadBytes(scriptLength)
+    tx.TxOutputs = append(tx.TxOutputs, output)
+  }
+
+  if (txFlag & 1) == 1 && allowWitness {
+    txFlag ^= 1 // Not sure what this is for
+    for i := uint64(0); i < txInputLength; i++ {
+      witnessCount := btc.ReadVarint()
+      tx.TxInputs[i].ScriptWitness = make([][]byte, witnessCount)
+      for j := uint64(0); j < witnessCount; j++ {
+        length := btc.ReadVarint()
+        tx.TxInputs[i].ScriptWitness[j] = btc.ReadBytes(length)
+      }
+    }
+  }
+
+  tx.Locktime = btc.ReadUint32()
+
+  return tx, nil
+}
+
+func (btc *BtcBlock) getTransaction() {
+  f, _ := db.GetFlag(btc.IndexDb, []byte("txindex"))
+  if !f {
+    fmt.Println("txindex is not enabled for your bitcoind")
+  }
+  /*
+  result, err := db.GetTxIndexRecordByBigEndianHex(indexDb, args[1])
+  if err != nil {
+    log.Fatal(err)
+  }
+  fmt.Printf("%+v\n", result)
+
+  tx, err := blockchainparser.NewTxFromFile(datadir, magicId, uint32(result.NFile), result.NDataPos, result.NTxOffset)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  fmt.Printf("%+v\n", tx)
+  */
+}
+
+func (btc *BtcBlock) parseBlockTransactionsFromFile() error {
+  // Read transaction count to know how many transactions to parse
+  TransactionCount := btc.ReadVarint()
   // TODO: TransactionCount : Compare with Index stored value (NTx)
-	fmt.Printf("Total txns: %d vs %d\n", TransactionCount, btc.NTx)
-	for t := uint64(0); t < TransactionCount; t++ {
-		tx, err := btc.ParseBlockTransactionFromFile(blockFile)
-		if err != nil {
-			return err
-		}
-		btc.Transactions = append(btc.Transactions, *tx)
-	}
-
-	return nil
+  fmt.Printf("Total txns: %d vs %d\n", TransactionCount, btc.NTx)
+  for t := uint64(0); t < TransactionCount; t++ {
+    tx, err := btc.parseBlockTransactionFromFile()
+    if err != nil {
+      return err
+    }
+    fmt.Printf("Transaction: %+v\n", tx)
+    btc.Transactions = append(btc.Transactions, *tx)
+  }
+  btc.saveTransactions()
+  return nil
 }
 
-func (btc *BtcBlock) ParseBlockTransactionFromFile(blockFile *BlockFile) (*Transaction, error) {
-	curPos, err := blockFile.Seek(0, 1)
-	if err != nil {
-		return nil, err
-	}
+func (btc *BtcBlock) saveTransactions() {
+  /*
+  btc.IndexDb, _ = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
+  defer btc.IndexDb.Close()
 
-	allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
-
-	tx := &Transaction{}
-	tx.StartPos = uint64(curPos)
-	tx.Version = blockFile.ReadInt32()
-
-	// Check for extended transaction serialization format
-	p, _ := blockFile.Peek(1)
-	var txInputLength uint64
-	var txFlag byte
-	if p[0] == 0 {
-		// We are dealing with extended transaction
-		blockFile.ReadByte()          // dummy
-		txFlag = blockFile.ReadByte() // flags
-		txInputLength = blockFile.ReadVarint()
-	} else {
-		txInputLength = blockFile.ReadVarint()
-	}
-
-	for i := uint64(0); i < txInputLength; i++ {
-		input := TxInput{}
-		input.Hash = blockFile.ReadBytes(32)
-		input.Index = blockFile.ReadUint32() // TODO: Not sure if correctly read
-		scriptLength := blockFile.ReadVarint()
-		input.Script = blockFile.ReadBytes(scriptLength)
-		input.Sequence = blockFile.ReadUint32()
-		tx.Vin = append(tx.Vin, input)
-	}
-
-	txOutputLength := blockFile.ReadVarint()
-	for i := uint64(0); i < txOutputLength; i++ {
-		output := TxOutput{}
-		output.Value = int64(blockFile.ReadUint64())
-		scriptLength := blockFile.ReadVarint()
-		output.Script = blockFile.ReadBytes(scriptLength)
-		tx.Vout = append(tx.Vout, output)
-	}
-
-	if (txFlag&1) == 1 && allowWitness {
-		txFlag ^= 1 // Not sure what this is for
-		for i := uint64(0); i < txInputLength; i++ {
-			witnessCount := blockFile.ReadVarint()
-			tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
-			for j := uint64(0); j < witnessCount; j++ {
-				length := blockFile.ReadVarint()
-				tx.Vin[i].ScriptWitness[j] = blockFile.ReadBytes(length)
-			}
-		}
-	}
-
-	tx.Locktime = blockFile.ReadUint32()
-
-	return tx, nil
+  pg := db.PgInit()
+  pg.AutoMigrate(&TxInput{})
+  pg.AutoMigrate(&Transaction{})
+  err := pg.Create(&btc.Transactions)
+  if err != nil {
+    fmt.Println(err) // 
+  }
+  */
 }
+
+
