@@ -1,7 +1,7 @@
 package chains
 
 import (
-  _ "app/db"
+  "app/models"
   "github.com/syndtr/goleveldb/leveldb"
   "os"
 )
@@ -17,7 +17,7 @@ type BtcBlock struct {
 	file          *os.File
   DataDir       string
   MagicID       MagicID
-  Block
+  models.Block
 }
 
 const (

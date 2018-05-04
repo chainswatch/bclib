@@ -1,7 +1,8 @@
 package chains
 
 import (
-  "app/db"
+  db "app/chains/repository"
+  log "github.com/sirupsen/logrus"
   "os"
   "fmt"
   "time"
@@ -33,7 +34,7 @@ func (btc *BtcBlock) ParseBlockHeaderFromFile() {
 func (btc *BtcBlock) ParseBlockFromFile() {
 	curPos, err := btc.Seek(0, 1)
 	if err != nil {
-		fmt.Println(err)
+		log.Warn(err)
 	}
 
 	// Read and validate Magic ID
@@ -56,7 +57,7 @@ func (btc *BtcBlock) ParseBlockFromFile() {
 
 func (btc *BtcBlock) getBlockFile() {
 	filepath := fmt.Sprintf(btc.DataDir + "/blocks/blk%05d.dat", btc.NFile)
-	fmt.Printf("Opening file %s...\n", filepath)
+	log.Info("Opening file %s...\n", filepath)
 
   btc.file, _ = os.OpenFile(filepath, os.O_RDONLY, 0666) // TODO: Error
 }
@@ -67,7 +68,7 @@ func (btc *BtcBlock) getBlockFromFile() {
 	defer btc.file.Close()
 
 	// Seek to pos - 8 to start reading from block header
-	fmt.Printf("Seeking to block at %d...\n", btc.NDataPos)
+	log.Info("Seeking to block at %d...\n", btc.NDataPos)
 	btc.Seek(int64(btc.NDataPos - 8), 0)
 
 	btc.ParseBlockFromFile()
@@ -79,11 +80,8 @@ func (btc *BtcBlock) getBlock(nHeight int) {
   pg := db.ConnectPg()
   defer pg.Close()
 
-  err := pg.First(btc.Block, nHeight) // TODO: Request only wanted fields
-  if (err != nil) {
-    fmt.Println("Error:", err)
-  }
-  fmt.Println("File", btc.NFile, "Pos", btc.NDataPos)
-  //btc.getBlockFromFile()
-  btc.getTransaction()
+  btc.BlockHeader = db.GetHeaderFromHeight(pg, nHeight)
+  log.Info(fmt.Sprintf("%+v", btc))
+  btc.getBlockFromFile()
+  //btc.getTransaction()
 }

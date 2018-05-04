@@ -1,7 +1,8 @@
 package chains
 
 import (
-  "app/db"
+  db "app/chains/repository"
+  log "github.com/sirupsen/logrus"
   "fmt"
   "time"
   "encoding/hex"
@@ -15,7 +16,7 @@ func (btc *BtcBlock) getBlockHeader() {
   // Get data
   data, err := btc.IndexDb.Get(append([]byte("b"), btc.HashPrevBlock...), nil)
   if err != nil {
-    fmt.Printf("Error")
+    fmt.Println(err)
   }
   // fmt.Printf("rawBlockHeader: %v\n", data)
 
@@ -72,12 +73,14 @@ func (btc *BtcBlock) getBlockHeaders(nBlocks int) {
   for i := 0; i < nBlocks; i++ {
     btc.getBlockHeader() // TODO: Errors checks
     // Copy, then insert in DB
-    err := pg.Create(&btc.Block)
+    _, err := db.InsertHeader(pg, btc.BlockHeader)
     if err != nil {
-      fmt.Println(err) // 
+      log.Warn(err)
     }
   }
-  var count int
-  pg.Table("blocks").Count(&count)
-  fmt.Println(count, "RECORDS")
+  /*
+  var id int
+  err := db.Get(&id, "SELECT count(*) FROM place")
+  log.Info(id)
+  */
 }

@@ -1,4 +1,4 @@
-package chains 
+package models
 
 import (
   "time"
@@ -33,20 +33,20 @@ type Transaction struct {
 // BlockIndexRecord contains general index records parameters
 // It defines the structure of the postgres table
 type BlockHeader struct {
-  NVersion          int32    // Version
-  NHeight           int32    `gorm:"primary_key"` // NOT NULL & UNIQUE (TODO: Combination primary key)
-  NStatus           uint32
-  NTx               uint32
-  NFile             int32
-  NDataPos          uint32
-  NUndoPos          uint32
-  HashBlock         Hash256  `gorm:"-"` // current block hash
-  HashPrevBlock     Hash256  // previous block hash
-  HashMerkleRoot    Hash256  //
-  NTime             time.Time  //
-  NBits             uint32     //
-  NNonce            uint32     //
-  TargetDifficulty  uint32 // bits
+  NVersion          int32     `db:"n_version"`    // Version
+  NHeight           int32     `db:"n_height"`             // (Index)
+  NStatus           uint32    `db:"n_status"`// (Index)
+  NTx               uint32    `db:"n_tx"`// (Index)
+  NFile             int32     `db:"n_file"`// (Index)
+  NDataPos          uint32    `db:"n_data_pos"`// (Index)
+  NUndoPos          uint32    `db:"n_undo_pos"`// (Index)
+  HashBlock         Hash256   `db:"hash_block"`// current block hash (Added)
+  HashPrevBlock     Hash256   `db:"hash_prev_block"`// previous block hash (Index)
+  HashMerkleRoot    Hash256   `db:"hash_merkle_root"`// (Index)
+  NTime             time.Time `db:"n_time"`// (Index)
+  NBits             uint32    `db:"n_bits"`// (Index)
+  NNonce            uint32    `db:"n_nonce"`// (Index)
+  TargetDifficulty  uint32    `db:"target_difficulty"`//
 }
 
 type Block struct {

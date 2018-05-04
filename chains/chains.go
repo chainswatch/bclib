@@ -1,8 +1,7 @@
 package chains
 
 import (
-  "app/db"
-  "fmt"
+  db "app/chains/repository"
 )
 
 type chains interface {
@@ -20,23 +19,14 @@ func BlockCoreScanner(c chains, nHeight int) {
 
 // startPg starts the postgres migration process
 func startPg() {
-  pg := db.ConnectPg()
-  err := pg.CreateTable(&Block{}).Error
-  if err != nil {
-    fmt.Println("Create Table Error:", err)
-  }
-  err = pg.CreateTable(&Transaction{}, &TxInput{}).Error
-  if err != nil {
-    fmt.Println("Create Table Error:", err)
-  }
-  fmt.Println("TABLES CREATED")
+	db.CreateBtc()
 }
 
 func ChainsWatcher() {
   //var qrlDataDir string = "./data/qrl/.qrl/data"
 
   btcBlock := &BtcBlock{}
-  btcBlock.DataDir = "./chains/data/btc"
+  btcBlock.DataDir = "/data/chains/btc"
 
   startPg()
 
@@ -45,5 +35,7 @@ func ChainsWatcher() {
   // TODO: Use http://chainquery.com/bitcoin-api/getbestblockhash
   btcBlock.getBlockHashInBytes([]byte("000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506"))
   BlockHeaderScanner(btcBlock, 5)
-  BlockCoreScanner(btcBlock, 5)
+  btcBlock2 := &BtcBlock{}
+  btcBlock2.DataDir = "/data/chains/btc"
+  BlockCoreScanner(btcBlock2, 5)
 }

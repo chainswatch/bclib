@@ -1,7 +1,8 @@
 package chains
 
 import (
-  "app/db"
+  "app/models"
+  db "app/chains/repository"
   "fmt"
 )
 
@@ -26,11 +27,11 @@ const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 * - uint32_t nLockTime
 */
 
-func (btc *BtcBlock) parseBlockTransactionFromFile() (*Transaction, error) {
+func (btc *BtcBlock) parseBlockTransactionFromFile() (*models.Transaction, error) {
   // curPos, err := btc.Seek(0, 1)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
-  tx := &Transaction{}
+  tx := &models.Transaction{}
   // tx.StartPos = uint64(curPos)
   tx.NVersion = btc.ReadInt32() // 
 
@@ -51,7 +52,7 @@ func (btc *BtcBlock) parseBlockTransactionFromFile() (*Transaction, error) {
   }
 
   for i := uint64(0); i < txInputLength; i++ {
-    input := TxInput{}
+    input := models.TxInput{}
     input.Hash = btc.ReadBytes(32)
     input.Index = btc.ReadUint32() // TODO: Not sure if correctly read
     scriptLength := btc.ReadVarint()
@@ -62,7 +63,7 @@ func (btc *BtcBlock) parseBlockTransactionFromFile() (*Transaction, error) {
 
   txOutputLength := btc.ReadVarint()
   for i := uint64(0); i < txOutputLength; i++ {
-    output := TxOutput{}
+    output := models.TxOutput{}
     output.Value = int64(btc.ReadUint64())
     scriptLength := btc.ReadVarint()
     output.Script = btc.ReadBytes(scriptLength)
