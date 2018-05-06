@@ -33,9 +33,9 @@ func ChainsWatcher() {
   // failIfReindexing(indexDb)
   // TODO: Init all tables. (db.AutoMigrate(&Model1{}, &Model2{}, &Model3{})
   // TODO: Use http://chainquery.com/bitcoin-api/getbestblockhash
-  btcBlock.getBlockHashInBytes([]byte("000000000003ba27aa200b1cecaad478d2b00432346c3f1f3986da1afd33e506"))
-  BlockHeaderScanner(btcBlock, 5)
+  btcBlock.getBlockHashInBytes([]byte("0000000026f34d197f653c5e80cb805e40612eadb0f45d00d7ea4164a20faa33"))
+  BlockHeaderScanner(btcBlock, 51)
   btcBlock2 := &BtcBlock{}
   btcBlock2.DataDir = "/data/chains/btc"
-  BlockCoreScanner(btcBlock2, 5)
+  BlockCoreScanner(btcBlock2, 0)
 }

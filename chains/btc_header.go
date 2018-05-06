@@ -3,6 +3,7 @@ package chains
 import (
   db "app/chains/repository"
   log "github.com/sirupsen/logrus"
+  "strings"
   "fmt"
   "time"
   "encoding/hex"
@@ -75,12 +76,11 @@ func (btc *BtcBlock) getBlockHeaders(nBlocks int) {
     // Copy, then insert in DB
     _, err := db.InsertHeader(pg, btc.BlockHeader)
     if err != nil {
-      log.Warn(err)
+      if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+        log.Warn(err)
+      }
     }
   }
-  /*
-  var id int
-  err := db.Get(&id, "SELECT count(*) FROM place")
-  log.Info(id)
-  */
+  id, _ := db.GetRowCount(pg, "blocks")
+  log.Info("blocks has ", id, " rows")
 }

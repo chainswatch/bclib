@@ -2,31 +2,30 @@ package models
 
 import (
   "time"
-  // "github.com/jinzhu/gorm"
 )
 
 type Script []byte
 type Hash256 []byte
 
 type TxInput struct {
-  TransactionID     uint
-  Hash              Hash256     `gorm:"-"`
-	Index             uint32
-	Script            Script
-	Sequence          uint32
-  ScriptWitness     [][]byte    `gorm:"-"`
+  Hash              Hash256     `db:"hash"`
+  Index             uint32      `db:"index"`
+  Script            Script      `db:"script"`
+  Sequence          uint32      `db:"sequence"`
+  ScriptWitness     [][]byte
 }
 
 type TxOutput struct {
-	Value             int64
-	Script            Script
+  Value             int64       `db:"value"`
+  Script            Script      `db:"script"`
 }
 
 type Transaction struct {
-	NVersion          int32
-  TxInputs          []TxInput
-  TxOutputs         []TxOutput  `gorm:"-"`
-	Locktime          uint32
+  NVersion          int32       `db:"n_version"`
+  Hash              Hash256     `db:"tx_hash"`
+  Vin               []TxInput
+  Vout              []TxOutput
+  Locktime          uint32      `db:"locktime"`
 	// StartPos      uint64 // not actually in blockchain data
 }
 
@@ -50,10 +49,7 @@ type BlockHeader struct {
 }
 
 type Block struct {
-  CreatedAt     time.Time
-  UpdatedAt     time.Time
-  DeletedAt     *time.Time
   BlockHeader
   Length        uint32
-  Transactions  []Transaction `gorm:"-"` // don't store
+  Transactions  []Transaction
 }

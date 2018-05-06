@@ -1,6 +1,10 @@
 package chains
 
-import "encoding/binary"
+import (
+	"crypto/sha256"
+  "app/models"
+  "encoding/binary"
+)
 
 // TODO: Improve this to use Buffer interface
 type DataBuf struct {
@@ -88,4 +92,13 @@ func reverseHex(b []byte) []byte {
   }
 
   return newb
+}
+
+func DoubleSha256(data []byte) models.Hash256 {
+	hash := sha256.New()
+	hash.Write(data)
+	firstSha256 := hash.Sum(nil)
+	hash.Reset()
+	hash.Write(firstSha256)
+	return hash.Sum(nil)
 }
