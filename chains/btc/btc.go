@@ -1,4 +1,4 @@
-package chains
+package btc
 
 import (
   "app/models"
@@ -12,12 +12,16 @@ import (
 type MagicID uint32
 
 // BtcBlockIndexRecord contains index records parameters specitic to BTC
-type BtcBlock struct {
+type Btc struct {
   IndexDb       *leveldb.DB
 	file          *os.File
   DataDir       string
   MagicID       MagicID
   models.Block
+}
+
+func NewBtc(dataDir string) *Btc {
+  return &Btc{DataDir: dataDir}
 }
 
 const (

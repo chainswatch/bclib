@@ -16,7 +16,7 @@ func GetRowCount(db *sqlx.DB, table string) (int, error) {
 }
 
 func GetHeaderFromHeight(db *sqlx.DB, nHeight int) (models.BlockHeader, error) {
-  query := fmt.Sprintf("SELECT n_height, n_file, n_data_pos, n_undo_pos, hash_block FROM blocks WHERE n_height=$1")
+  query := fmt.Sprintf("SELECT n_height, n_tx, n_file, n_data_pos, n_undo_pos, hash_block FROM blocks WHERE n_height=$1")
   res := models.BlockHeader{}
   err := db.Get(&res, query, nHeight)
   return res, err
@@ -36,6 +36,7 @@ func InsertTransaction(db *sqlx.DB, m models.Transaction, hash_block models.Hash
     $4
   )
   `
+  log.Info(m.Hash)
   return db.Query(query, m.Hash, hash_block, m.NVersion, m.Locktime)
 }
 
@@ -73,7 +74,6 @@ func InsertOutput(db *sqlx.DB, m models.TxOutput, tx_hash models.Hash256) (*sql.
   return db.Query(query, tx_hash, m.Value, m.Script)
 }
 
-
 func InsertHeader(db *sqlx.DB, m models.BlockHeader) (sql.Result, error) {
   query := `INSERT INTO blocks (
 		n_version,
@@ -107,73 +107,3 @@ func InsertHeader(db *sqlx.DB, m models.BlockHeader) (sql.Result, error) {
     return db.NamedExec(query, m)
 }
 
-func CreateBtc() {
-	db := ConnectPg()
-  defer db.Close()
-	schema := `
-  DROP TABLE IF EXISTS blocks CASCADE;
-  CREATE TABLE blocks (
-		created_at timestamp with time zone,
-		n_version integer,
-		n_height integer NOT NULL UNIQUE,
-		n_status bigint,
-		n_tx bigint,
-		n_file integer,
-		n_data_pos bigint,
-		n_undo_pos bigint,
-		hash_block bytea UNIQUE,
-		hash_prev_block bytea,
-		hash_merkle_root bytea,
-		n_time timestamp with time zone,
-		n_bits bigint,
-		n_nonce bigint,
-		target_difficulty bigint,
-		length bigint,
-    price numeric(12,4),
-		CONSTRAINT blocks_pkey PRIMARY KEY (n_height)
-	);`
-  _, err := db.Exec(schema)
-  if err != nil {
-    log.Warn(err)
-  }
-	schema = `
-  DROP TABLE IF EXISTS transactions CASCADE;
-  CREATE TABLE transactions (
-    tx_hash bytea NOT NULL UNIQUE,
-    hash_block bytea REFERENCES blocks(hash_block) ON DELETE CASCADE,
-    n_version integer,
-    locktime bigint
-	);`
-  _, err = db.Exec(schema)
-  if err != nil {
-    log.Warn(err)
-  }
-	schema = `
-  DROP TABLE IF EXISTS tx_inputs;
-  CREATE TABLE tx_inputs (
-    tx_hash bytea REFERENCES transactions(tx_hash) ON DELETE CASCADE,
-    hash bytea,
-    index bigint,
-    script bytea,
-    sequence bigint,
-    PRIMARY KEY (tx_hash)
-	);`
-	db.Exec(schema)
-  _, err = db.Exec(schema)
-  if err != nil {
-    log.Warn(err)
-  }
-	schema = `
-  DROP TABLE IF EXISTS tx_outputs;
-  CREATE TABLE tx_outputs (
-    tx_hash bytea REFERENCES transactions(tx_hash) ON DELETE CASCADE,
-    value bigint,
-    script bytea,
-    PRIMARY KEY (tx_hash)
-	);`
-	db.Exec(schema)
-  _, err = db.Exec(schema)
-  if err != nil {
-    log.Warn(err)
-  }
-}

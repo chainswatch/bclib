@@ -1,6 +1,7 @@
-package chains
+package btc
 
 import (
+  "app/chains/parser"
   db "app/chains/repository"
   log "github.com/sirupsen/logrus"
   "strings"
@@ -11,7 +12,7 @@ import (
 
 // Parse raw data bytes
 // https://github.com/bitcoin/bitcoin/blob/v0.15.1/src/chain.h#L387L407
-func (btc *BtcBlock) getBlockHeader() {
+func (btc *Btc) getBlockHeader() {
   //fmt.Printf("Begin: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
 
   // Get data
@@ -22,7 +23,7 @@ func (btc *BtcBlock) getBlockHeader() {
   // fmt.Printf("rawBlockHeader: %v\n", data)
 
   // Parse the raw bytes
-  dataBuf := NewDataBuf(data)
+  dataBuf := parser.NewDataBuf(data)
   //fmt.Printf("rawData: %v\n", b)
   //dataHex := hex.EncodeToString(b)
   //fmt.Printf("rawData: %v\n", dataHex)
@@ -31,11 +32,11 @@ func (btc *BtcBlock) getBlockHeader() {
   // FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
   dataBuf.ShiftVarint()
 
-  btc.NHeight = int32(dataBuf.ShiftVarint())
+  btc.NHeight = uint32(dataBuf.ShiftVarint())
   btc.NStatus = uint32(dataBuf.ShiftVarint())
   btc.NTx = uint32(dataBuf.ShiftVarint())
   if btc.NStatus & (BLOCK_HAVE_DATA|BLOCK_HAVE_UNDO) > 0 {
-    btc.NFile = int32(dataBuf.ShiftVarint())
+    btc.NFile = uint32(dataBuf.ShiftVarint())
   }
   if btc.NStatus & BLOCK_HAVE_DATA > 0 {
     btc.NDataPos = uint32(dataBuf.ShiftVarint())
@@ -55,7 +56,7 @@ func (btc *BtcBlock) getBlockHeader() {
   //fmt.Printf("End: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
 }
 
-func (btc *BtcBlock) getBlockHashInBytes(hash []byte) {
+func (btc *Btc) GetBlockHashInBytes(hash []byte) {
   blockHashInBytes := make([]byte, hex.DecodedLen(len(hash)))
   n, err := hex.Decode(blockHashInBytes, hash)
   if err != nil {
@@ -65,7 +66,7 @@ func (btc *BtcBlock) getBlockHashInBytes(hash []byte) {
   btc.HashPrevBlock = reverseHex(blockHashInBytes[:n])
 }
 
-func (btc *BtcBlock) getBlockHeaders(nBlocks int) {
+func (btc *Btc) GetBlockHeaders(nBlocks int) {
   btc.IndexDb, _ = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
   defer btc.IndexDb.Close()
 

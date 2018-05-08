@@ -33,10 +33,10 @@ type Transaction struct {
 // It defines the structure of the postgres table
 type BlockHeader struct {
   NVersion          int32     `db:"n_version"`    // Version
-  NHeight           int32     `db:"n_height"`             // (Index)
+  NHeight           uint32    `db:"n_height"`             // (Index)
   NStatus           uint32    `db:"n_status"`// (Index)
   NTx               uint32    `db:"n_tx"`// (Index)
-  NFile             int32     `db:"n_file"`// (Index)
+  NFile             uint32    `db:"n_file"`// (Index)
   NDataPos          uint32    `db:"n_data_pos"`// (Index)
   NUndoPos          uint32    `db:"n_undo_pos"`// (Index)
   HashBlock         Hash256   `db:"hash_block"`// current block hash (Added)

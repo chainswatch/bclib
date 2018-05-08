@@ -1,59 +1,79 @@
-package chains
+package parser
 
 import(
   "bytes"
+  "fmt"
   "encoding/binary"
+  "os"
 )
 
-func (blockFile *BtcBlock) Close() {
+type BlockFile struct {
+  file      *os.File
+  FileNum   uint32
+}
+
+func NewBlockFile(blockchainDataDir string, fileNum uint32) (*BlockFile, error) {
+	filepath := fmt.Sprintf(blockchainDataDir + "/blocks/blk%05d.dat", fileNum)
+	//fmt.Printf("Opening file %s...\n", filepath)
+
+	file, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
+	if err != nil {
+		return nil, err
+	}
+
+	return &BlockFile{file: file, FileNum: fileNum}, nil
+}
+
+// TODO: Change *Btc into *file
+func (blockFile *BlockFile) Close() {
 	blockFile.file.Close()
 }
 
-func (blockFile *BtcBlock) Seek(offset int64, whence int) (int64, error) {
-	return blockFile.file.Seek(offset, whence)
+func (blockFile *BlockFile) Seek(offset int64, whence int) (int64, error) {
+	return blockFile.Seek(offset, whence)
 }
 
-func (blockFile *BtcBlock) Size() (int64, error) {
-	fileInfo, err := blockFile.file.Stat()
+func (blockFile *BlockFile) Size() (int64, error) {
+	blockFileInfo, err := blockFile.file.Stat()
 	if err != nil {
 		return 0, err
 	}
-	return fileInfo.Size(), err
+	return blockFileInfo.Size(), err
 }
 
-func (blockFile *BtcBlock) Peek(length int) ([]byte, error) {
-	pos, err := blockFile.file.Seek(0, 1)
+func (blockFile *BlockFile) Peek(length int) ([]byte, error) {
+	pos, err := blockFile.Seek(0, 1)
 	if err != nil {
 		return nil, err
 	}
 	val := make([]byte, length)
 	blockFile.file.Read(val)
-	_, err = blockFile.file.Seek(pos, 0)
+	_, err = blockFile.Seek(pos, 0)
 	if err != nil {
 		return nil, err
 	}
 	return val, nil
 }
 
-func (blockFile *BtcBlock) ReadByte() byte {
+func (blockFile *BlockFile) ReadByte() byte {
 	val := make([]byte, 1)
 	blockFile.file.Read(val)
 	return val[0]
 }
 
-func (blockFile *BtcBlock) ReadBytes(length uint64) []byte {
+func (blockFile *BlockFile) ReadBytes(length uint64) []byte {
 	val := make([]byte, length)
 	blockFile.file.Read(val)
 	return val
 }
 
-func (blockFile *BtcBlock) ReadUint16() uint16 {
+func (blockFile *BlockFile) ReadUint16() uint16 {
 	val := make([]byte, 2)
 	blockFile.file.Read(val)
 	return binary.LittleEndian.Uint16(val)
 }
 
-func (blockFile *BtcBlock) ReadInt32() int32 {
+func (blockFile *BlockFile) ReadInt32() int32 {
 	raw := make([]byte, 4)
 	blockFile.file.Read(raw)
 	var val int32
@@ -61,13 +81,13 @@ func (blockFile *BtcBlock) ReadInt32() int32 {
 	return val
 }
 
-func (blockFile *BtcBlock) ReadUint32() uint32 {
+func (blockFile *BlockFile) ReadUint32() uint32 {
 	val := make([]byte, 4)
 	blockFile.file.Read(val)
 	return binary.LittleEndian.Uint32(val)
 }
 
-func (blockFile *BtcBlock) ReadInt64() int64 {
+func (blockFile *BlockFile) ReadInt64() int64 {
 	raw := make([]byte, 8)
 	blockFile.file.Read(raw)
 	var val int64
@@ -75,13 +95,13 @@ func (blockFile *BtcBlock) ReadInt64() int64 {
 	return val
 }
 
-func (blockFile *BtcBlock) ReadUint64() uint64 {
+func (blockFile *BlockFile) ReadUint64() uint64 {
 	val := make([]byte, 8)
 	blockFile.file.Read(val)
 	return binary.LittleEndian.Uint64(val)
 }
 
-//func (blockFile *BtcBlock) ReadVarint() uint64 {
+//func (blockFile *BlockFile) ReadVarint() uint64 {
 //	chSize := blockFile.ReadByte()
 //	if chSize < 253 {
 //		return uint64(chSize)
@@ -94,7 +114,7 @@ func (blockFile *BtcBlock) ReadUint64() uint64 {
 //	}
 //}
 
-func (blockFile *BtcBlock) ReadVarint() uint64 {
+func (blockFile *BlockFile) ReadVarint() uint64 {
 	intType := blockFile.ReadByte()
 	if intType == 0xFF {
 		return blockFile.ReadUint64()

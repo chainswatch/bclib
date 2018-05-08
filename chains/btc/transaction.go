@@ -1,7 +1,8 @@
-package chains
+package btc
 
 import (
   "app/models"
+  "app/chains/parser"
   db "app/chains/repository"
   log "github.com/sirupsen/logrus"
   "encoding/binary"
@@ -29,85 +30,64 @@ const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 * - uint32_t nLockTime
 */
 
-func (btc *BtcBlock) parseBlockTransactionFromFile() (*models.Transaction, error) {
+func (btc *Btc) parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transaction, error) {
   // curPos, err := btc.Seek(0, 1)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
   tx := &models.Transaction{}
   // tx.StartPos = uint64(curPos)
-  tx.NVersion = btc.ReadInt32() // 
+  tx.NVersion = blockFile.ReadInt32() // 
 
   // Check for extended transaction serialization format
   var txInputLength uint64
   var txFlag byte
   // Try to read. Look for dummy
-  p, _ := btc.Peek(1)
+  p, _ := blockFile.Peek(1)
   if p[0] == 0 {
     // We are dealing with extended transaction
-    btc.ReadByte()          // dummy (0x00)
-    txFlag = btc.ReadByte() // flags (!=0)
+    blockFile.ReadByte()          // dummy (0x00)
+    txFlag = blockFile.ReadByte() // flags (!=0)
     if (txFlag != 0) {
-      txInputLength = btc.ReadVarint()
+      txInputLength = blockFile.ReadVarint()
     }
   } else {
-    txInputLength = btc.ReadVarint()
+    txInputLength = blockFile.ReadVarint()
   }
 
   for i := uint64(0); i < txInputLength; i++ {
     input := models.TxInput{}
-    input.Hash = btc.ReadBytes(32)
-    input.Index = btc.ReadUint32() // TODO: Not sure if correctly read
-    scriptLength := btc.ReadVarint()
-    input.Script = btc.ReadBytes(scriptLength)
-    input.Sequence = btc.ReadUint32()
+    input.Hash = blockFile.ReadBytes(32)
+    input.Index = blockFile.ReadUint32() // TODO: Not sure if correctly read
+    scriptLength := blockFile.ReadVarint()
+    input.Script = blockFile.ReadBytes(scriptLength)
+    input.Sequence = blockFile.ReadUint32()
     tx.Vin = append(tx.Vin, input)
   }
 
-  txOutputLength := btc.ReadVarint()
+  txOutputLength := blockFile.ReadVarint()
   for i := uint64(0); i < txOutputLength; i++ {
     output := models.TxOutput{}
-    output.Value = int64(btc.ReadUint64())
-    scriptLength := btc.ReadVarint()
-    output.Script = btc.ReadBytes(scriptLength)
+    output.Value = int64(blockFile.ReadUint64())
+    scriptLength := blockFile.ReadVarint()
+    output.Script = blockFile.ReadBytes(scriptLength)
     tx.Vout = append(tx.Vout, output)
   }
 
   if (txFlag & 1) == 1 && allowWitness {
     txFlag ^= 1 // Not sure what this is for
     for i := uint64(0); i < txInputLength; i++ {
-      witnessCount := btc.ReadVarint()
+      witnessCount := blockFile.ReadVarint()
       tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
       for j := uint64(0); j < witnessCount; j++ {
-        length := btc.ReadVarint()
-        tx.Vin[i].ScriptWitness[j] = btc.ReadBytes(length)
+        length := blockFile.ReadVarint()
+        tx.Vin[i].ScriptWitness[j] = blockFile.ReadBytes(length)
       }
     }
   }
 
-  tx.Locktime = btc.ReadUint32()
+  tx.Locktime = blockFile.ReadUint32()
 
   return tx, nil
-}
-
-func (btc *BtcBlock) getTransaction() {
-  f, _ := db.GetFlag(btc.IndexDb, []byte("txindex"))
-  if !f {
-    fmt.Println("txindex is not enabled for your bitcoind")
-  }
-  /*
-  result, err := db.GetTxIndexRecordByBigEndianHex(indexDb, args[1])
-  if err != nil {
-    log.Fatal(err)
-  }
-  fmt.Printf("%+v\n", result)
-
-  tx, err := blockchainparser.NewTxFromFile(datadir, magicId, uint32(result.NFile), result.NDataPos, result.NTxOffset)
-  if err != nil {
-    log.Fatal(err)
-  }
-
-  fmt.Printf("%+v\n", tx)
-  */
 }
 
 func varint(n uint64) []byte {
@@ -164,9 +144,9 @@ func getOutputBinary(out models.TxOutput) []byte {
 }
 
 // Compute transaction hash
-func putTransactionHash(tx *models.Transaction) models.Hash256 {
+func putTransactionHash(tx *models.Transaction) {
 	if tx.Hash != nil {
-		return tx.Hash
+		return
 	}
 
 	bin := make([]byte, 0)
@@ -206,25 +186,47 @@ func putTransactionHash(tx *models.Transaction) models.Hash256 {
 	binary.LittleEndian.PutUint32(locktime, tx.Locktime)
 	bin = append(bin, locktime...)
 
-	tx.Hash = reverseHex(DoubleSha256(bin))
-	return tx.Hash
+	tx.Hash = DoubleSha256(bin)
 }
 
-func (btc *BtcBlock) parseBlockTransactionsFromFile() error {
+func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
   // Read transaction count to know how many transactions to parse
-  TransactionCount := btc.ReadVarint()
+  TransactionCount := blockFile.ReadVarint()
   // TODO: TransactionCount : Compare with Index stored value (NTx)
-  log.Info(fmt.Sprintf("Total txns: %d vs %d", TransactionCount, btc.NTx))
+  // log.Info(fmt.Sprintf("Total txns: %d vs %d", TransactionCount, btc.NTx))
+  btc.Transactions = nil
   for t := uint64(0); t < TransactionCount; t++ {
-    tx, err := btc.parseBlockTransactionFromFile()
+    tx, err := btc.parseBlockTransactionFromFile(blockFile)
     if err != nil {
       return err
     }
-    log.Info(fmt.Sprintf("Transaction: %+v\n", tx))
     putTransactionHash(tx)
-    log.Info(fmt.Sprintf("Transaction hash: %x", tx.Hash))
+    log.Info(fmt.Sprintf("Transaction hash: %x", reverseHex(tx.Hash)))
     btc.Transactions = append(btc.Transactions, *tx)
   }
   return nil
 }
 
+func (btc *Btc) getTransaction() {
+  f, err := db.GetFlag(btc.IndexDb, []byte("txindex"))
+  if err != nil {
+    log.Warn(err)
+  }
+  if !f {
+    fmt.Println("txindex is not enabled for your bitcoind")
+  }
+  /*
+  result, err := db.GetTxIndexRecordByBigEndianHex(indexDb, args[1])
+  if err != nil {
+    log.Fatal(err)
+  }
+  fmt.Printf("%+v\n", result)
+
+  tx, err := blockchainparser.NewTxFromFile(datadir, magicId, uint32(result.NFile), result.NDataPos, result.NTxOffset)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  fmt.Printf("%+v\n", tx)
+  */
+}
