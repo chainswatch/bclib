@@ -5,8 +5,14 @@ import (
   "github.com/jmoiron/sqlx"
   "app/models"
   "fmt"
-  log "github.com/sirupsen/logrus"
 )
+
+func GetLastBlockHeader(db *sqlx.DB) (models.BlockHeader, error) {
+  query := fmt.Sprintf("SELECT n_height, n_file, n_data_pos FROM blocks ORDER BY n_height DESC LIMIT 1")
+  res := models.BlockHeader{}
+  err := db.Get(&res, query)
+  return res, err
+}
 
 func GetRowCount(db *sqlx.DB, table string) (int, error) {
   var id int
@@ -16,17 +22,17 @@ func GetRowCount(db *sqlx.DB, table string) (int, error) {
 }
 
 func GetHeaderFromHeight(db *sqlx.DB, nHeight int) (models.BlockHeader, error) {
-  query := fmt.Sprintf("SELECT n_height, n_tx, n_file, n_data_pos, n_undo_pos, hash_block FROM blocks WHERE n_height=$1")
+  query := fmt.Sprintf("SELECT n_file, n_data_pos FROM blocks WHERE n_height=$1")
   res := models.BlockHeader{}
   err := db.Get(&res, query, nHeight)
   return res, err
 }
 
-func InsertTransaction(db *sqlx.DB, m models.Transaction, hash_block models.Hash256) (*sql.Rows, error) {
+func InsertTransaction(db *sqlx.DB, m models.Transaction, n_height uint32) error {
   query := `
   INSERT INTO transactions (
     tx_hash,
-    hash_block,
+    n_height,
     n_version,
     locktime
   ) VALUES (
@@ -36,11 +42,14 @@ func InsertTransaction(db *sqlx.DB, m models.Transaction, hash_block models.Hash
     $4
   )
   `
-  log.Info(m.Hash)
-  return db.Query(query, m.Hash, hash_block, m.NVersion, m.Locktime)
+  res, err := db.Query(query, m.Hash, n_height, m.NVersion, m.Locktime)
+  if err == nil {
+    defer res.Close()
+  }
+  return err
 }
 
-func InsertInput(db *sqlx.DB, m models.TxInput, tx_hash models.Hash256) (*sql.Rows, error) {
+func InsertInput(db *sqlx.DB, m models.TxInput, tx_hash models.Hash256) error {
   query := `
   INSERT INTO tx_inputs (
     tx_hash,
@@ -56,10 +65,14 @@ func InsertInput(db *sqlx.DB, m models.TxInput, tx_hash models.Hash256) (*sql.Ro
     $5
   )
   `
-  return db.Query(query, tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
+  res, err := db.Query(query, tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
+  if err == nil {
+    defer res.Close()
+  }
+  return err
 }
 
-func InsertOutput(db *sqlx.DB, m models.TxOutput, tx_hash models.Hash256) (*sql.Rows, error) {
+func InsertOutput(db *sqlx.DB, m models.TxOutput, tx_hash models.Hash256) error {
   query := `
   INSERT INTO tx_outputs (
     tx_hash,
@@ -71,39 +84,42 @@ func InsertOutput(db *sqlx.DB, m models.TxOutput, tx_hash models.Hash256) (*sql.
     $3
   )
   `
-  return db.Query(query, tx_hash, m.Value, m.Script)
+  res, err :=  db.Query(query, tx_hash, m.Value, m.Script)
+  if err == nil {
+    defer res.Close()
+  }
+  return err
 }
 
 func InsertHeader(db *sqlx.DB, m models.BlockHeader) (sql.Result, error) {
   query := `INSERT INTO blocks (
-		n_version,
-		n_height,
-		n_status,
-		n_tx,
-		n_file,
-		n_data_pos,
-		n_undo_pos,
-		hash_block,
-		hash_prev_block,
-		hash_merkle_root,
-		n_time,
-		n_bits,
-		n_nonce
-		) VALUES (
-      :n_version,
-      :n_height,
-      :n_status,
-      :n_tx,
-      :n_file,
-      :n_data_pos,
-      :n_undo_pos,
-      :hash_block,
-      :hash_prev_block,
-      :hash_merkle_root,
-      :n_time,
-      :n_bits,
-      :n_nonce
-    )`
-    return db.NamedExec(query, m)
+    n_version,
+    n_height,
+    n_status,
+    n_tx,
+    n_file,
+    n_data_pos,
+    n_undo_pos,
+    hash_block,
+    hash_prev_block,
+    hash_merkle_root,
+    n_time,
+    n_bits,
+    n_nonce
+  ) VALUES (
+    :n_version,
+    :n_height,
+    :n_status,
+    :n_tx,
+    :n_file,
+    :n_data_pos,
+    :n_undo_pos,
+    :hash_block,
+    :hash_prev_block,
+    :hash_merkle_root,
+    :n_time,
+    :n_bits,
+    :n_nonce
+  )`
+  return db.NamedExec(query, m)
 }
-

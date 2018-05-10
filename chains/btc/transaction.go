@@ -1,6 +1,7 @@
 package btc
 
 import (
+  "app/misc"
   "app/models"
   "app/chains/parser"
   db "app/chains/repository"
@@ -186,7 +187,7 @@ func putTransactionHash(tx *models.Transaction) {
 	binary.LittleEndian.PutUint32(locktime, tx.Locktime)
 	bin = append(bin, locktime...)
 
-	tx.Hash = DoubleSha256(bin)
+	tx.Hash = misc.DoubleSha256(bin)
 }
 
 func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
@@ -201,7 +202,7 @@ func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) erro
       return err
     }
     putTransactionHash(tx)
-    log.Info(fmt.Sprintf("Transaction hash: %x", reverseHex(tx.Hash)))
+    // log.Info(fmt.Sprintf("Transaction hash: %x", misc.ReverseHex(tx.Hash)))
     btc.Transactions = append(btc.Transactions, *tx)
   }
   return nil

@@ -4,29 +4,16 @@ import (
   "app/chains/parser"
   db "app/chains/repository"
   log "github.com/sirupsen/logrus"
+  "github.com/syndtr/goleveldb/leveldb/util"
   "strings"
-  "fmt"
   "time"
-  "encoding/hex"
 )
 
 // Parse raw data bytes
 // https://github.com/bitcoin/bitcoin/blob/v0.15.1/src/chain.h#L387L407
-func (btc *Btc) getBlockHeader() {
-  //fmt.Printf("Begin: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
-
-  // Get data
-  data, err := btc.IndexDb.Get(append([]byte("b"), btc.HashPrevBlock...), nil)
-  if err != nil {
-    fmt.Println(err)
-  }
-  // fmt.Printf("rawBlockHeader: %v\n", data)
-
+func (btc *Btc) parseBlockHeaderData(data []byte) {
   // Parse the raw bytes
   dataBuf := parser.NewDataBuf(data)
-  //fmt.Printf("rawData: %v\n", b)
-  //dataHex := hex.EncodeToString(b)
-  //fmt.Printf("rawData: %v\n", dataHex)
 
   // Discard first varint
   // FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
@@ -46,42 +33,71 @@ func (btc *Btc) getBlockHeader() {
   }
 
   btc.NVersion = dataBuf.Shift32bit()
-  btc.HashBlock = append([]byte(nil), btc.HashPrevBlock...)
   btc.HashPrevBlock = dataBuf.ShiftBytes(32)
   btc.HashMerkleRoot = dataBuf.ShiftBytes(32)
   btc.NTime = time.Unix(int64(dataBuf.ShiftU32bit()), 0)
   btc.NBits = dataBuf.ShiftU32bit()
   btc.NNonce = dataBuf.ShiftU32bit()
-  //fmt.Printf("%+v\n", btc)
-  //fmt.Printf("End: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
 }
 
-func (btc *Btc) GetBlockHashInBytes(hash []byte) {
-  blockHashInBytes := make([]byte, hex.DecodedLen(len(hash)))
-  n, err := hex.Decode(blockHashInBytes, hash)
+func (btc *Btc) GetBlockHeaders() {
+  var err error
+  btc.IndexDb, err = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
   if err != nil {
-    fmt.Println(err)
+    log.Warn("Error:", err)
   }
-  // Reverse hex to get the LittleEndian order
-  btc.HashPrevBlock = reverseHex(blockHashInBytes[:n])
-}
-
-func (btc *Btc) GetBlockHeaders(nBlocks int) {
-  btc.IndexDb, _ = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
   defer btc.IndexDb.Close()
 
-  pg := db.ConnectPg()
-  defer pg.Close()
-  for i := 0; i < nBlocks; i++ {
-    btc.getBlockHeader() // TODO: Errors checks
+  iter := btc.IndexDb.NewIterator(util.BytesPrefix([]byte("b")), nil)
+  for iter.Next() {
+    btc.HashBlock = iter.Key()
+    data := iter.Value()
+    // log.Info(data)
+    btc.parseBlockHeaderData(data)
     // Copy, then insert in DB
-    _, err := db.InsertHeader(pg, btc.BlockHeader)
+    _, err = db.InsertHeader(btc.SqlDb, btc.BlockHeader)
     if err != nil {
       if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
         log.Warn(err)
       }
     }
   }
-  id, _ := db.GetRowCount(pg, "blocks")
+  iter.Release()
+  err = iter.Error()
+  if err != nil {
+    log.Warn(err)
+  }
+}
+
+/*
+func (btc *Btc) GetBlockHeader(nBlocks int) {
+  var err error
+  btc.IndexDb, err = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
+  if err != nil {
+    log.Warn("Error:", err)
+  }
+  defer btc.IndexDb.Close()
+
+  for i := 0; i < nBlocks; i++ {
+    //fmt.Printf("Begin: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
+
+    // Get data
+    data, err := btc.IndexDb.Get(append([]byte("b"), btc.HashPrevBlock...), nil)
+    if err != nil {
+      log.Warn(err)
+    }
+    btc.parseBlockHeaderData(data) // TODO: Errors checks
+    // fmt.Printf("rawBlockHeader: %v\n", data)
+
+    // Copy, then insert in DB
+    _, err = db.InsertHeader(btc.SqlDb, btc.BlockHeader)
+    if err != nil {
+      if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+        log.Warn(err)
+      }
+    }
+  }
+  id, _ := db.GetRowCount(btc.SqlDb, "blocks")
   log.Info("blocks has ", id, " rows")
 }
+*/

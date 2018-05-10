@@ -3,6 +3,7 @@ package btc
 import (
   "app/models"
   "github.com/syndtr/goleveldb/leveldb"
+  "github.com/jmoiron/sqlx"
   "os"
 )
 
@@ -14,6 +15,7 @@ type MagicID uint32
 // BtcBlockIndexRecord contains index records parameters specitic to BTC
 type Btc struct {
   IndexDb       *leveldb.DB
+  SqlDb         *sqlx.DB
 	file          *os.File
   DataDir       string
   MagicID       MagicID

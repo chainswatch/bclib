@@ -30,7 +30,7 @@ func (blockFile *BlockFile) Close() {
 }
 
 func (blockFile *BlockFile) Seek(offset int64, whence int) (int64, error) {
-	return blockFile.Seek(offset, whence)
+	return blockFile.file.Seek(offset, whence)
 }
 
 func (blockFile *BlockFile) Size() (int64, error) {
