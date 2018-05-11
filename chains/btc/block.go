@@ -15,31 +15,23 @@ const (
 )
 
 func (btc *Btc) insertBlock(pg *sqlx.DB) {
-  _, err := db.InsertHeader(pg, btc.BlockHeader)
+  pgtx, err := pg.Begin() // TODO: Error
   if err != nil {
-    log.Warn("Block Height=", btc.NHeight, err)
-    return
+    log.Fatal("Begin:", err)
   }
+  db.InsertHeader(pgtx, btc.BlockHeader)
   for _, tx := range(btc.Transactions) {
-    err := db.InsertTransaction(pg, tx, btc.NHeight)
-    if err != nil {
-      log.Warn("Block Height=", btc.NHeight, err)
-      break
-    }
+    db.InsertTransaction(pgtx, tx, btc.NHeight)
     for _, vin := range(tx.Vin) {
-      err = db.InsertInput(pg, vin, tx.Hash)
-      if err != nil {
-        log.Panic(err)
-        break
-      }
+      db.InsertInput(pgtx, vin, tx.Hash)
     }
     for _, vout := range(tx.Vout) {
-      err = db.InsertOutput(pg, vout, tx.Hash)
-      if err != nil {
-        log.Panic(err)
-        break
-      }
+      db.InsertOutput(pgtx, vout, tx.Hash)
     }
+  }
+  err = pgtx.Commit() // TODO: Error
+  if err != nil {
+    log.Fatal(err)
   }
 }
 
@@ -61,7 +53,7 @@ func (btc *Btc) ParseBlockFromFile(blockFile *parser.BlockFile, curPos int64) {
   btc.MagicID = MagicID(blockFile.ReadUint32())
   if btc.MagicID != BLOCK_MAGIC_ID_BITCOIN {
     blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
-    log.Warn("Invalid block header: Can't find Magic ID")
+    log.Fatal("Invalid block header: Can't find Magic ID")
     return
   }
 
@@ -100,13 +92,17 @@ func (btc *Btc) GetAllBlocks(maxHeight uint32) {
   res, err := db.GetLastBlockHeader(btc.SqlDb)
   if err != nil {
     log.Warn(err)
+  } else {
+    btc.BlockHeader = res
   }
-  btc.BlockHeader = res
   height := btc.NHeight + 1
   for ; height < maxHeight; height++ {
     btc.NHeight = uint32(height)
     btc.getBlockFromFile()
     btc.insertBlock(btc.SqlDb)
+    if height % 10000 == 0 {
+      log.Info(height)
+    }
   }
   // btc.getTransaction() // Using index
 }

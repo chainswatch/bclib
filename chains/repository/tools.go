@@ -1,6 +1,7 @@
 package repository
 
 import (
+  log "github.com/sirupsen/logrus"
   "database/sql"
   "github.com/jmoiron/sqlx"
   "app/models"
@@ -9,8 +10,9 @@ import (
 
 func GetLastBlockHeader(db *sqlx.DB) (models.BlockHeader, error) {
   query := fmt.Sprintf("SELECT n_height, n_file, n_data_pos FROM blocks ORDER BY n_height DESC LIMIT 1")
+  row := db.QueryRow(query)
   res := models.BlockHeader{}
-  err := db.Get(&res, query)
+  err := row.Scan(&res)
   return res, err
 }
 
@@ -28,7 +30,7 @@ func GetHeaderFromHeight(db *sqlx.DB, nHeight int) (models.BlockHeader, error) {
   return res, err
 }
 
-func InsertTransaction(db *sqlx.DB, m models.Transaction, n_height uint32) error {
+func InsertTransaction(tx *sql.Tx, m models.Transaction, n_height uint32) {
   query := `
   INSERT INTO transactions (
     tx_hash,
@@ -42,14 +44,13 @@ func InsertTransaction(db *sqlx.DB, m models.Transaction, n_height uint32) error
     $4
   )
   `
-  res, err := db.Query(query, m.Hash, n_height, m.NVersion, m.Locktime)
-  if err == nil {
-    defer res.Close()
+  _, err := tx.Exec(query, m.Hash, n_height, m.NVersion, m.Locktime)
+  if err != nil {
+    log.Fatal(err)
   }
-  return err
 }
 
-func InsertInput(db *sqlx.DB, m models.TxInput, tx_hash models.Hash256) error {
+func InsertInput(tx *sql.Tx, m models.TxInput, tx_hash models.Hash256) {
   query := `
   INSERT INTO tx_inputs (
     tx_hash,
@@ -65,14 +66,13 @@ func InsertInput(db *sqlx.DB, m models.TxInput, tx_hash models.Hash256) error {
     $5
   )
   `
-  res, err := db.Query(query, tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
-  if err == nil {
-    defer res.Close()
+  _, err := tx.Exec(query, tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
+  if err != nil {
+    log.Fatal(err)
   }
-  return err
 }
 
-func InsertOutput(db *sqlx.DB, m models.TxOutput, tx_hash models.Hash256) error {
+func InsertOutput(tx *sql.Tx, m models.TxOutput, tx_hash models.Hash256) {
   query := `
   INSERT INTO tx_outputs (
     tx_hash,
@@ -84,14 +84,13 @@ func InsertOutput(db *sqlx.DB, m models.TxOutput, tx_hash models.Hash256) error 
     $3
   )
   `
-  res, err :=  db.Query(query, tx_hash, m.Value, m.Script)
-  if err == nil {
-    defer res.Close()
+  _, err := tx.Exec(query, tx_hash, m.Value, m.Script)
+  if err != nil {
+    log.Fatal(err)
   }
-  return err
 }
 
-func InsertHeader(db *sqlx.DB, m models.BlockHeader) (sql.Result, error) {
+func InsertHeader(tx *sql.Tx, m models.BlockHeader) {
   query := `INSERT INTO blocks (
     n_version,
     n_height,
@@ -107,19 +106,24 @@ func InsertHeader(db *sqlx.DB, m models.BlockHeader) (sql.Result, error) {
     n_bits,
     n_nonce
   ) VALUES (
-    :n_version,
-    :n_height,
-    :n_status,
-    :n_tx,
-    :n_file,
-    :n_data_pos,
-    :n_undo_pos,
-    :hash_block,
-    :hash_prev_block,
-    :hash_merkle_root,
-    :n_time,
-    :n_bits,
-    :n_nonce
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8,
+    $9,
+    $10,
+    $11,
+    $12,
+    $13
   )`
-  return db.NamedExec(query, m)
+  _, err := tx.Exec(query, m.NVersion, m.NHeight, m.NStatus, m.NTx,
+    m.NFile, m.NDataPos, m.NUndoPos, m.HashBlock, m.HashPrevBlock,
+    m.HashMerkleRoot, m.NTime, m.NBits, m.NNonce)
+  if err != nil {
+    log.Fatal(err)
+  }
 }

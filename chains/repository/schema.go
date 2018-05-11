@@ -70,7 +70,7 @@ func CreateBlock(db *sqlx.DB, drop bool) {
   NewTable(db, "transactions", schema, drop)
   schema = `
   CREATE TABLE tx_inputs (
-    tx_hash bytea REFERENCES transactions(tx_hash) ON DELETE CASCADE,
+    tx_hash bytea,
     hash bytea,
     index bigint,
     script bytea,
@@ -79,7 +79,7 @@ func CreateBlock(db *sqlx.DB, drop bool) {
   NewTable(db, "tx_inputs", schema, drop)
   schema = `
   CREATE TABLE tx_outputs (
-    tx_hash bytea REFERENCES transactions(tx_hash) ON DELETE CASCADE,
+    tx_hash bytea,
     value bigint,
     script bytea
   );`
@@ -92,7 +92,7 @@ func Create(drop bool) *sqlx.DB {
   if err != nil {
     log.Fatal(err)
   }
-  CreateBlock(db, false)
+  CreateBlock(db, true)
   schema := `
   CREATE TABLE entities (
     entity_id bigint NOT NULL UNIQUE,

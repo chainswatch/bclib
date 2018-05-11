@@ -55,7 +55,7 @@ func (btc *Btc) GetBlockHeaders() {
     // log.Info(data)
     btc.parseBlockHeaderData(data)
     // Copy, then insert in DB
-    _, err = db.InsertHeader(btc.SqlDb, btc.BlockHeader)
+    // _, err = db.InsertHeader(btc.SqlDb, btc.BlockHeader)
     if err != nil {
       if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
         log.Warn(err)
