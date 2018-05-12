@@ -23,6 +23,8 @@ type TxOutput struct {
 type Transaction struct {
   NVersion          int32       `db:"n_version"`
   Hash              Hash256     `db:"tx_hash"`
+  NVin              uint32      `db:"n_vin"`
+  NVout             uint32      `db:"n_vout"`
   Vin               []TxInput
   Vout              []TxOutput
   Locktime          uint32      `db:"locktime"`
@@ -46,10 +48,10 @@ type BlockHeader struct {
   NBits             uint32    `db:"n_bits"`// (Index)
   NNonce            uint32    `db:"n_nonce"`// (Index)
   TargetDifficulty  uint32    `db:"target_difficulty"`//
+  Length            uint32
 }
 
 type Block struct {
   BlockHeader
-  Length        uint32
   Transactions  []Transaction
 }

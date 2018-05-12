@@ -10,7 +10,7 @@ import (
 type chains interface {
   // GetBlockHeader(int)
   GetBlockHeaders()
-  GetAllBlocks(uint32)
+  GetAllBlocks()
 }
 
 func BlockHeaderScanner(c chains) {
@@ -23,8 +23,8 @@ func BlockHeaderGetter(c chains, nBlocks int) {
 }
 */
 
-func BlockCoreScanner(c chains, nHeight uint32) {
-  c.GetAllBlocks(nHeight)
+func BlockCoreScanner(c chains) {
+  c.GetAllBlocks()
 }
 
 func ChainsWatcher() {
@@ -41,7 +41,7 @@ func ChainsWatcher() {
 
   log.Info("START")
   btc.HashPrevBlock = misc.HexToByte([]byte("00000000dfd5d65c9d8561b4b8f60a63018fe3933ecb131fb37f905f87da951a"))
-  BlockCoreScanner(btc, 120000)
+  BlockCoreScanner(btc)
   log.Info("DONE")
   //BlockHeaderScanner(btc)
   //BlockCoreScanner(btc, 2000)

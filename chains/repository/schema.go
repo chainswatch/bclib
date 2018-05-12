@@ -44,11 +44,11 @@ func CreateBlock(db *sqlx.DB, drop bool) {
     n_version integer,
     n_height integer NOT NULL UNIQUE,
     n_status bigint,
-    n_tx bigint,
+    n_tx integer,
     n_file integer,
     n_data_pos bigint,
     n_undo_pos bigint,
-    hash_block bytea,
+    hash_block bytea NOT NULL,
     hash_prev_block bytea,
     hash_merkle_root bytea,
     n_time timestamp with time zone,
@@ -65,12 +65,14 @@ func CreateBlock(db *sqlx.DB, drop bool) {
     tx_hash bytea NOT NULL UNIQUE,
     n_height integer REFERENCES blocks(n_height) ON DELETE CASCADE,
     n_version integer,
+    n_vin integer,
+    n_vout integer,
     locktime bigint
   );`
   NewTable(db, "transactions", schema, drop)
   schema = `
   CREATE TABLE tx_inputs (
-    tx_hash bytea,
+    tx_hash bytea REFERENCES transactions(tx_hash, n_height) ON DELETE CASCADE,
     hash bytea,
     index bigint,
     script bytea,
@@ -79,7 +81,7 @@ func CreateBlock(db *sqlx.DB, drop bool) {
   NewTable(db, "tx_inputs", schema, drop)
   schema = `
   CREATE TABLE tx_outputs (
-    tx_hash bytea,
+    tx_hash bytea REFERENCES transactions(tx_hash, n_height) ON DELETE CASCADE,
     value bigint,
     script bytea
   );`

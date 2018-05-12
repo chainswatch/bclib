@@ -31,7 +31,7 @@ const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 * - uint32_t nLockTime
 */
 
-func (btc *Btc) parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transaction, error) {
+func parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transaction, error) {
   // curPos, err := btc.Seek(0, 1)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
@@ -40,7 +40,7 @@ func (btc *Btc) parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*mod
   tx.NVersion = blockFile.ReadInt32() // 
 
   // Check for extended transaction serialization format
-  var txInputLength uint64
+  // var txInputLength uint64
   var txFlag byte
   // Try to read. Look for dummy
   p, _ := blockFile.Peek(1)
@@ -49,13 +49,15 @@ func (btc *Btc) parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*mod
     blockFile.ReadByte()          // dummy (0x00)
     txFlag = blockFile.ReadByte() // flags (!=0)
     if (txFlag != 0) {
-      txInputLength = blockFile.ReadVarint()
+      // txInputLength = blockFile.ReadVarint()
+      tx.NVin = uint32(blockFile.ReadVarint())
     }
   } else {
-    txInputLength = blockFile.ReadVarint()
+    // txInputLength = blockFile.ReadVarint()
+    tx.NVin = uint32(blockFile.ReadVarint())
   }
 
-  for i := uint64(0); i < txInputLength; i++ {
+  for i := uint32(0); i < tx.NVin; i++ {
     input := models.TxInput{}
     input.Hash = blockFile.ReadBytes(32)
     input.Index = blockFile.ReadUint32() // TODO: Not sure if correctly read
@@ -65,8 +67,9 @@ func (btc *Btc) parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*mod
     tx.Vin = append(tx.Vin, input)
   }
 
-  txOutputLength := blockFile.ReadVarint()
-  for i := uint64(0); i < txOutputLength; i++ {
+  // txOutputLength := blockFile.ReadVarint()
+  tx.NVout = uint32(blockFile.ReadVarint())
+  for i := uint32(0); i < tx.NVout; i++ {
     output := models.TxOutput{}
     output.Value = int64(blockFile.ReadUint64())
     scriptLength := blockFile.ReadVarint()
@@ -76,7 +79,7 @@ func (btc *Btc) parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*mod
 
   if (txFlag & 1) == 1 && allowWitness {
     txFlag ^= 1 // Not sure what this is for
-    for i := uint64(0); i < txInputLength; i++ {
+    for i := uint32(0); i < tx.NVin; i++ {
       witnessCount := blockFile.ReadVarint()
       tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
       for j := uint64(0); j < witnessCount; j++ {
@@ -151,9 +154,7 @@ func putTransactionHash(tx *models.Transaction) {
 	}
 
 	bin := make([]byte, 0)
-
 	//hasScriptWitness := tx.HasWitness()
-
 	version := make([]byte, 4)
 	binary.LittleEndian.PutUint32(version, uint32(tx.NVersion))
 	bin = append(bin, version...)
@@ -191,17 +192,14 @@ func putTransactionHash(tx *models.Transaction) {
 }
 
 func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
-  // Read transaction count to know how many transactions to parse
-  TransactionCount := blockFile.ReadVarint()
-  // TODO: TransactionCount : Compare with Index stored value (NTx)
-  // log.Info(fmt.Sprintf("Total txns: %d vs %d", TransactionCount, btc.NTx))
   btc.Transactions = nil
-  for t := uint64(0); t < TransactionCount; t++ {
-    tx, err := btc.parseBlockTransactionFromFile(blockFile)
+  for t := uint32(0); t < btc.NTx; t++ {
+    tx, err := parseBlockTransactionFromFile(blockFile)
     if err != nil {
       return err
     }
     putTransactionHash(tx)
+    tx.NVout = uint32(len(tx.Vout))
     // log.Info(fmt.Sprintf("Transaction hash: %x", misc.ReverseHex(tx.Hash)))
     btc.Transactions = append(btc.Transactions, *tx)
   }

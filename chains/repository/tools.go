@@ -9,10 +9,11 @@ import (
 )
 
 func GetLastBlockHeader(db *sqlx.DB) (models.BlockHeader, error) {
-  query := fmt.Sprintf("SELECT n_height, n_file, n_data_pos FROM blocks ORDER BY n_height DESC LIMIT 1")
+  query := fmt.Sprintf("SELECT n_height, n_file, n_data_pos, length FROM blocks ORDER BY n_height DESC LIMIT 1")
+  // query := fmt.Sprintf("SELECT * FROM (SELECT n_height, n_file, n_data_pos, length FROM blocks ORDER BY n_height DESC LIMIT 2) table_alias ORDER BY n_height LIMIT 1")
   row := db.QueryRow(query)
   res := models.BlockHeader{}
-  err := row.Scan(&res)
+  err := row.Scan(&res.NHeight, &res.NFile, &res.NDataPos, &res.Length)
   return res, err
 }
 
@@ -36,17 +37,23 @@ func InsertTransaction(tx *sql.Tx, m models.Transaction, n_height uint32) {
     tx_hash,
     n_height,
     n_version,
+    n_vin,
+    n_vout,
     locktime
   ) VALUES (
     $1,
     $2,
     $3,
-    $4
+    $4,
+    $5,
+    $6
   )
   `
-  _, err := tx.Exec(query, m.Hash, n_height, m.NVersion, m.Locktime)
+  _, err := tx.Exec(query,
+  m.Hash, n_height, m.NVersion, m.NVin, m.NVout, m.Locktime)
   if err != nil {
-    log.Fatal(err)
+    log.Warn(err)
+    log.Info(m.Hash)
   }
 }
 
@@ -68,7 +75,7 @@ func InsertInput(tx *sql.Tx, m models.TxInput, tx_hash models.Hash256) {
   `
   _, err := tx.Exec(query, tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
   if err != nil {
-    log.Fatal(err)
+    log.Warn(err)
   }
 }
 
@@ -86,44 +93,26 @@ func InsertOutput(tx *sql.Tx, m models.TxOutput, tx_hash models.Hash256) {
   `
   _, err := tx.Exec(query, tx_hash, m.Value, m.Script)
   if err != nil {
-    log.Fatal(err)
+    log.Warn(err)
   }
 }
 
-func InsertHeader(tx *sql.Tx, m models.BlockHeader) {
+func InsertHeader(tx *sql.Tx, m models.Block) {
   query := `INSERT INTO blocks (
-    n_version,
-    n_height,
-    n_status,
-    n_tx,
-    n_file,
-    n_data_pos,
-    n_undo_pos,
-    hash_block,
-    hash_prev_block,
-    hash_merkle_root,
-    n_time,
-    n_bits,
-    n_nonce
+    n_version, n_height, n_status, n_tx, n_file,
+    n_data_pos, n_undo_pos, hash_block, hash_prev_block, hash_merkle_root,
+    n_time, n_bits, n_nonce, target_difficulty, length
   ) VALUES (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6,
-    $7,
-    $8,
-    $9,
-    $10,
-    $11,
-    $12,
-    $13
+    $1, $2, $3, $4, $5,
+    $6, $7, $8, $9, $10,
+    $11, $12, $13, $14, $15
   )`
-  _, err := tx.Exec(query, m.NVersion, m.NHeight, m.NStatus, m.NTx,
-    m.NFile, m.NDataPos, m.NUndoPos, m.HashBlock, m.HashPrevBlock,
-    m.HashMerkleRoot, m.NTime, m.NBits, m.NNonce)
+
+  _, err := tx.Exec(query,
+  m.NVersion, m.NHeight, m.NStatus, m.NTx, m.NFile,
+  m.NDataPos, m.NUndoPos, m.HashBlock, m.HashPrevBlock, m.HashMerkleRoot,
+  m.NTime, m.NBits, m.NNonce, m.TargetDifficulty, m.Length)
   if err != nil {
-    log.Fatal(err)
+    log.Warn(err)
   }
 }
