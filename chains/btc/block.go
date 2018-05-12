@@ -17,13 +17,17 @@ const (
 
 func (btc *Btc) insertBlock(pgtx *sql.Tx) {
   db.InsertHeader(pgtx, btc.Block)
+
+  nextTx := db.PrepareInsertTransaction(pgtx)
+  nextVin := db.PrepareInsertInput(pgtx)
+  nextVout := db.PrepareInsertOutput(pgtx)
   for _, tx := range(btc.Transactions) {
-    db.InsertTransaction(pgtx, tx, btc.NHeight)
+    nextTx(tx)
     for _, vin := range(tx.Vin) {
-      db.InsertInput(pgtx, vin, tx.Hash)
+      nextVin(vin, tx.Hash)
     }
     for _, vout := range(tx.Vout) {
-      db.InsertOutput(pgtx, vout, tx.Hash)
+      nextVout(vout, tx.Hash)
     }
   }
 }
@@ -87,25 +91,27 @@ func (btc *Btc) GetAllBlocks() {
     log.Info("Starting from file ", btc.NFile, " at pos ", btc.NDataPos, " and height ", height)
   }
 
-  log.Info("Hola:", btc.NHeight, height)
   // Loop through files
   for {
+    log.Info("Reading file ", btc.NFile)
     blockFile, err := parser.NewBlockFile(btc.DataDir, btc.NFile)
     if err != nil {
       log.Warn(err)
       break
     }
 
+    // Open pgSQL transaction
+    tx, err := btc.SqlDb.Begin()
+    if err != nil {
+      log.Fatal("Begin:", err)
+    }
+
     // loop through blocks
     for {
-      tx, err := btc.SqlDb.Begin() // TODO: Error
-      if err != nil {
-        log.Fatal("Begin:", err)
-      }
-
-      // log.Info("Hola:", btc.NHeight, height)
       btc.NHeight = uint32(height)
-      btc.getBlockFromFile(blockFile)
+      if btc.getBlockFromFile(blockFile) {
+        break
+      }
       btc.insertBlock(tx)
       if height % 10000 == 0 {
         log.Info(height)
@@ -113,10 +119,12 @@ func (btc *Btc) GetAllBlocks() {
       btc.NDataPos += btc.Length + 8 // Jump to next block
       height++
 
-      err = tx.Commit() // TODO: Error
-      if err != nil {
-        log.Fatal(err)
-      }
+    }
+
+    // Close pgSQL transaction
+    err = tx.Commit()
+    if err != nil {
+      log.Fatal(err)
     }
 
     blockFile.Close()

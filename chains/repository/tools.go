@@ -31,69 +31,67 @@ func GetHeaderFromHeight(db *sqlx.DB, nHeight int) (models.BlockHeader, error) {
   return res, err
 }
 
-func InsertTransaction(tx *sql.Tx, m models.Transaction, n_height uint32) {
+func PrepareInsertTransaction(tx *sql.Tx) func(m models.Transaction) {
   query := `
   INSERT INTO transactions (
-    tx_hash,
-    n_height,
-    n_version,
-    n_vin,
-    n_vout,
-    locktime
+    tx_hash, n_version, n_vin, n_vout, locktime
   ) VALUES (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    $6
+    $1, $2, $3, $4, $5
   )
   `
-  _, err := tx.Exec(query,
-  m.Hash, n_height, m.NVersion, m.NVin, m.NVout, m.Locktime)
+  stmt, err := tx.Prepare(query)
   if err != nil {
-    log.Warn(err)
-    log.Info(m.Hash)
+    log.Panic(err)
+  }
+
+  return func(m models.Transaction) {
+    _, err := stmt.Exec(m.Hash, m.NVersion, m.NVin, m.NVout, m.Locktime)
+    if err != nil {
+      log.Warn(err)
+      log.Info(m.Hash)
+    }
   }
 }
 
-func InsertInput(tx *sql.Tx, m models.TxInput, tx_hash models.Hash256) {
+func PrepareInsertInput(tx *sql.Tx) func(m models.TxInput, tx_hash models.Hash256) {
   query := `
   INSERT INTO tx_inputs (
-    tx_hash,
-    hash,
-    index,
-    script,
-    sequence
+    tx_hash, hash, index, script, sequence
   ) VALUES (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5
+    $1, $2, $3, $4, $5
   )
   `
-  _, err := tx.Exec(query, tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
+  stmt, err := tx.Prepare(query)
   if err != nil {
-    log.Warn(err)
+    log.Panic(err)
+  }
+
+  return func(m models.TxInput, tx_hash models.Hash256) {
+    _, err := stmt.Exec(tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
+    if err != nil {
+      log.Warn(err)
+    }
   }
 }
 
-func InsertOutput(tx *sql.Tx, m models.TxOutput, tx_hash models.Hash256) {
+func PrepareInsertOutput(tx *sql.Tx) func(m models.TxOutput, tx_hash models.Hash256) {
   query := `
   INSERT INTO tx_outputs (
-    tx_hash,
-    value,
-    script
+    tx_hash, value, script
   ) VALUES (
-    $1,
-    $2,
-    $3
+    $1, $2, $3
   )
   `
-  _, err := tx.Exec(query, tx_hash, m.Value, m.Script)
+  stmt, err := tx.Prepare(query)
   if err != nil {
-    log.Warn(err)
+    log.Panic(err)
+  }
+
+  return func(m models.TxOutput, tx_hash models.Hash256) {
+    _, err := stmt.Exec(tx_hash, m.Value, m.Script)
+    if err != nil {
+      log.Warn(err)
+    }
   }
 }
 

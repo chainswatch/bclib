@@ -18,7 +18,6 @@ type Btc struct {
   SqlDb         *sqlx.DB
 	file          *os.File
   DataDir       string
-  MagicID       MagicID
   models.Block
 }
 
