@@ -4,30 +4,31 @@ import (
   "time"
 )
 
-type Script []byte
 type Hash256 []byte
 
 type TxInput struct {
-  Hash              Hash256     `db:"hash"`
-  Index             uint32      `db:"index"`
-  Script            Script      `db:"script"`
-  Sequence          uint32      `db:"sequence"`
+  Hash              Hash256     `db:"hash"`       // Hash of some previous transaction
+  Index             uint32      `db:"index"`      // Output of the previous transaction
+  Script            []byte      `db:"script"`     // Useless?
+  Sequence          uint32      `db:"sequence"`   // Always 0xFFFFFFFF
   ScriptWitness     [][]byte
 }
 
 type TxOutput struct {
-  Value             int64       `db:"value"`
-  Script            Script      `db:"script"`
+  Index             uint32      `db:"index"`      // Output index
+  Value             int64       `db:"value"`      // Satoshis
+  Hash160           []byte      `db:"hash160"`    // Public key
+  Script            []byte      `db:"script"`     // Where the magic happens
 }
 
 type Transaction struct {
-  NVersion          int32       `db:"n_version"`
-  Hash              Hash256     `db:"tx_hash"`
-  NVin              uint32      `db:"n_vin"`
-  NVout             uint32      `db:"n_vout"`
+  NVersion          int32       `db:"n_version"`  // Always 1 or 2
+  Hash              Hash256     `db:"tx_hash"`    // Transaction hash (computed)
+  NVin              uint32      `db:"n_vin"`      // Number of inputs
+  NVout             uint32      `db:"n_vout"`     // Number of outputs
   Vin               []TxInput
   Vout              []TxOutput
-  Locktime          uint32      `db:"locktime"`
+  Locktime          uint32      `db:"locktime"`   // Always 0
 	// StartPos      uint64 // not actually in blockchain data
 }
 

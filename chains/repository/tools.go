@@ -56,20 +56,20 @@ func PrepareInsertTransaction(tx *sql.Tx) func(m models.Transaction) {
 func PrepareInsertInput(tx *sql.Tx) func(m models.TxInput, tx_hash models.Hash256) {
   query := `
   INSERT INTO tx_inputs (
-    tx_hash, hash, index, script, sequence
+    tx_hash, hash, index, sequence
   ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4
   )
   `
   stmt, err := tx.Prepare(query)
   if err != nil {
-    log.Panic(err)
+    log.Panic("PrepareInsertInput: ", err)
   }
 
   return func(m models.TxInput, tx_hash models.Hash256) {
-    _, err := stmt.Exec(tx_hash, m.Hash, m.Index, m.Script, m.Sequence)
+    _, err := stmt.Exec(tx_hash, m.Hash, m.Index, m.Sequence)
     if err != nil {
-      log.Warn(err)
+      log.Warn("InsertInput: ", err)
     }
   }
 }
@@ -77,20 +77,20 @@ func PrepareInsertInput(tx *sql.Tx) func(m models.TxInput, tx_hash models.Hash25
 func PrepareInsertOutput(tx *sql.Tx) func(m models.TxOutput, tx_hash models.Hash256) {
   query := `
   INSERT INTO tx_outputs (
-    tx_hash, value, script
+    tx_hash, index, value, hash160, script
   ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4, $5
   )
   `
   stmt, err := tx.Prepare(query)
   if err != nil {
-    log.Panic(err)
+    log.Panic("PrepareInsertOutput :", err)
   }
 
   return func(m models.TxOutput, tx_hash models.Hash256) {
-    _, err := stmt.Exec(tx_hash, m.Value, m.Script)
+    _, err := stmt.Exec(tx_hash, m.Index, m.Value, m.Hash160, m.Script)
     if err != nil {
-      log.Warn(err)
+      log.Warn("InsertOutput: ", err)
     }
   }
 }

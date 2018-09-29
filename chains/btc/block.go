@@ -112,6 +112,7 @@ func (btc *Btc) GetAllBlocks() {
       if btc.getBlockFromFile(blockFile) {
         break
       }
+      // log.Fatal("STOP")
       btc.insertBlock(tx)
       if height % 10000 == 0 {
         log.Info(height)

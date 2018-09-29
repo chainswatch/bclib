@@ -8,6 +8,7 @@ import (
   log "github.com/sirupsen/logrus"
   "encoding/binary"
   "fmt"
+  "bytes"
 )
 
 // Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
@@ -32,7 +33,8 @@ const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 */
 
 func parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transaction, error) {
-  // curPos, err := btc.Seek(0, 1)
+  var err error = nil
+  emptyByte := make([]byte, 32)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
   tx := &models.Transaction{}
@@ -49,31 +51,40 @@ func parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transac
     blockFile.ReadByte()          // dummy (0x00)
     txFlag = blockFile.ReadByte() // flags (!=0)
     if (txFlag != 0) {
-      // txInputLength = blockFile.ReadVarint()
       tx.NVin = uint32(blockFile.ReadVarint())
     }
   } else {
-    // txInputLength = blockFile.ReadVarint()
     tx.NVin = uint32(blockFile.ReadVarint())
   }
 
   for i := uint32(0); i < tx.NVin; i++ {
     input := models.TxInput{}
-    input.Hash = blockFile.ReadBytes(32)
+    input.Hash = blockFile.ReadBytes(32) // 
     input.Index = blockFile.ReadUint32() // TODO: Not sure if correctly read
+    if input.Index == 0xFFFFFFFF && !bytes.Equal(input.Hash, emptyByte) { // block-reward case
+      log.Fatal("If Index is 0xFFFFFFFF, then Hash should be nil. ",
+      " Input: ", input.Index,
+      " Hash: ", input.Hash)
+    }
     scriptLength := blockFile.ReadVarint()
     input.Script = blockFile.ReadBytes(scriptLength)
     input.Sequence = blockFile.ReadUint32()
+    if (input.Sequence != 0xFFFFFFFF) { // Always 0xFFFFFFFF check
+      log.Warn("Input Sequence != 0xFFFFFFFF: ", input.Sequence)
+      err = fmt.Errorf("Input Sequence != 0xFFFFFFFF: %x", input.Sequence)
+    }
     tx.Vin = append(tx.Vin, input)
   }
 
-  // txOutputLength := blockFile.ReadVarint()
   tx.NVout = uint32(blockFile.ReadVarint())
   for i := uint32(0); i < tx.NVout; i++ {
     output := models.TxOutput{}
+    output.Index = i
     output.Value = int64(blockFile.ReadUint64())
     scriptLength := blockFile.ReadVarint()
     output.Script = blockFile.ReadBytes(scriptLength)
+    // output.hash160 // TODO
+    getAddress(output.Script)
     tx.Vout = append(tx.Vout, output)
   }
 
@@ -89,9 +100,12 @@ func parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transac
     }
   }
 
-  tx.Locktime = blockFile.ReadUint32()
+  tx.Locktime = blockFile.ReadUint32() // Always 0 check
+  if tx.Locktime != 0 {
+    log.Fatal("Locktime is not 0")
+  }
 
-  return tx, nil
+  return tx, err
 }
 
 func varint(n uint64) []byte {
@@ -195,12 +209,13 @@ func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) erro
   btc.Transactions = nil
   for t := uint32(0); t < btc.NTx; t++ {
     tx, err := parseBlockTransactionFromFile(blockFile)
-    if err != nil {
-      return err
-    }
     putTransactionHash(tx)
+    if err != nil {
+      log.Warn(fmt.Sprintf("txHash: %x", misc.ReverseHex(tx.Hash)))
+    }
     tx.NVout = uint32(len(tx.Vout))
     // log.Info(fmt.Sprintf("Transaction hash: %x", misc.ReverseHex(tx.Hash)))
+    // log.Fatal("Transaction")
     btc.Transactions = append(btc.Transactions, *tx)
   }
   return nil
