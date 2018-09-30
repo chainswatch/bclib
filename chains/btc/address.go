@@ -1,11 +1,16 @@
 package btc
 
+/*
+
+Functions used to discriminate between addresses
+
+*/
+
 import (
   "app/misc"
   log "github.com/sirupsen/logrus"
   "fmt"
 )
-
 
 func readWeirdEcdsa(script []byte) ([]byte, error) {
   var err error = nil

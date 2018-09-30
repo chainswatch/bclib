@@ -112,14 +112,12 @@ func (btc *Btc) GetAllBlocks() {
       if btc.getBlockFromFile(blockFile) {
         break
       }
-      // log.Fatal("STOP")
       btc.insertBlock(tx)
       if height % 10000 == 0 {
         log.Info(height)
       }
       btc.NDataPos += btc.Length + 8 // Jump to next block
       height++
-
     }
 
     // Close pgSQL transaction

@@ -1,6 +1,10 @@
 package parser
 
-import(
+/*
+* Functions needed to read a block from a file
+*/
+
+import (
   "bytes"
   "fmt"
   "encoding/binary"
@@ -41,6 +45,9 @@ func (blockFile *BlockFile) Size() (int64, error) {
 	return blockFileInfo.Size(), err
 }
 
+/*
+* BlockReader interface
+*/
 func (blockFile *BlockFile) Peek(length int) ([]byte, error) {
 	pos, err := blockFile.Seek(0, 1)
 	if err != nil {
@@ -55,12 +62,18 @@ func (blockFile *BlockFile) Peek(length int) ([]byte, error) {
 	return val, nil
 }
 
+/*
+* BlockReader interface
+*/
 func (blockFile *BlockFile) ReadByte() byte {
 	val := make([]byte, 1)
 	blockFile.file.Read(val)
 	return val[0]
 }
 
+/*
+* BlockReader interface
+*/
 func (blockFile *BlockFile) ReadBytes(length uint64) []byte {
 	val := make([]byte, length)
 	blockFile.file.Read(val)
@@ -73,6 +86,9 @@ func (blockFile *BlockFile) ReadUint16() uint16 {
 	return binary.LittleEndian.Uint16(val)
 }
 
+/*
+* BlockReader interface
+*/
 func (blockFile *BlockFile) ReadInt32() int32 {
 	raw := make([]byte, 4)
 	blockFile.file.Read(raw)
@@ -81,6 +97,9 @@ func (blockFile *BlockFile) ReadInt32() int32 {
 	return val
 }
 
+/*
+* BlockReader interface
+*/
 func (blockFile *BlockFile) ReadUint32() uint32 {
 	val := make([]byte, 4)
 	blockFile.file.Read(val)
@@ -95,6 +114,9 @@ func (blockFile *BlockFile) ReadInt64() int64 {
 	return val
 }
 
+/*
+* BlockReader interface
+*/
 func (blockFile *BlockFile) ReadUint64() uint64 {
 	val := make([]byte, 8)
 	blockFile.file.Read(val)
@@ -114,6 +136,9 @@ func (blockFile *BlockFile) ReadUint64() uint64 {
 //	}
 //}
 
+/*
+* BlockReader interface
+*/
 func (blockFile *BlockFile) ReadVarint() uint64 {
 	intType := blockFile.ReadByte()
 	if intType == 0xFF {

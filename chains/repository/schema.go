@@ -20,7 +20,7 @@ func newPool() *sqlx.DB {
   log.Info(psqlInfo)
   conn, err := sqlx.Open("postgres", psqlInfo)
   if err != nil {
-    log.Fatal("m=newPool", err)
+    log.Fatal("newPool(): ", err)
   }
 
   conn.SetMaxIdleConns(0)
@@ -93,7 +93,7 @@ func Create(drop bool) *sqlx.DB {
   db := newPool()
   err := db.Ping()
   if err != nil {
-    log.Fatal(err)
+    log.Fatal("Create(): ", err)
   }
   CreateBlock(db, true)
   schema := `

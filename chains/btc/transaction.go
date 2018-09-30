@@ -32,43 +32,53 @@ const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 * - uint32_t nLockTime
 */
 
-func parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transaction, error) {
+type BlockReader interface {
+  Peek(int) ([]byte, error)
+  ReadByte() byte
+  ReadBytes(uint64) []byte
+  ReadVarint() uint64
+  ReadUint32() uint32
+  ReadUint64() uint64
+  ReadInt32() int32
+}
+
+func parseBlockTransactionFromFile(br BlockReader) (*models.Transaction, error) {
   var err error = nil
   emptyByte := make([]byte, 32)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
 
   tx := &models.Transaction{}
   // tx.StartPos = uint64(curPos)
-  tx.NVersion = blockFile.ReadInt32() // 
+  tx.NVersion = br.ReadInt32() // 
 
   // Check for extended transaction serialization format
   // var txInputLength uint64
   var txFlag byte
   // Try to read. Look for dummy
-  p, _ := blockFile.Peek(1)
+  p, _ := br.Peek(1)
   if p[0] == 0 {
     // We are dealing with extended transaction
-    blockFile.ReadByte()          // dummy (0x00)
-    txFlag = blockFile.ReadByte() // flags (!=0)
+    br.ReadByte()          // dummy (0x00)
+    txFlag = br.ReadByte() // flags (!=0)
     if (txFlag != 0) {
-      tx.NVin = uint32(blockFile.ReadVarint())
+      tx.NVin = uint32(br.ReadVarint())
     }
   } else {
-    tx.NVin = uint32(blockFile.ReadVarint())
+    tx.NVin = uint32(br.ReadVarint())
   }
 
   for i := uint32(0); i < tx.NVin; i++ {
     input := models.TxInput{}
-    input.Hash = blockFile.ReadBytes(32) // 
-    input.Index = blockFile.ReadUint32() // TODO: Not sure if correctly read
+    input.Hash = br.ReadBytes(32) // 
+    input.Index = br.ReadUint32() // TODO: Not sure if correctly read
     if input.Index == 0xFFFFFFFF && !bytes.Equal(input.Hash, emptyByte) { // block-reward case
       log.Fatal("If Index is 0xFFFFFFFF, then Hash should be nil. ",
       " Input: ", input.Index,
       " Hash: ", input.Hash)
     }
-    scriptLength := blockFile.ReadVarint()
-    input.Script = blockFile.ReadBytes(scriptLength)
-    input.Sequence = blockFile.ReadUint32()
+    scriptLength := br.ReadVarint()
+    input.Script = br.ReadBytes(scriptLength)
+    input.Sequence = br.ReadUint32()
     if (input.Sequence != 0xFFFFFFFF) { // Always 0xFFFFFFFF check
       log.Warn("Input Sequence != 0xFFFFFFFF: ", input.Sequence)
       err = fmt.Errorf("Input Sequence != 0xFFFFFFFF: %x", input.Sequence)
@@ -76,13 +86,13 @@ func parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transac
     tx.Vin = append(tx.Vin, input)
   }
 
-  tx.NVout = uint32(blockFile.ReadVarint())
+  tx.NVout = uint32(br.ReadVarint())
   for i := uint32(0); i < tx.NVout; i++ {
     output := models.TxOutput{}
     output.Index = i
-    output.Value = int64(blockFile.ReadUint64())
-    scriptLength := blockFile.ReadVarint()
-    output.Script = blockFile.ReadBytes(scriptLength)
+    output.Value = int64(br.ReadUint64())
+    scriptLength := br.ReadVarint()
+    output.Script = br.ReadBytes(scriptLength)
     // output.hash160 // TODO
     getAddress(output.Script)
     tx.Vout = append(tx.Vout, output)
@@ -91,22 +101,23 @@ func parseBlockTransactionFromFile(blockFile *parser.BlockFile) (*models.Transac
   if (txFlag & 1) == 1 && allowWitness {
     txFlag ^= 1 // Not sure what this is for
     for i := uint32(0); i < tx.NVin; i++ {
-      witnessCount := blockFile.ReadVarint()
+      witnessCount := br.ReadVarint()
       tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
       for j := uint64(0); j < witnessCount; j++ {
-        length := blockFile.ReadVarint()
-        tx.Vin[i].ScriptWitness[j] = blockFile.ReadBytes(length)
+        length := br.ReadVarint()
+        tx.Vin[i].ScriptWitness[j] = br.ReadBytes(length)
       }
     }
   }
 
-  tx.Locktime = blockFile.ReadUint32() // Always 0 check
+  tx.Locktime = br.ReadUint32() // Always 0 check
   if tx.Locktime != 0 {
     log.Fatal("Locktime is not 0")
   }
 
   return tx, err
 }
+
 
 func varint(n uint64) []byte {
 	if n > 4294967295 {
@@ -227,7 +238,7 @@ func (btc *Btc) getTransaction() {
     log.Warn(err)
   }
   if !f {
-    fmt.Println("txindex is not enabled for your bitcoind")
+    log.Warn("txindex is not enabled for your bitcoind")
   }
   /*
   result, err := db.GetTxIndexRecordByBigEndianHex(indexDb, args[1])

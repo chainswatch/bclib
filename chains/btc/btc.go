@@ -1,14 +1,17 @@
 package btc
 
+/*
+
+btc holds structs and methods used to parse the bitcoin blockchain
+
+*/
+
 import (
   "app/models"
   "github.com/syndtr/goleveldb/leveldb"
   "github.com/jmoiron/sqlx"
   "os"
 )
-
-// btc holds structs and methods used to parse
-// the bitcoin blockchain
 
 type MagicID uint32
 
