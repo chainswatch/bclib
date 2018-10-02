@@ -66,4 +66,12 @@ const (
   BLOCK_FAILED_MASK  = BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD
 
   BLOCK_OPT_WITNESS = 128 //!< block data in blk*.data was received with a witness-enforcing client
+
+  OP_DUP = 0x76
+  OP_HASH160 = 0xA9
+  OP_EQUALVERIFY = 0x88
+  OP_CHECKSIG = 0xAC
+  OP_PUSHDATA1 = 0x4C // Next byte containes the number of bytes to be pushed onto the stack
+  OP_PUSHDATA2 = 0x4D // Next 2 bytes contain the number of bytes to be pushed (little endian)
+  OP_PUSHDATA4 = 0x4E // Next 4 bytes contain the number of bytes to be pushed (little endian)
 )

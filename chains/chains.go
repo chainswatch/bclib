@@ -1,7 +1,7 @@
 package chains
 
 import (
-  "app/misc"
+  //"app/misc"
   db "app/chains/repository"
   log "github.com/sirupsen/logrus"
   "app/chains/btc"
@@ -33,6 +33,7 @@ func MempoolScanner(c chains) {
 }
 
 func ChainsWatcher() {
+  log.SetLevel(log.DebugLevel)
   //var qrlDataDir string = "./data/qrl/.qrl/data"
 
   btc := btc.NewBtc("/data/crypto/chains/btc")
@@ -45,13 +46,13 @@ func ChainsWatcher() {
   // log.SetLevel(log.WarnLevel)
 
   // Load blockchain history
-  //log.Info("BTC Transactions listener: Start")
-  //MempoolScanner(btc)
-  //log.Info("BTC Transactions listener: Stop")
+  log.Info("BTC Transactions listener: Start")
+  MempoolScanner(btc)
+  log.Info("BTC Transactions listener: Stop")
 
   // TODO: Test if connected to database
   log.Info("BTC Blockchain Sync: Start")
-  btc.HashPrevBlock = misc.HexToByte([]byte("00000000dfd5d65c9d8561b4b8f60a63018fe3933ecb131fb37f905f87da951a"))
-  BlockCoreScanner(btc)
+  //btc.HashPrevBlock = misc.HexToByte([]byte("00000000dfd5d65c9d8561b4b8f60a63018fe3933ecb131fb37f905f87da951a"))
+  //BlockCoreScanner(btc)
   log.Info("BTC Blockchain Sync: Finished")
 }

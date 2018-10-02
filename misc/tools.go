@@ -39,8 +39,10 @@ func HexToByte(hash []byte) []byte {
   return ReverseHex(blockHashInBytes[:n])
 }
 
-// 65 bytes long ECDSA public key to address hash
-// Fist byte is always 0x4 followed by two 32 bytes components
+/*
+* 65 bytes long ECDSA public key to address hash
+* First byte is always 0x4 followed by two 32 bytes components
+*/
 func EcdsaToPkeyHash(input []byte) []byte {
   if input[0] == 0x04 {
     output := make([]byte, 1, 24)
@@ -60,8 +62,10 @@ func EcdsaToPkeyHash(input []byte) []byte {
   return nil
 }
 
-// 33 byte long compressed ECDSA public key
-// Fist byte is always 0x4 followed by the 32 bytes component
+/*
+* 33 byte long compressed ECDSA public key
+* Fist byte is always 0x4 followed by the 32 bytes component
+*/
 func ShortEcdsaToPkeyHash(input []byte) []byte {
   log.Fatal("Short ECDSA")
   if input[0] == 0x02 || input[0] == 0x03 {
