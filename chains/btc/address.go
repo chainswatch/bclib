@@ -79,35 +79,8 @@ func readError(script []byte) error {
 }
 
 /*
-* OP_DUP, OP_HASH160, OP_PUBKEYHASH, OP_EQUALVERIFY, OP_CHECKSIG
-* Script[0] = OP_DUP (0x76)
-* Script[1] = OP_HASH160 (0xA9)
-* Script[2] = 20 (A length value equal to the size of a public key hash)
-* Script[3-22]=The 20 byte public key address
-* Script[23]=OP_EQUALVERIFY (0x88)
-* Script[24]=OP_CHECKSIG (0xAC)
+* Get Ops from Script
 */
-func isPubkeyHash(script []byte) ([]byte, error) {
-  var err error = nil
-
-  if script[0] != OP_DUP {
-    err = fmt.Errorf("Other: Should start with OP_DUP (0x76) opcode. Found 0x%X", script[0])
-  }
-  if script[1] != OP_HASH160 {
-    err = fmt.Errorf("Other: Expected OP_HASH160 (0xA9) opcode. Found 0x%X", script[1])
-  }
-  if script[2] != 20 {
-    err = fmt.Errorf("Other: Expected length 20. Found ", script[2])
-  }
-  if script[23] != OP_EQUALVERIFY {
-    err = fmt.Errorf("Other: Expected OP_EQUALVERIFY (0x88) opcode. Found 0x%X", script[23])
-  }
-  if script[24] != OP_CHECKSIG {
-    err = fmt.Errorf("Other: Should end with an OP_CHECKSIG (0xAC) opcode. Found 0x%X", script[24])
-  }
-  return script[3:23], err
-}
-
 func getNumOps(script []byte) ([][]byte, error) {
   var err error = nil
   scriptLength := uint32(len(script))
@@ -123,7 +96,6 @@ func getNumOps(script []byte) ([][]byte, error) {
     opCode := script[i]
     i++
 
-    log.Debug("getNumOps: i=", i)
     if (opCode < OP_PUSHDATA1) {
       dataLength = uint32(opCode)
     } else if (opCode == OP_PUSHDATA1) {
@@ -133,7 +105,9 @@ func getNumOps(script []byte) ([][]byte, error) {
     } else if (opCode == OP_PUSHDATA4) {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
     } else {
-      ops = append(ops, []byte{script[i]})
+      ops = append(ops, []byte{opCode})
+      log.Debug("getNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
+      continue
     }
     log.Debug("getNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
 
@@ -146,14 +120,96 @@ func getNumOps(script []byte) ([][]byte, error) {
     ops = append(ops, script[i:(i+dataLength)])
     i += dataLength
   }
+  ops = append(ops, []byte{script[i]})
   log.Debug(fmt.Sprintf("Last opCode: %#x", script[i]))
   return ops, nil
 }
 
+/*
+* Check if OP is a PubkeyHash (length == 20)
+*/
+func isOpPubkeyhash(op []byte) bool {
+  // TOPO: OP_PUSHDATA4
+  if len(op) != 20 {
+    return false
+  }
+  return true
+}
+
+/*
+*
+*/
+func isOpPubkey(op []byte) bool {
+  // TOPO: OP_PUSHDATA4
+  dataLength := len(op)
+  if (dataLength != BTC_ECKEY_COMPRESSED_LENGTH && dataLength != BTC_ECKEY_UNCOMPRESSED_LENGTH) {
+    return false
+  }
+  return true
+}
+
+// P2PKH: OP_DUP, OP_HASH160, OP_PUBKEYHASH, OP_EQUALVERIFY, OP_CHECKSIG
+func isPubkeyHash(ops [][]byte) bool {
+  if len(ops) == 5 {
+    if ops[0][0] == OP_DUP &&
+    ops[1][0] == OP_HASH160 &&
+    isOpPubkeyhash(ops[2]) &&
+    ops[3][0] == OP_EQUALVERIFY &&
+    ops[4][0] == OP_CHECKSIG {
+      return true
+    }
+  }
+  return false
+}
+
+// P2SH: OP_HASH160, OP_PUBKEYHASH, OP_EQUAL
+func isScriptHash(ops [][]byte) bool {
+  if len(ops) == 3 {
+    if ops[0][0] == OP_HASH160 &&
+    isOpPubkeyhash(ops[1]) &&
+    ops[2][0] == OP_EQUAL {
+      return true
+    }
+  }
+  return false
+}
+
+// P2PK: OP_PUBKEY, OP_CHECKSIG
+func isPubkey(ops [][]byte) bool {
+  if len(ops) == 2 {
+    if ops[0][0] == OP_CHECKSIG && isOpPubkey(ops[1]) {
+      return true
+    }
+  }
+  return false
+}
+
+func isMultiSig(ops [][]byte) bool {
+  opLength := len(ops)
+  if opLength < 3 || opLength > (16 + 3) {
+    return false
+  }
+  return false
+}
+
 func getAddress(script []byte) {
-  _, err := getNumOps(script)
+  ops, err := getNumOps(script)
   if err != nil {
-    log.Debug(err)
+    log.Info(err)
+  }
+  opsLength := len(ops)
+  log.Info("Number of ops: ", opsLength)
+  for i := 0; i < opsLength; i++ {
+    log.Info(fmt.Sprintf("%#x", ops[i]))
+  }
+  if isPubkeyHash(ops) {
+    log.Info("Format: PubkeyHash")
+  } else if isScriptHash(ops) {
+    log.Info("Format: ScriptHash")
+  } else if isPubkey(ops) {
+    log.Info("Format: Pubkey")
+  } else {
+    log.Info("Format: NOT FOUND")
   }
 }
 

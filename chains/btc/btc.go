@@ -74,4 +74,12 @@ const (
   OP_PUSHDATA1 = 0x4C // Next byte containes the number of bytes to be pushed onto the stack
   OP_PUSHDATA2 = 0x4D // Next 2 bytes contain the number of bytes to be pushed (little endian)
   OP_PUSHDATA4 = 0x4E // Next 4 bytes contain the number of bytes to be pushed (little endian)
+
+  // Bitwise logic
+  OP_EQUAL = 0x87 // Returns 1 if the inputs are exactly equal, 0 otherwise
+
+  BTC_ECKEY_UNCOMPRESSED_LENGTH = 65
+  BTC_ECKEY_COMPRESSED_LENGTH = 33
+  // BTC_ECKEY_PKEY_LENGTH = 32
+  // BTC_HASH_LENGTH = 32
 )

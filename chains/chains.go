@@ -34,6 +34,7 @@ func MempoolScanner(c chains) {
 
 func ChainsWatcher() {
   log.SetLevel(log.DebugLevel)
+  //log.SetLevel(log.InfoLevel)
   //var qrlDataDir string = "./data/qrl/.qrl/data"
 
   btc := btc.NewBtc("/data/crypto/chains/btc")
@@ -43,7 +44,6 @@ func ChainsWatcher() {
   // failIfReindexing(indexDb)
   // TODO: Init all tables. (db.AutoMigrate(&Model1{}, &Model2{}, &Model3{})
   // TODO: Use http://chainquery.com/bitcoin-api/getbestblockhash
-  // log.SetLevel(log.WarnLevel)
 
   // Load blockchain history
   log.Info("BTC Transactions listener: Start")
