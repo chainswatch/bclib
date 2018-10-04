@@ -67,6 +67,11 @@ const (
 
   BLOCK_OPT_WITNESS = 128 //!< block data in blk*.data was received with a witness-enforcing client
 
+  // Constants
+  OP_0 = 0x00
+  OP_1 = 0x51 // 1 is pushed
+  OP_16 = 0x60
+
   OP_DUP = 0x76
   OP_HASH160 = 0xA9
   OP_EQUALVERIFY = 0x88
@@ -78,8 +83,12 @@ const (
   // Bitwise logic
   OP_EQUAL = 0x87 // Returns 1 if the inputs are exactly equal, 0 otherwise
 
+  // Flow control
+  OP_RETURN = 0x6A
+
   BTC_ECKEY_UNCOMPRESSED_LENGTH = 65
   BTC_ECKEY_COMPRESSED_LENGTH = 33
   // BTC_ECKEY_PKEY_LENGTH = 32
   // BTC_HASH_LENGTH = 32
+	SHA256_DIGEST_LENGTH = 32
 )

@@ -13,71 +13,6 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
-func readWeirdEcdsa(script []byte) ([]byte, error) {
-  var err error = nil
-
-  if script[65] != 0xAC {
-    err = fmt.Errorf("WeirdECDSA: Should end with an OP_CHECKSIG (0xAC) opcode. Found 0x%X", script[66])
-  }
-  // TODO: Convert 65 bytes ECDSA to 25 byte publick key hash form
-  return misc.EcdsaToPkeyHash(script[0:65]), err
-}
-
-func readEcdsa(script []byte) ([]byte, error) {
-  var err error = nil
-
-  if script[0] != 65 {
-    err = fmt.Errorf("ECDSA: ECDSA 65 byte public key address should have a length of 65. Found ", script[0])
-  }
-  if script[66] != 0xAC {
-    err = fmt.Errorf("ECDSA: Should end with an OP_CHECKSIG (0xAC) opcode. Found 0x%X", script[66])
-  }
-  // TODO: Convert 65 bytes ECDSA to 25 byte publick key hash form
-  return misc.EcdsaToPkeyHash(script[1:66]), err
-}
-
-/*
-* ScriptLength == 25
-* Script[0] = OP_DUP (0x76)
-* Script[1] = OP_HASH160 (0xA9)
-* Script[2] = 20 (The length of the public key hash address which follows)
-* Script[3-24] = The 20 byte public key address.
-*/
-func readShortEcdsa(script []byte) ([]byte, error) {
-  var err error = nil
-
-  if script[0] != OP_DUP { // OP_DUP
-    err = fmt.Errorf("Short ECDSA: Should start with OP_DUP (0x76) opcode. Found 0x%X", script[0])
-  }
-  if script[1] != OP_HASH160 { // OP_HASH160
-    err = fmt.Errorf("Short ECDSA: Expected OP_HASH160 (0xA9) opcode. Found 0x%X", script[1])
-  }
-  if script[2] != 20 {
-    err = fmt.Errorf("Short ECDSA: Expected length 20. Found %d", script[2])
-  }
-  // TODO: OP_CHECKSIG ??
-  return script[3:25], err
-}
-
-func readError(script []byte) error {
-  var err error = nil
-
-  if script[0] != 0x76 {
-    err = fmt.Errorf("Error: The script should start with OP_DUP (0x76) opcode. Found 0x%X", script[0])
-  }
-  if script[1] != 0xA9 {
-    err = fmt.Errorf("Error: Expected OP_HASH160 (0xA9) opcode. Found 0x%X", script[1])
-  }
-  if script[2] != 0 {
-    err = fmt.Errorf("Error: Expected length 0. Found ", script[2])
-  }
-  if script[4] != 0xAC {
-    err = fmt.Errorf("Error: Should end with an OP_CHECKSIG (0xAC) opcode. Found 0x%X", script[4])
-  }
-
-  return err
-}
-
 /*
 * Get Ops from Script
 */
@@ -149,50 +84,71 @@ func isOpPubkey(op []byte) bool {
 }
 
 // P2PKH: OP_DUP, OP_HASH160, OP_PUBKEYHASH, OP_EQUALVERIFY, OP_CHECKSIG
-func isPubkeyHash(ops [][]byte) bool {
+func scriptIsPubkeyHash(ops [][]byte) []byte {
   if len(ops) == 5 {
     if ops[0][0] == OP_DUP &&
     ops[1][0] == OP_HASH160 &&
     isOpPubkeyhash(ops[2]) &&
     ops[3][0] == OP_EQUALVERIFY &&
     ops[4][0] == OP_CHECKSIG {
-      return true
+      return ops[2]
     }
   }
-  return false
+  return nil
 }
 
 // P2SH: OP_HASH160, OP_PUBKEYHASH, OP_EQUAL
-func isScriptHash(ops [][]byte) bool {
+func scriptIsScriptHash(ops [][]byte) []byte {
   if len(ops) == 3 {
     if ops[0][0] == OP_HASH160 &&
     isOpPubkeyhash(ops[1]) &&
     ops[2][0] == OP_EQUAL {
-      return true
+      return ops[1]
     }
   }
-  return false
+  return nil
 }
 
 // P2PK: OP_PUBKEY, OP_CHECKSIG
-func isPubkey(ops [][]byte) bool {
+func scriptIsPubkey(ops [][]byte) []byte {
   if len(ops) == 2 {
     if ops[0][0] == OP_CHECKSIG && isOpPubkey(ops[1]) {
-      return true
+      return ops[1]
     }
   }
-  return false
+  return nil
 }
 
-func isMultiSig(ops [][]byte) bool {
+func scriptIsMultiSig(ops [][]byte) []byte {
   opLength := len(ops)
   if opLength < 3 || opLength > (16 + 3) {
+    return nil
+  }
+  return nil
+}
+
+/*
+* A witness program is any valid script that consists of a 1-byte push opcode
+* followed by a data push between 2 and 40 bytes
+*/
+func scriptIsWitnessprogram(script []byte, version int32) bool {
+  if (version != 0) {
     return false
+  }
+  lengthScript := len(script)
+  if (lengthScript < 4 || lengthScript > 42) {
+    return false
+  }
+  if (script[0] != OP_0 && (script[0] < OP_1 || script[0] > OP_16)) {
+    return false
+  }
+  if (int(script[1] + 2) == lengthScript) {
+    log.Debug("WITNESS")
   }
   return false
 }
 
-func getAddress(script []byte) {
+func getAddress(script []byte, version int32) {
   ops, err := getNumOps(script)
   if err != nil {
     log.Info(err)
@@ -202,15 +158,21 @@ func getAddress(script []byte) {
   for i := 0; i < opsLength; i++ {
     log.Info(fmt.Sprintf("%#x", ops[i]))
   }
-  if isPubkeyHash(ops) {
-    log.Info("Format: PubkeyHash")
-  } else if isScriptHash(ops) {
-    log.Info("Format: ScriptHash")
-  } else if isPubkey(ops) {
-    log.Info("Format: Pubkey")
+	var hash []byte
+  if hash = scriptIsPubkeyHash(ops); hash != nil {
+    log.Info("Script: PubkeyHash, ", misc.SecToAddress(hash))
+		// btc_pubkey_get_hash160
+  } else if hash = scriptIsScriptHash(ops); hash != nil {
+    log.Info("Script: ScriptHash")
+  } else if hash = scriptIsPubkey(ops); hash != nil {
+    log.Info("Script: Pubkey, ", misc.SecToAddress(hash))
+  } else if hash = scriptIsMultiSig(ops); hash != nil {
+    log.Info("Script: Multisig, ", len(hash))
   } else {
-    log.Info("Format: NOT FOUND")
+    log.Info("Script: NOT FOUND")
   }
+
+  scriptIsWitnessprogram(script, version)
 }
 
 /*

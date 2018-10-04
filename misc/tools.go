@@ -20,29 +20,17 @@ func ReverseHex(b []byte) []byte {
   return newb
 }
 
-func DoubleSha256(data []byte) []byte {
-	hash := sha256.New()
-	hash.Write(data)
-	firstSha256 := hash.Sum(nil)
-	hash.Reset()
-	hash.Write(firstSha256)
-	return hash.Sum(nil)
-}
-
-func HexToByte(hash []byte) []byte {
-  blockHashInBytes := make([]byte, hex.DecodedLen(len(hash)))
-  n, err := hex.Decode(blockHashInBytes, hash)
+func HexToBinary(src []byte) []byte {
+  b := make([]byte, hex.DecodedLen(len(src)))
+  n, err := hex.Decode(b, src)
   if err != nil {
     log.Warn(err)
   }
-  // Reverse hex to get the LittleEndian order
-  return ReverseHex(blockHashInBytes[:n])
+  return b[:n]
 }
 
-/*
-* 65 bytes long ECDSA public key to address hash
-* First byte is always 0x4 followed by two 32 bytes components
-*/
+// 65 bytes long ECDSA public key to address hash
+// Fist byte is always 0x4 followed by two 32 bytes components
 func EcdsaToPkeyHash(input []byte) []byte {
   if input[0] == 0x04 {
     output := make([]byte, 1, 24)
@@ -71,7 +59,4 @@ func ShortEcdsaToPkeyHash(input []byte) []byte {
   if input[0] == 0x02 || input[0] == 0x03 {
   }
   return nil
-}
-
-func PkeyHashtoAscii() {
 }

@@ -97,7 +97,7 @@ func parseTransaction(br BlockReader) (*models.Transaction, error) {
     scriptLength := br.ReadVarint()
     output.Script = br.ReadBytes(scriptLength)
     // output.hash160 // TODO
-    getAddress(output.Script)
+    getAddress(output.Script, tx.NVersion)
     tx.Vout = append(tx.Vout, output)
   }
 
