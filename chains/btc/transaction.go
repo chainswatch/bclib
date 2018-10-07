@@ -223,6 +223,7 @@ func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) erro
   for t := uint32(0); t < btc.NTx; t++ {
     tx, err := parseTransaction(blockFile)
     putTransactionHash(tx)
+    log.Info(fmt.Sprintf("txHash: %x", misc.ReverseHex(tx.Hash)))
     if err != nil {
       log.Warn(fmt.Sprintf("txHash: %x", misc.ReverseHex(tx.Hash)))
     }
@@ -232,27 +233,3 @@ func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) erro
   }
   return nil
 }
-
-/*
-func (btc *Btc) getTransaction() {
-  f, err := db.GetFlag(btc.IndexDb, []byte("txindex"))
-  if err != nil {
-    log.Warn(err)
-  }
-  if !f {
-    log.Warn("txindex is not enabled for your bitcoind")
-  }
-  result, err := db.GetTxIndexRecordByBigEndianHex(indexDb, args[1])
-  if err != nil {
-    log.Fatal(err)
-  }
-  fmt.Printf("%+v\n", result)
-
-  tx, err := blockchainparser.NewTxFromFile(datadir, magicId, uint32(result.NFile), result.NDataPos, result.NTxOffset)
-  if err != nil {
-    log.Fatal(err)
-  }
-
-  fmt.Printf("%+v\n", tx)
-}
-*/

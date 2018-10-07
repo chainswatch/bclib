@@ -1,8 +1,6 @@
 package misc
 
 import (
-  "crypto/sha256"
-  "golang.org/x/crypto/ripemd160"
   "encoding/hex"
 
   log "github.com/sirupsen/logrus"
@@ -26,28 +24,7 @@ func HexToBinary(src []byte) []byte {
   if err != nil {
     log.Warn(err)
   }
-  return b[:n]
-}
-
-// 65 bytes long ECDSA public key to address hash
-// Fist byte is always 0x4 followed by two 32 bytes components
-func EcdsaToPkeyHash(input []byte) []byte {
-  if input[0] == 0x04 {
-    output := make([]byte, 1, 24)
-    output[0] = 0x00
-
-    hash := sha256.New()          // Intermediate SHA256 hash computations
-    hash.Write(input[:])
-    sha256 := hash.Sum(nil)
-    hash = ripemd160.New()
-    hash.Write(sha256)
-
-    output = append(output, hash.Sum(nil)...)    // hash160
-    checksum := DoubleSha256(output)[0:4]
-    output = append(output, checksum...)
-    return output
-  }
-  return nil
+	return b[:n]
 }
 
 /*

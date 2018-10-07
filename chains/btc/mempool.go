@@ -36,8 +36,8 @@ func (btc *Btc) MempoolWatcher() {
       rawTx = &parser.RawTx{Body: body, Pos: 0}
       tx, _ := parseTransaction(rawTx)
       putTransactionHash(tx)
-      if bytes.Equal(misc.ReverseHex(tx.Hash), prevHashTx) {
-        log.Fatal("ERROR: ", misc.ReverseHex(tx.Hash), prevHashTx)
+      if !bytes.Equal(misc.ReverseHex(tx.Hash), prevHashTx) {
+        log.Info("ERROR: ", misc.ReverseHex(tx.Hash), prevHashTx)
       }
     default:
       log.Info("Unknown topic:", topic)

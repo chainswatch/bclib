@@ -26,20 +26,6 @@ func Hash160(buf []byte) []byte {
 * Returns a human-readable payment address.
 * Used in P2PKH and P2SH
 */
-// hash.Write(append(output, sec...))
-/*
-func SecToAddress(sec []byte) string {
-	prefix := []byte{0x00}
-
-	hash160 := Hash160(sec) // SEC to hash160: ripemd160(sha256(SEC))
-
-	chksum := DoubleSha256(append(prefix, hash160...))[:4] // 
-
-	address := Encode(append(hash160, chksum...))
-	return address
-}
-*/
-
 func SecToAddress(sec []byte) string {
 	prefix := []byte{0x00}
 	hash160 := Hash160(sec) // SEC to hash160: ripemd160(sha256(SEC))
@@ -49,3 +35,15 @@ func SecToAddress(sec []byte) string {
 
 	return Encode(b)
 }
+
+// p2pkh
+func Hash160ToAddress(hash160 []byte) string {
+	prefix := []byte{0x00}
+  b := append(prefix, hash160...)
+	chksum := DoubleSha256(b)[:4] // 
+  b = append(b, chksum...)
+
+	return Encode(b)
+}
+
+// p2psh p2wpkh

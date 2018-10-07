@@ -64,7 +64,7 @@ func getNumOps(script []byte) ([][]byte, error) {
 * Check if OP is a PubkeyHash (length == 20)
 */
 func isOpPubkeyhash(op []byte) bool {
-  // TOPO: OP_PUSHDATA4
+  // TODO: OP_PUSHDATA4
   if len(op) != 20 {
     return false
   }
@@ -75,7 +75,7 @@ func isOpPubkeyhash(op []byte) bool {
 *
 */
 func isOpPubkey(op []byte) bool {
-  // TOPO: OP_PUSHDATA4
+  // TODO: OP_PUSHDATA4
   dataLength := len(op)
   if (dataLength != BTC_ECKEY_COMPRESSED_LENGTH && dataLength != BTC_ECKEY_UNCOMPRESSED_LENGTH) {
     return false
@@ -111,9 +111,10 @@ func scriptIsScriptHash(ops [][]byte) []byte {
 
 // P2PK: OP_PUBKEY, OP_CHECKSIG
 func scriptIsPubkey(ops [][]byte) []byte {
+	log.Info("Is PK")
   if len(ops) == 2 {
-    if ops[0][0] == OP_CHECKSIG && isOpPubkey(ops[1]) {
-      return ops[1]
+    if ops[1][0] == OP_CHECKSIG && isOpPubkey(ops[0]) {
+      return ops[0]
     }
   }
   return nil
@@ -160,42 +161,16 @@ func getAddress(script []byte, version int32) {
   }
 	var hash []byte
   if hash = scriptIsPubkeyHash(ops); hash != nil {
-    log.Info("Script: PubkeyHash, ", misc.SecToAddress(hash))
-		// btc_pubkey_get_hash160
+    log.Info("Script: PubkeyHash, ", len(hash), " ", misc.Hash160ToAddress(hash))
   } else if hash = scriptIsScriptHash(ops); hash != nil {
-    log.Info("Script: ScriptHash")
+    log.Info("Script: ScriptHash ", len(hash), " ", misc.Hash160ToAddress(hash))
   } else if hash = scriptIsPubkey(ops); hash != nil {
-    log.Info("Script: Pubkey, ", misc.SecToAddress(hash))
+    log.Info("Script: Pubkey, ", len(hash), " ", misc.SecToAddress(hash))
   } else if hash = scriptIsMultiSig(ops); hash != nil {
-    log.Info("Script: Multisig, ", len(hash))
+    log.Fatal("Script: Multisig, ", len(hash))
   } else {
-    log.Info("Script: NOT FOUND")
+    log.Fatal("Script: NOT FOUND")
   }
 
   scriptIsWitnessprogram(script, version)
 }
-
-/*
-func getAddress(script []byte) {
-  scriptLength := len(script)
-
-  var res []byte
-  var err error
-  if scriptLength == 67 {
-    res, err = readEcdsa(script)
-  } else if scriptLength == 66 {
-    res, err = readWeirdEcdsa(script)
-  } else if scriptLength >= 25 { // Most common format
-    res, err = readShortEcdsa(script)
-  } else if scriptLength == 5 {
-    err = readError(script)
-  }
-  if err != nil {
-    log.Fatal(err)
-  }
-  log.Debug(fmt.Sprintf("Output Address: %x", res))
-  if (len(res) == 100) {
-   log.Info(res)
- }
-}
-*/
