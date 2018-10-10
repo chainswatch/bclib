@@ -31,7 +31,7 @@ func getNumOps(script []byte) ([][]byte, error) {
     opCode := script[i]
     i++
 
-    if (opCode < OP_PUSHDATA1) {
+    if (opCode < OP_PUSHDATA1 && opCode > OP_0) {
       dataLength = uint32(opCode)
     } else if (opCode == OP_PUSHDATA1) {
       dataLength = uint32(script[i])
@@ -41,22 +41,23 @@ func getNumOps(script []byte) ([][]byte, error) {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
     } else {
       ops = append(ops, []byte{opCode})
-      log.Debug("getNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
+      log.Debug("XgetNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
       continue
     }
     log.Debug("getNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
 
     // don't alloc a push buffer if there is no more data available
-    if (i + dataLength >= scriptLength) {
-      err = fmt.Errorf("Buffer overflow")
+    if (i + dataLength > scriptLength) {
+      err = fmt.Errorf("Buffer overflow: %d + %d > %d", i, dataLength, scriptLength)
       return nil, err
     }
-
     ops = append(ops, script[i:(i+dataLength)])
     i += dataLength
   }
-  ops = append(ops, []byte{script[i]})
-  log.Debug(fmt.Sprintf("Last opCode: %#x", script[i]))
+  if i < scriptLength {
+    ops = append(ops, []byte{script[i]})
+    log.Debug(fmt.Sprintf("Last opCode: %#x", script[i]))
+  }
   return ops, nil
 }
 
@@ -131,7 +132,7 @@ func scriptIsMultiSig(ops [][]byte) []byte {
 * A witness program is any valid script that consists of a 1-byte push opcode
 * followed by a data push between 2 and 40 bytes
 */
-func scriptIsWitnessprogram(script []byte, version int32) bool {
+func scriptIsWitnessProgram(script []byte, version int32) bool {
   if (version != 0) {
     return false
   }
@@ -143,7 +144,7 @@ func scriptIsWitnessprogram(script []byte, version int32) bool {
     return false
   }
   if (int(script[1] + 2) == lengthScript) {
-    log.Debug("WITNESS")
+    return true
   }
   return false
 }
@@ -152,7 +153,7 @@ func decodeAddress() () {
 }
 
 func getPublicAddress(txType uint8, hash []byte) string {
-	var address string
+  var address string
   if txType == TX_P2PKH {
     address = misc.Hash160ToAddress(hash, []byte{0x00})
   } else if txType == TX_P2SH {
@@ -161,12 +162,31 @@ func getPublicAddress(txType uint8, hash []byte) string {
     address = misc.SecToAddress(hash)
   } else if txType == TX_MULTISIG {
     log.Info("Script: Multisig, ", len(hash))
-		return ""
+    return ""
+  } else if txType == TX_P2WPKH {
+    address, _ = misc.EncodeBase32("bc", hash)
+    log.Info("1", hash, address)
+  } else if txType == TX_P2WSH {
+    address, err := misc.EncodeBase32("bc", hash)
+    if err != nil {
+      log.Info(err)
+    }
+    log.Info("2", hash, address)
   } else {
     log.Info("Script: NOT FOUND")
-		return ""
+    return ""
   }
-	return address
+  return address
+}
+
+func getVersion(op int32) int32 {
+  if (op == OP_0) {
+    return 0;
+  }
+  if (op >= OP_1 && op <= OP_16) {
+    log.Fatal("Error in getVersion ", op)
+  }
+  return op - (OP_1 - 1)
 }
 
 /*
@@ -174,7 +194,7 @@ func getPublicAddress(txType uint8, hash []byte) string {
 * version:
 * Return hash and hash type (P2PKH,P2SH...) from output script
 */
-func getAddressFromScript(script []byte, version int32) (uint8, []byte) {
+func getAddressFromScript(script []byte) (uint8, []byte) {
   log.SetLevel(log.DebugLevel)
   ops, err := getNumOps(script)
   if err != nil {
@@ -182,10 +202,11 @@ func getAddressFromScript(script []byte, version int32) (uint8, []byte) {
   }
   opsLength := len(ops)
   log.Debug("Number of ops: ", opsLength)
+  version := getVersion(int32(ops[0][0]))
   for i := 0; i < opsLength; i++ {
     log.Debug(fmt.Sprintf("%#x", ops[i]))
   }
-	var hash []byte
+  var hash []byte
   var txType uint8
   if hash = scriptIsPubkeyHash(ops); hash != nil {
     txType = TX_P2PKH
@@ -199,19 +220,19 @@ func getAddressFromScript(script []byte, version int32) (uint8, []byte) {
   } else if hash = scriptIsMultiSig(ops); hash != nil {
     txType = TX_MULTISIG
     log.Info("Script: Multisig, ", len(hash))
-		return 0, nil
-  } else {
-    log.Info("Script: NOT FOUND")
-		return 0, nil
-  }
-
-  if scriptIsWitnessprogram(script, version) {
-    lengthScript := len(script)
-    if lengthScript == 20 {
+    return 0, nil
+  } else if scriptIsWitnessProgram(script, version) {
+    hash = script
+    if len(hash) == 20 + 1 {
       txType = TX_P2WPKH
-    } else if  lengthScript == 32 {
+    } else if len(hash) == 32 + 1 {
       txType = TX_P2WSH
     }
   }
-	return txType, hash
+  if txType == TX_UNKNOWN {
+    log.Info("Script: NOT FOUND ", version)
+    return 0, nil
+  }
+
+  return txType, hash
 }
