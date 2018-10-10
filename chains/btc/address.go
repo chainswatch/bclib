@@ -111,7 +111,6 @@ func scriptIsScriptHash(ops [][]byte) []byte {
 
 // P2PK: OP_PUBKEY, OP_CHECKSIG
 func scriptIsPubkey(ops [][]byte) []byte {
-	log.Info("Is PK")
   if len(ops) == 2 {
     if ops[1][0] == OP_CHECKSIG && isOpPubkey(ops[0]) {
       return ops[0]
@@ -149,28 +148,70 @@ func scriptIsWitnessprogram(script []byte, version int32) bool {
   return false
 }
 
-func getAddress(script []byte, version int32) {
+func decodeAddress() () {
+}
+
+func getPublicAddress(txType uint8, hash []byte) string {
+	var address string
+  if txType == TX_P2PKH {
+    address = misc.Hash160ToAddress(hash, []byte{0x00})
+  } else if txType == TX_P2SH {
+    address = misc.Hash160ToAddress(hash, []byte{0x05})
+  } else if txType == TX_P2PK {
+    address = misc.SecToAddress(hash)
+  } else if txType == TX_MULTISIG {
+    log.Info("Script: Multisig, ", len(hash))
+		return ""
+  } else {
+    log.Info("Script: NOT FOUND")
+		return ""
+  }
+	return address
+}
+
+/*
+* script:
+* version:
+* Return hash and hash type (P2PKH,P2SH...) from output script
+*/
+func getAddressFromScript(script []byte, version int32) (uint8, []byte) {
+  log.SetLevel(log.DebugLevel)
   ops, err := getNumOps(script)
   if err != nil {
     log.Info(err)
   }
   opsLength := len(ops)
-  log.Info("Number of ops: ", opsLength)
+  log.Debug("Number of ops: ", opsLength)
   for i := 0; i < opsLength; i++ {
-    log.Info(fmt.Sprintf("%#x", ops[i]))
+    log.Debug(fmt.Sprintf("%#x", ops[i]))
   }
 	var hash []byte
+  var txType uint8
   if hash = scriptIsPubkeyHash(ops); hash != nil {
-    log.Info("Script: PubkeyHash, ", len(hash), " ", misc.Hash160ToAddress(hash))
+    txType = TX_P2PKH
+    log.Debug("Script: PubkeyHash, ", len(hash), " ", misc.Hash160ToAddress(hash, []byte{0x00}))
   } else if hash = scriptIsScriptHash(ops); hash != nil {
-    log.Info("Script: ScriptHash ", len(hash), " ", misc.Hash160ToAddress(hash))
+    txType = TX_P2SH
+    log.Debug("Script: ScriptHash ", len(hash), " ", misc.Hash160ToAddress(hash, []byte{0x05}))
   } else if hash = scriptIsPubkey(ops); hash != nil {
-    log.Info("Script: Pubkey, ", len(hash), " ", misc.SecToAddress(hash))
+    txType = TX_P2PK
+    log.Debug("Script: Pubkey, ", len(hash), " ", misc.SecToAddress(hash))
   } else if hash = scriptIsMultiSig(ops); hash != nil {
-    log.Fatal("Script: Multisig, ", len(hash))
+    txType = TX_MULTISIG
+    log.Info("Script: Multisig, ", len(hash))
+		return 0, nil
   } else {
-    log.Fatal("Script: NOT FOUND")
+    log.Info("Script: NOT FOUND")
+		return 0, nil
   }
 
-  scriptIsWitnessprogram(script, version)
+  if scriptIsWitnessprogram(script, version) {
+    lengthScript := len(script)
+    if lengthScript == 20 {
+      txType = TX_P2WPKH
+    } else if  lengthScript == 32 {
+      txType = TX_P2WSH
+    }
+  }
+	return txType, hash
 }

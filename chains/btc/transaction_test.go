@@ -42,8 +42,8 @@ if txHash != test.txhash {
 			t.Error("Wrong number of output. Should be tx.NVout = 2")
 		}
 		for idx, vout := range tx.Vout {
-			_, hash := getAddress(vout.Script, tx.NVersion)
-			decoded := misc.Hash160ToAddress(hash)
+			txType, hash := getAddressFromScript(vout.Script, tx.NVersion)
+			decoded := getPublicAddress(txType, hash)
 			if test.encoded[idx] != decoded {
 				t.Errorf("%v: String on decoded value does not match expected value: %v != %v",
 				test.name, test.encoded[idx], decoded)
