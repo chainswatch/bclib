@@ -24,7 +24,7 @@ func Hash160(buf []byte) []byte {
 /*
 * Input: SEC format (compressed or uncompressed)
 * Returns a human-readable payment address.
-* Used in P2PKH and P2SH
+* Used in P2PKH and P2SH (Tested)
 */
 func SecToAddress(sec []byte) string {
 	prefix := []byte{0x00}
