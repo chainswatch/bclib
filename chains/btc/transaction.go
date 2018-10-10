@@ -89,7 +89,7 @@ func parseTransaction(br BlockReader) (*models.Transaction, error) {
     scriptLength := br.ReadVarint()
     output.Script = br.ReadBytes(scriptLength)
     tx.Vout = append(tx.Vout, output)
-    if _, flag := getAddressFromScript(output.Script, tx.NVersion); flag == nil {
+    if _, flag := getAddressFromScript(output.Script); flag == nil {
       err = fmt.Errorf("Can't get transaction")
 		}
   }
