@@ -128,6 +128,13 @@ func scriptIsMultiSig(ops [][]byte) []byte {
   return nil
 }
 
+func scriptIsOpReturn(ops [][]byte) []byte {
+  if len(ops) == 2 && ops[0][0] == OP_RETURN && len(ops[1]) <= 20 {
+    return ops[1]
+  }
+  return nil
+}
+
 /*
 * A witness program is any valid script that consists of a 1-byte push opcode
 * followed by a data push between 2 and 40 bytes
@@ -164,14 +171,11 @@ func getPublicAddress(txType uint8, hash []byte) string {
     log.Info("Script: Multisig, ", len(hash))
     return ""
   } else if txType == TX_P2WPKH {
-    address, _ = misc.EncodeBase32("bc", hash)
-    log.Info("1", hash, address)
+    address, _ = misc.EncodeBench32("bc", hash)
   } else if txType == TX_P2WSH {
-    address, err := misc.EncodeBase32("bc", hash)
-    if err != nil {
-      log.Info(err)
-    }
-    log.Info("2", hash, address)
+    address, _ = misc.EncodeBench32("bc", hash)
+  } else if txType == TX_OPRETURN {
+    address = fmt.Sprintf("%x", hash)
   } else {
     log.Info("Script: NOT FOUND")
     return ""
@@ -188,6 +192,7 @@ func getVersion(op int32) int32 {
   }
   return op - (OP_1 - 1)
 }
+
 
 /*
 * script:
@@ -210,28 +215,25 @@ func getAddressFromScript(script []byte) (uint8, []byte) {
   var txType uint8
   if hash = scriptIsPubkeyHash(ops); hash != nil {
     txType = TX_P2PKH
-    log.Debug("Script: PubkeyHash, ", len(hash), " ", misc.Hash160ToAddress(hash, []byte{0x00}))
   } else if hash = scriptIsScriptHash(ops); hash != nil {
     txType = TX_P2SH
-    log.Debug("Script: ScriptHash ", len(hash), " ", misc.Hash160ToAddress(hash, []byte{0x05}))
   } else if hash = scriptIsPubkey(ops); hash != nil {
     txType = TX_P2PK
-    log.Debug("Script: Pubkey, ", len(hash), " ", misc.SecToAddress(hash))
   } else if hash = scriptIsMultiSig(ops); hash != nil {
     txType = TX_MULTISIG
-    log.Info("Script: Multisig, ", len(hash))
     return 0, nil
   } else if scriptIsWitnessProgram(script, version) {
-    hash = script
+    hash = append(ops[0], ops[1]...)
     if len(hash) == 20 + 1 {
       txType = TX_P2WPKH
     } else if len(hash) == 32 + 1 {
       txType = TX_P2WSH
     }
-  }
-  if txType == TX_UNKNOWN {
-    log.Info("Script: NOT FOUND ", version)
-    return 0, nil
+  } else if hash = scriptIsOpReturn(ops); hash != nil {
+    txType = TX_OPRETURN
+  } else {
+    hash = nil
+    txType = TX_UNKNOWN
   }
 
   return txType, hash
