@@ -35,7 +35,7 @@ func (btc *Btc) MempoolWatcher() {
       log.Info(fmt.Sprintf("%s: %x", topic, body))
       rawTx = &parser.RawTx{Body: body, Pos: 0}
       tx, _ := parseTransaction(rawTx)
-      tx.putTransactionHash()
+      putTransactionHash(tx)
       if !bytes.Equal(misc.ReverseHex(tx.Hash), prevHashTx) {
         log.Fatal("ERROR: ", misc.ReverseHex(tx.Hash), prevHashTx)
       }
