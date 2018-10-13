@@ -33,17 +33,16 @@ func SecToAddress(sec []byte) string {
 	chksum := DoubleSha256(b)[:4] // 
   b = append(b, chksum...)
 
-	return Encode(b)
+	return EncodeBase58(b)
 }
 
 // p2pkh
-func Hash160ToAddress(hash160 []byte) string {
-	prefix := []byte{0x00}
+func Hash160ToAddress(hash160 []byte, prefix []byte) string {
   b := append(prefix, hash160...)
 	chksum := DoubleSha256(b)[:4] // 
   b = append(b, chksum...)
 
-	return Encode(b)
+	return EncodeBase58(b)
 }
 
 // p2psh p2wpkh

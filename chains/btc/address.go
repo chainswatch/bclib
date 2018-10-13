@@ -41,10 +41,10 @@ func getNumOps(script []byte) ([][]byte, error) {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
     } else {
       ops = append(ops, []byte{opCode})
-      log.Debug("XgetNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
+      //log.Debug("XgetNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
       continue
     }
-    log.Debug("getNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
+    //log.Debug("getNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
 
     // don't alloc a push buffer if there is no more data available
     if (i + dataLength > scriptLength) {
@@ -56,7 +56,7 @@ func getNumOps(script []byte) ([][]byte, error) {
   }
   if i < scriptLength {
     ops = append(ops, []byte{script[i]})
-    log.Debug(fmt.Sprintf("Last opCode: %#x", script[i]))
+    //log.Debug(fmt.Sprintf("Last opCode: %#x", script[i]))
   }
   return ops, nil
 }
@@ -200,7 +200,6 @@ func getVersion(op int32) int32 {
 * Return hash and hash type (P2PKH,P2SH...) from output script
 */
 func getAddressFromScript(script []byte) (uint8, []byte) {
-  log.SetLevel(log.DebugLevel)
   ops, err := getNumOps(script)
   if err != nil {
     log.Info(err)
@@ -208,9 +207,11 @@ func getAddressFromScript(script []byte) (uint8, []byte) {
   opsLength := len(ops)
   log.Debug("Number of ops: ", opsLength)
   version := getVersion(int32(ops[0][0]))
+	var outputScript string = ""
   for i := 0; i < opsLength; i++ {
-    log.Debug(fmt.Sprintf("%#x", ops[i]))
+    outputScript += fmt.Sprintf("%#x ", ops[i])
   }
+	log.Debug(outputScript)
   var hash []byte
   var txType uint8
   if hash = scriptIsPubkeyHash(ops); hash != nil {

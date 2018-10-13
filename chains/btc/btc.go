@@ -24,6 +24,10 @@ type Btc struct {
   models.Block
 }
 
+type Tx struct {
+	models.Transaction
+}
+
 func NewBtc(dataDir string) *Btc {
   return &Btc{DataDir: dataDir}
 }
@@ -50,7 +54,6 @@ const (
 
   OP_DUP = 0x76
   OP_HASH160 = 0xA9
-  OP_EQUALVERIFY = 0x88
   OP_CHECKSIG = 0xAC
   OP_PUSHDATA1 = 0x4C // Next byte containes the number of bytes to be pushed onto the stack
   OP_PUSHDATA2 = 0x4D // Next 2 bytes contain the number of bytes to be pushed (little endian)
@@ -58,6 +61,7 @@ const (
 
   // Bitwise logic
   OP_EQUAL = 0x87 // Returns 1 if the inputs are exactly equal, 0 otherwise
+	OP_EQUALVERIFY = 0x88
 
   // Flow control
   OP_RETURN = 0x6A

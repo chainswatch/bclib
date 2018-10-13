@@ -26,14 +26,3 @@ func HexToBinary(src []byte) []byte {
   }
 	return b[:n]
 }
-
-/*
-* 33 byte long compressed ECDSA public key
-* Fist byte is always 0x4 followed by the 32 bytes component
-*/
-func ShortEcdsaToPkeyHash(input []byte) []byte {
-  log.Fatal("Short ECDSA")
-  if input[0] == 0x02 || input[0] == 0x03 {
-  }
-  return nil
-}

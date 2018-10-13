@@ -103,7 +103,7 @@ func (btc *Btc) GetAllBlocks() {
     // Open pgSQL transaction
     tx, err := btc.SqlDb.Begin()
     if err != nil {
-      log.Fatal("Begin:", err)
+      log.Fatal("Begin: ", err)
     }
 
     // loop through blocks
@@ -114,13 +114,14 @@ func (btc *Btc) GetAllBlocks() {
       }
       btc.insertBlock(tx)
       if height % 10000 == 0 {
-        log.Info(height)
+        log.Info("Block Height: ", height)
       }
       btc.NDataPos += btc.Length + 8 // Jump to next block
       height++
     }
 
     // Close pgSQL transaction
+		log.Info("Commiting transaction")
     err = tx.Commit()
     if err != nil {
       log.Fatal(err)
@@ -129,6 +130,7 @@ func (btc *Btc) GetAllBlocks() {
     blockFile.Close()
     btc.NFile++
     btc.NDataPos = 0
+		log.Fatal("File Inserted")
   }
   // btc.getTransaction() // Using index
 }

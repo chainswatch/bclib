@@ -33,7 +33,7 @@ func NewTable(db *sqlx.DB, name string, schema string, drop bool) {
   }
   _, err := db.Exec(schema)
   if err != nil {
-    log.Warn(name, ": ", err)
+    log.Warn("NewTable(): ", name, ": ", err)
   }
 }
 

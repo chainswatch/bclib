@@ -13,7 +13,7 @@ func (btc *Btc) MempoolWatcher() {
   //  Prepare our subscriber
   subscriber, _ := zmq.NewSocket(zmq.SUB)
   defer subscriber.Close()
-  subscriber.Connect("tcp://91.121.87.21:28332")
+  subscriber.Connect("tcp://37.59.38.74:28332")
   subscriber.SetSubscribe("hashtx")
   subscriber.SetSubscribe("rawtx")
 
@@ -35,9 +35,9 @@ func (btc *Btc) MempoolWatcher() {
       log.Info(fmt.Sprintf("%s: %x", topic, body))
       rawTx = &parser.RawTx{Body: body, Pos: 0}
       tx, _ := parseTransaction(rawTx)
-      putTransactionHash(tx)
+      tx.putTransactionHash()
       if !bytes.Equal(misc.ReverseHex(tx.Hash), prevHashTx) {
-        log.Info("ERROR: ", misc.ReverseHex(tx.Hash), prevHashTx)
+        log.Fatal("ERROR: ", misc.ReverseHex(tx.Hash), prevHashTx)
       }
     default:
       log.Info("Unknown topic:", topic)

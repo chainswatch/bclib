@@ -84,7 +84,7 @@ func PrepareInsertOutput(tx *sql.Tx) func(m models.TxOutput, tx_hash models.Hash
   `
   stmt, err := tx.Prepare(query)
   if err != nil {
-    log.Panic("PrepareInsertOutput :", err)
+    log.Panic("PrepareInsertOutput: ", err)
   }
 
   return func(m models.TxOutput, tx_hash models.Hash256) {

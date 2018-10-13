@@ -28,7 +28,7 @@ type Transaction struct {
   NVout             uint32      `db:"n_vout"`     // Number of outputs
   Vin               []TxInput
   Vout              []TxOutput
-  Locktime          uint32      `db:"locktime"`   // Always 0
+  Locktime          uint32      `db:"locktime"`
 	// StartPos      uint64 // not actually in blockchain data
 }
 

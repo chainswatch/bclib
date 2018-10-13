@@ -107,7 +107,7 @@ func parseTransaction(br BlockReader) (*models.Transaction, error) {
   } // TODO: Missing 0 field?
 
   tx.Locktime = br.ReadUint32()
-	putTransactionHash(tx)
+	tx.putTransactionHash()
   if err != nil {
 		log.Info(fmt.Sprintf("txHash: %x", misc.ReverseHex(tx.Hash)))
   }
@@ -168,7 +168,7 @@ func getOutputBinary(out models.TxOutput) []byte {
 }
 
 // Compute transaction hash
-func putTransactionHash(tx *models.Transaction) {
+func (tx Tx) putTransactionHash() {
 	if tx.Hash != nil {
 		return
 	}
@@ -216,7 +216,7 @@ func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) erro
   btc.Transactions = nil
   for t := uint32(0); t < btc.NTx; t++ {
     tx, err := parseTransaction(blockFile)
-    putTransactionHash(tx)
+    tx.putTransactionHash()
     if err != nil {
       log.Warn(fmt.Sprintf("txHash: %x", misc.ReverseHex(tx.Hash)))
     }
