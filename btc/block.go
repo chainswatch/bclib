@@ -15,23 +15,6 @@ const (
   BLOCK_MAGIC_ID_TESTNET MagicID = 0x0709110b
 )
 
-func (btc *Btc) insertBlock(pgtx *sql.Tx) {
-  db.InsertHeader(pgtx, btc.Block)
-
-  nextTx := db.PrepareInsertTransaction(pgtx)
-  nextVin := db.PrepareInsertInput(pgtx)
-  nextVout := db.PrepareInsertOutput(pgtx)
-  for _, tx := range(btc.Transactions) {
-    nextTx(tx)
-    for _, vin := range(tx.Vin) {
-      nextVin(vin, tx.Hash)
-    }
-    for _, vout := range(tx.Vout) {
-      nextVout(vout, tx.Hash)
-    }
-  }
-}
-
 // Parse the header fields except the MagicId
 // TODO: Currently won't return any error
 func (btc *Btc) ParseBlockHeaderFromFile(blockFile *parser.BlockFile) {
