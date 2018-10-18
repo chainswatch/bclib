@@ -3,7 +3,7 @@ package btc
 import (
 	"app/misc"
 	"testing"
-	"app/chains/parser"
+	"app/parser"
 	"fmt"
   log "github.com/sirupsen/logrus"
 )

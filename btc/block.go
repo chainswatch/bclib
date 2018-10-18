@@ -1,9 +1,7 @@
 package btc
 
 import (
-  "app/chains/parser"
-  db "app/chains/repository"
-  "database/sql"
+  "app/parser"
   // "github.com/jmoiron/sqlx"
   log "github.com/sirupsen/logrus"
   "time"
@@ -57,63 +55,4 @@ func (btc *Btc) getBlockFromFile(blockFile *parser.BlockFile) bool {
   // tmp, _ := blockFile.Seek(0, 1)
   // log.Debug("Starts at:", btc.NDataPos, ". Stops at:", tmp)
   return false
-}
-
-func (btc *Btc) GetAllBlocks() {
-  var height uint32
-  res, err := db.GetLastBlockHeader(btc.SqlDb)
-  if err != nil {
-    log.Warn(err)
-    btc.NDataPos = 0
-    btc.NFile = 0
-    height = 0
-  } else {
-    btc.BlockHeader = res
-    height = btc.NHeight + 1
-    btc.NDataPos += btc.Length + 8
-    log.Info("Starting from file ", btc.NFile, " at pos ", btc.NDataPos, " and height ", height)
-  }
-
-  // Loop through files
-  for {
-    log.Info("Reading file ", btc.NFile)
-    blockFile, err := parser.NewBlockFile(btc.DataDir, btc.NFile)
-    if err != nil {
-      log.Warn(err)
-      break
-    }
-
-    // Open pgSQL transaction
-    tx, err := btc.SqlDb.Begin()
-    if err != nil {
-      log.Fatal("Begin: ", err)
-    }
-
-    // loop through blocks
-    for {
-      btc.NHeight = uint32(height)
-      if btc.getBlockFromFile(blockFile) {
-        break
-      }
-      btc.insertBlock(tx)
-      if height % 10000 == 0 {
-        log.Info("Block Height: ", height)
-      }
-      btc.NDataPos += btc.Length + 8 // Jump to next block
-      height++
-    }
-
-    // Close pgSQL transaction
-		log.Info("Commiting transaction")
-    err = tx.Commit()
-    if err != nil {
-      log.Fatal(err)
-    }
-
-    blockFile.Close()
-    btc.NFile++
-    btc.NDataPos = 0
-		log.Fatal("File Inserted")
-  }
-  // btc.getTransaction() // Using index
 }

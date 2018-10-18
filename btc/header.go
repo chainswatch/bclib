@@ -1,11 +1,7 @@
 package btc
 
 import (
-  "app/chains/parser"
-  db "app/chains/repository"
-  log "github.com/sirupsen/logrus"
-  "github.com/syndtr/goleveldb/leveldb/util"
-  "strings"
+  "app/parser"
   "time"
 )
 
@@ -39,65 +35,3 @@ func (btc *Btc) parseBlockHeaderData(data []byte) {
   btc.NBits = dataBuf.ShiftU32bit()
   btc.NNonce = dataBuf.ShiftU32bit()
 }
-
-func (btc *Btc) GetBlockHeaders() {
-  var err error
-  btc.IndexDb, err = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
-  if err != nil {
-    log.Warn("Error:", err)
-  }
-  defer btc.IndexDb.Close()
-
-  iter := btc.IndexDb.NewIterator(util.BytesPrefix([]byte("b")), nil)
-  for iter.Next() {
-    btc.HashBlock = iter.Key()
-    data := iter.Value()
-    // log.Info(data)
-    btc.parseBlockHeaderData(data)
-    // Copy, then insert in DB
-    // _, err = db.InsertHeader(btc.SqlDb, btc.BlockHeader)
-    if err != nil {
-      if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-        log.Warn(err)
-      }
-    }
-  }
-  iter.Release()
-  err = iter.Error()
-  if err != nil {
-    log.Warn(err)
-  }
-}
-
-/*
-func (btc *Btc) GetBlockHeader(nBlocks int) {
-  var err error
-  btc.IndexDb, err = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
-  if err != nil {
-    log.Warn("Error:", err)
-  }
-  defer btc.IndexDb.Close()
-
-  for i := 0; i < nBlocks; i++ {
-    //fmt.Printf("Begin: blockHash: %v, %d bytes\n", btc.HashPrevBlock, len(btc.HashPrevBlock))
-
-    // Get data
-    data, err := btc.IndexDb.Get(append([]byte("b"), btc.HashPrevBlock...), nil)
-    if err != nil {
-      log.Warn(err)
-    }
-    btc.parseBlockHeaderData(data) // TODO: Errors checks
-    // fmt.Printf("rawBlockHeader: %v\n", data)
-
-    // Copy, then insert in DB
-    _, err = db.InsertHeader(btc.SqlDb, btc.BlockHeader)
-    if err != nil {
-      if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-        log.Warn(err)
-      }
-    }
-  }
-  id, _ := db.GetRowCount(btc.SqlDb, "blocks")
-  log.Info("blocks has ", id, " rows")
-}
-*/
