@@ -4,8 +4,10 @@ import (
   "time"
 )
 
+// Hash256 holds address
 type Hash256 []byte
 
+// TxInput holds tx inputs
 type TxInput struct {
   Hash              Hash256     `db:"hash"`       // Hash of some previous transaction
   Index             uint32      `db:"index"`      // Output of the previous transaction
@@ -14,6 +16,7 @@ type TxInput struct {
   ScriptWitness     [][]byte
 }
 
+// TxOutput holds tx outputs
 type TxOutput struct {
   Index             uint32      `db:"index"`      // Output index
   Value             int64       `db:"value"`      // Satoshis
@@ -21,6 +24,7 @@ type TxOutput struct {
   Script            []byte      `db:"script"`     // Where the magic happens
 }
 
+// Transaction holds transaction
 type Transaction struct {
   NVersion          int32       `db:"n_version"`  // Always 1 or 2
   Hash              Hash256     `db:"tx_hash"`    // Transaction hash (computed)
@@ -31,7 +35,7 @@ type Transaction struct {
   Locktime          uint32      `db:"locktime"`
 }
 
-// BlockIndexRecord contains general index records parameters
+// BlockHeader contains general index records parameters
 // It defines the structure of the postgres table
 type BlockHeader struct {
   NVersion          int32     `db:"n_version"`    // Version
@@ -51,6 +55,7 @@ type BlockHeader struct {
   Length            uint32
 }
 
+// Block contains block infos
 type Block struct {
   BlockHeader
   Transactions  []Transaction

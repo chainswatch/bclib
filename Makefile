@@ -1,5 +1,5 @@
-PROJECT_NAME := mempool
-PKG := "git.posc.in/cw/"
+PROJECT_NAME := watchers
+PKG := "git.posc.in/cw/watchers"
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
 
