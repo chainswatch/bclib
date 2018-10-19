@@ -1,9 +1,9 @@
 package btc
 
 import (
-  "app/serial"
-  "app/models"
-  "app/parser"
+  "git.posc.in/cw/watchers/serial"
+  "git.posc.in/cw/watchers/models"
+  "git.posc.in/cw/watchers/parser"
   log "github.com/sirupsen/logrus"
   "encoding/binary"
   "fmt"

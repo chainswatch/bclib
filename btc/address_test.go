@@ -2,7 +2,6 @@ package btc
 
 /*
 import (
-  "app/misc"
   "testing"
 )
 
