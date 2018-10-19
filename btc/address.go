@@ -31,13 +31,13 @@ func getNumOps(script []byte) ([][]byte, error) {
     opCode := script[i]
     i++
 
-    if (opCode < OP_PUSHDATA1 && opCode > OP_0) {
+    if (opCode < opPushdata1 && opCode > op0) {
       dataLength = uint32(opCode)
-    } else if (opCode == OP_PUSHDATA1) {
+    } else if (opCode == opPushdata1) {
       dataLength = uint32(script[i])
-    } else if (opCode == OP_PUSHDATA2) {
+    } else if (opCode == opPushdata2) {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+2)])
-    } else if (opCode == OP_PUSHDATA4) {
+    } else if (opCode == opPushdata4) {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
     } else {
       ops = append(ops, []byte{opCode})
@@ -78,7 +78,7 @@ func isOpPubkeyhash(op []byte) bool {
 func isOpPubkey(op []byte) bool {
   // TODO: OP_PUSHDATA4
   dataLength := len(op)
-  if (dataLength != BTC_ECKEY_COMPRESSED_LENGTH && dataLength != BTC_ECKEY_UNCOMPRESSED_LENGTH) {
+  if (dataLength != btcEckeyCompressedLength && dataLength != btcEckeyUncompressedLength) {
     return false
   }
   return true
@@ -87,11 +87,11 @@ func isOpPubkey(op []byte) bool {
 // P2PKH: OP_DUP, OP_HASH160, OP_PUBKEYHASH, OP_EQUALVERIFY, OP_CHECKSIG
 func scriptIsPubkeyHash(ops [][]byte) []byte {
   if len(ops) == 5 {
-    if ops[0][0] == OP_DUP &&
-    ops[1][0] == OP_HASH160 &&
+    if ops[0][0] == opDup &&
+    ops[1][0] == opHash160 &&
     isOpPubkeyhash(ops[2]) &&
-    ops[3][0] == OP_EQUALVERIFY &&
-    ops[4][0] == OP_CHECKSIG {
+    ops[3][0] == opEqualverify &&
+    ops[4][0] == opChecksig {
       return ops[2]
     }
   }
@@ -101,9 +101,9 @@ func scriptIsPubkeyHash(ops [][]byte) []byte {
 // P2SH: OP_HASH160, OP_PUBKEYHASH, OP_EQUAL
 func scriptIsScriptHash(ops [][]byte) []byte {
   if len(ops) == 3 {
-    if ops[0][0] == OP_HASH160 &&
+    if ops[0][0] == opHash160 &&
     isOpPubkeyhash(ops[1]) &&
-    ops[2][0] == OP_EQUAL {
+    ops[2][0] == opEqual {
       return ops[1]
     }
   }
@@ -113,7 +113,7 @@ func scriptIsScriptHash(ops [][]byte) []byte {
 // P2PK: OP_PUBKEY, OP_CHECKSIG
 func scriptIsPubkey(ops [][]byte) []byte {
   if len(ops) == 2 {
-    if ops[1][0] == OP_CHECKSIG && isOpPubkey(ops[0]) {
+    if ops[1][0] == opChecksig && isOpPubkey(ops[0]) {
       return ops[0]
     }
   }
@@ -129,7 +129,7 @@ func scriptIsMultiSig(ops [][]byte) []byte {
 }
 
 func scriptIsOpReturn(ops [][]byte) []byte {
-  if len(ops) == 2 && ops[0][0] == OP_RETURN && len(ops[1]) <= 20 {
+  if len(ops) == 2 && ops[0][0] == opReturn && len(ops[1]) <= 20 {
     return ops[1]
   }
   return nil
@@ -147,7 +147,7 @@ func scriptIsWitnessProgram(script []byte, version int32) bool {
   if (lengthScript < 4 || lengthScript > 42) {
     return false
   }
-  if (script[0] != OP_0 && (script[0] < OP_1 || script[0] > OP_16)) {
+  if (script[0] != op0 && (script[0] < op1 || script[0] > op16)) {
     return false
   }
   if (int(script[1] + 2) == lengthScript) {
@@ -161,20 +161,20 @@ func decodeAddress() () {
 
 func getPublicAddress(txType uint8, hash []byte) string {
   var address string
-  if txType == TX_P2PKH {
+  if txType == txP2pkh {
     address = serial.Hash160ToAddress(hash, []byte{0x00})
-  } else if txType == TX_P2SH {
+  } else if txType == txP2sh {
     address = serial.Hash160ToAddress(hash, []byte{0x05})
-  } else if txType == TX_P2PK {
+  } else if txType == txP2pk {
     address = serial.SecToAddress(hash)
-  } else if txType == TX_MULTISIG {
+  } else if txType == txMultisig {
     log.Info("Script: Multisig, ", len(hash))
     return ""
-  } else if txType == TX_P2WPKH {
+  } else if txType == txP2wpkh {
     address, _ = serial.EncodeBench32("bc", hash)
-  } else if txType == TX_P2WSH {
+  } else if txType == txP2wsh {
     address, _ = serial.EncodeBench32("bc", hash)
-  } else if txType == TX_OPRETURN {
+  } else if txType == txOpreturn {
     address = fmt.Sprintf("%x", hash)
   } else {
     log.Info("Script: NOT FOUND")
@@ -184,13 +184,13 @@ func getPublicAddress(txType uint8, hash []byte) string {
 }
 
 func getVersion(op int32) int32 {
-  if (op == OP_0) {
+  if (op == op0) {
     return 0;
   }
-  if (op >= OP_1 && op <= OP_16) {
+  if (op >= op1 && op <= op16) {
     log.Fatal("Error in getVersion ", op)
   }
-  return op - (OP_1 - 1)
+  return op - (op1 - 1)
 }
 
 
@@ -215,26 +215,26 @@ func getAddressFromScript(script []byte) (uint8, []byte) {
   var hash []byte
   var txType uint8
   if hash = scriptIsPubkeyHash(ops); hash != nil {
-    txType = TX_P2PKH
+    txType = txP2pkh
   } else if hash = scriptIsScriptHash(ops); hash != nil {
-    txType = TX_P2SH
+    txType = txP2sh
   } else if hash = scriptIsPubkey(ops); hash != nil {
-    txType = TX_P2PK
+    txType = txP2pk
   } else if hash = scriptIsMultiSig(ops); hash != nil {
-    txType = TX_MULTISIG
+    txType = txMultisig
     return 0, nil
   } else if scriptIsWitnessProgram(script, version) {
     hash = append(ops[0], ops[1]...)
     if len(hash) == 20 + 1 {
-      txType = TX_P2WPKH
+      txType = txP2wpkh
     } else if len(hash) == 32 + 1 {
-      txType = TX_P2WSH
+      txType = txP2wsh
     }
   } else if hash = scriptIsOpReturn(ops); hash != nil {
-    txType = TX_OPRETURN
+    txType = txOpreturn
   } else {
     hash = nil
-    txType = TX_UNKNOWN
+    txType = txUnknown
   }
 
   return txType, hash

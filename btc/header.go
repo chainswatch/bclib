@@ -7,7 +7,7 @@ import (
 
 // Parse raw data bytes
 // https://github.com/bitcoin/bitcoin/blob/v0.15.1/src/chain.h#L387L407
-func (btc *Btc) parseBlockHeaderData(data []byte) {
+func (btc *btc) parseBlockHeaderData(data []byte) {
   // Parse the raw bytes
   dataBuf := parser.NewDataBuf(data)
 
@@ -18,13 +18,13 @@ func (btc *Btc) parseBlockHeaderData(data []byte) {
   btc.NHeight = uint32(dataBuf.ShiftVarint())
   btc.NStatus = uint32(dataBuf.ShiftVarint())
   btc.NTx = uint32(dataBuf.ShiftVarint())
-  if btc.NStatus & (BLOCK_HAVE_DATA|BLOCK_HAVE_UNDO) > 0 {
+  if btc.NStatus & (blockHaveData|blockHaveUndo) > 0 {
     btc.NFile = uint32(dataBuf.ShiftVarint())
   }
-  if btc.NStatus & BLOCK_HAVE_DATA > 0 {
+  if btc.NStatus & blockHaveData > 0 {
     btc.NDataPos = uint32(dataBuf.ShiftVarint())
   }
-  if btc.NStatus & BLOCK_HAVE_UNDO > 0 {
+  if btc.NStatus & blockHaveUndo > 0 {
     btc.NUndoPos = uint32(dataBuf.ShiftVarint())
   }
 

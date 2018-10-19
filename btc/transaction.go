@@ -211,7 +211,7 @@ func putTransactionHash(tx *models.Transaction) {
   log.Debug(fmt.Sprintf("Transaction Hash: %x", serial.ReverseHex(tx.Hash)))
 }
 
-func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
+func (btc *btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
   btc.Transactions = nil
   for t := uint32(0); t < btc.NTx; t++ {
     tx, err := parseTransaction(blockFile)

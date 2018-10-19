@@ -2,7 +2,6 @@ package btc
 
 import (
   "app/parser"
-  // "github.com/jmoiron/sqlx"
   log "github.com/sirupsen/logrus"
   "time"
 )
@@ -29,7 +28,7 @@ func (btc *btc) parseBlockHeaderFromFile(blockFile *parser.BlockFile) {
 
 func (btc *btc) parseBlockFromFile(blockFile *parser.BlockFile) {
   // Read header fields
-  btc.ParseBlockHeaderFromFile(blockFile)
+  btc.parseBlockHeaderFromFile(blockFile)
 
   // Parse transactions
   err := btc.parseBlockTransactionsFromFile(blockFile)
@@ -47,7 +46,7 @@ func (btc *btc) getBlockFromFile(blockFile *parser.BlockFile) bool {
   if mID == 0 {
     log.Info("End of File")
     return true
-  } else if magicID != BlockMagicIDBitcoin {
+  } else if mID != blockMagicIDBitcoin {
     // blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
     log.Fatal("Invalid block header: Can't find Magic ID ", mID)
   }
