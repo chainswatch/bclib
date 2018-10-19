@@ -169,6 +169,15 @@ func hasWitness() {
 }
 */
 
+func PrintRandom1() {
+  fmt.Printf("TOTO")
+}
+
+func PrintRandom2(br BlockReader) {
+  br = nil
+  fmt.Printf("TOTO")
+}
+
 // Compute transaction hash
 func putTransactionHash(tx *models.Transaction) {
 	bin := make([]byte, 0)
