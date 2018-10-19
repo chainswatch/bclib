@@ -1,7 +1,7 @@
 package btc
 
 import (
-  "app/parser"
+  "git.posc.in/cw/watchers/parser"
   "time"
 )
 

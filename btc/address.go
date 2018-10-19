@@ -7,7 +7,7 @@ Functions used to discriminate between addresses
 */
 
 import (
-  "app/serial"
+  "git.posc.in/cw/watchers/serial"
   "fmt"
   "encoding/binary"
   log "github.com/sirupsen/logrus"

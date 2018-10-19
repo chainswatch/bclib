@@ -7,7 +7,7 @@ btc holds structs and methods used to parse the bitcoin blockchain
 */
 
 import (
-  "app/models"
+  "git.posc.in/cw/watchers/models"
   "github.com/syndtr/goleveldb/leveldb"
   "github.com/jmoiron/sqlx"
   "os"
