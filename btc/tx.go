@@ -30,7 +30,7 @@ import (
 * - uint32_t nLockTime
 */
 
-type blockReader interface {
+type BlockReader interface {
   Peek(int) ([]byte, error)
   ReadByte() byte
   ReadBytes(uint64) []byte
@@ -41,7 +41,7 @@ type blockReader interface {
 }
 
 // DecodeTx decode a transaction
-func DecodeTx(br blockReader) (*models.Transaction, error) {
+func DecodeTx(br BlockReader) (*models.Transaction, error) {
   var err error
   var txFlag byte // Check for extended transaction serialization format
   emptyByte := make([]byte, 32)
