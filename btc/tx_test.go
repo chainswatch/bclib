@@ -98,7 +98,7 @@ func TestTransaction(t *testing.T) {
 		log.Debug("------------------- New Transaction --------------------")
 		rawtx := serial.HexToBinary(test.rawtx)
 		rawTx := &parser.RawTx{Body: rawtx, Pos: 0}
-		tx, _ := parseTransaction(rawTx)
+		tx, _ := DecodeTx(rawTx)
 		txHash := fmt.Sprintf("%x", serial.ReverseHex(tx.Hash))
 		if txHash != test.txhash {
       t.Errorf("%v: Transaction hash does not match: %v != %v",
