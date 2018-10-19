@@ -81,7 +81,7 @@ func (blockFile *BlockFile) ReadByte() byte {
 }
 
 func (tx *RawTx) ReadByte() byte {
-  tx.Pos += 1
+  tx.Pos++
   return tx.Body[tx.Pos - 1]
 }
 

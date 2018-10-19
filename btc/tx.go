@@ -40,8 +40,8 @@ type blockReader interface {
   ReadInt32() int32
 }
 
-// TODO: rename decodeTransaction?
-func parseTransaction(br blockReader) (*models.Transaction, error) {
+// DecodeTx decode a transaction
+func DecodeTx(br blockReader) (*models.Transaction, error) {
   var err error
   var txFlag byte // Check for extended transaction serialization format
   emptyByte := make([]byte, 32)
@@ -213,7 +213,7 @@ func putTransactionHash(tx *models.Transaction) {
 func (btc *btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
   btc.Transactions = nil
   for t := uint32(0); t < btc.NTx; t++ {
-    tx, err := parseTransaction(blockFile)
+    tx, err := DecodeTx(blockFile)
     putTransactionHash(tx)
     if err != nil {
       log.Warn(fmt.Sprintf("txHash: %x", serial.ReverseHex(tx.Hash)))
