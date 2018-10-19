@@ -29,7 +29,6 @@ type Transaction struct {
   Vin               []TxInput
   Vout              []TxOutput
   Locktime          uint32      `db:"locktime"`
-	// StartPos      uint64 // not actually in blockchain data
 }
 
 // BlockIndexRecord contains general index records parameters

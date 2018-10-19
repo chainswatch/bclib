@@ -40,26 +40,24 @@ type blockReader interface {
   ReadInt32() int32
 }
 
+// TODO: rename decodeTransaction?
 func parseTransaction(br blockReader) (*models.Transaction, error) {
   var err error
+  var txFlag byte // Check for extended transaction serialization format
   emptyByte := make([]byte, 32)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
   tx := &models.Transaction{}
+
   tx.NVersion = br.ReadInt32()
   log.Debug("NVersion:", tx.NVersion)
-
-  var txFlag byte // Check for extended transaction serialization format
-  p, _ := br.Peek(1) // Try to read. Look for dummy
-  if p[0] == 0 { // We are dealing with extended transaction
+  tx.NVin = uint32(br.ReadVarint())
+  if tx.NVin == 0 { // We are dealing with extended transaction (witness format)
     log.Debug("Segwit Transaction")
-    br.ReadByte()          // marker (0x00)
-    txFlag = br.ReadByte() // flag (!=0, usually 0x01)
+    txFlag = br.ReadByte()
     log.Debug("Flag: ", txFlag)
-    if (txFlag != 0) {
-      tx.NVin = uint32(br.ReadVarint())
+    if (txFlag != 0x01) { // Must be 1, other flags may be supported in the future
+      log.Fatal("Witness tx but flag is ", txFlag, " != 0x01")
     }
-  } else {
-    log.Debug("Flag:", p[0])
     tx.NVin = uint32(br.ReadVarint())
   }
 
@@ -85,12 +83,10 @@ func parseTransaction(br blockReader) (*models.Transaction, error) {
     output := models.TxOutput{}
     output.Index = i
     output.Value = int64(br.ReadUint64())
+    log.Debug("Value ", i, ": ", output.Value)
     scriptLength := br.ReadVarint()
     output.Script = br.ReadBytes(scriptLength)
     tx.Vout = append(tx.Vout, output)
-    if _, flag := getAddressFromScript(output.Script); flag == nil {
-      err = fmt.Errorf("Can't get transaction")
-		}
   }
 
   if (txFlag & 1) == 1 && allowWitness {
@@ -106,6 +102,7 @@ func parseTransaction(br blockReader) (*models.Transaction, error) {
   } // TODO: Missing 0 field?
 
   tx.Locktime = br.ReadUint32()
+  log.Debug("Locktime: ", tx.Locktime)
 	putTransactionHash(tx)
   if err != nil {
 		log.Info(fmt.Sprintf("txHash: %x", serial.ReverseHex(tx.Hash)))
@@ -166,15 +163,18 @@ func getOutputBinary(out models.TxOutput) []byte {
 	return bin
 }
 
+/*
+func hasWitness() {
+   tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
+}
+*/
+
 // Compute transaction hash
 func putTransactionHash(tx *models.Transaction) {
-	if tx.Hash != nil {
-		return
-	}
-
 	bin := make([]byte, 0)
 	//hasScriptWitness := tx.HasWitness()
 	version := make([]byte, 4)
+
 	binary.LittleEndian.PutUint32(version, uint32(tx.NVersion))
 	bin = append(bin, version...)
 
@@ -208,7 +208,6 @@ func putTransactionHash(tx *models.Transaction) {
 	bin = append(bin, locktime...)
 
 	tx.Hash = serial.DoubleSha256(bin)
-  log.Debug(fmt.Sprintf("Transaction Hash: %x", serial.ReverseHex(tx.Hash)))
 }
 
 func (btc *btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
