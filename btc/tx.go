@@ -30,7 +30,7 @@ import (
 * - uint32_t nLockTime
 */
 
-type BlockReader interface {
+type blockReader interface {
   Peek(int) ([]byte, error)
   ReadByte() byte
   ReadBytes(uint64) []byte
@@ -41,7 +41,7 @@ type BlockReader interface {
 }
 
 // DecodeTx decode a transaction
-func DecodeTx(br BlockReader) (*models.Transaction, error) {
+func DecodeTx(br blockReader) (*models.Transaction, error) {
   var err error
   var txFlag byte // Check for extended transaction serialization format
   emptyByte := make([]byte, 32)
@@ -168,15 +168,6 @@ func hasWitness() {
    tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
 }
 */
-
-func PrintRandom1() {
-  fmt.Printf("TOTO")
-}
-
-func PrintRandom2(br BlockReader) {
-  br = nil
-  fmt.Printf("TOTO")
-}
 
 // Compute transaction hash
 func putTransactionHash(tx *models.Transaction) {
