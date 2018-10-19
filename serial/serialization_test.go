@@ -1,4 +1,4 @@
-package misc
+package serial
 
 /*
 * Get tests from:

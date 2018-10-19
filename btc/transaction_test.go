@@ -1,7 +1,7 @@
 package btc
 
 import (
-	"app/misc"
+	"app/serial"
 	"testing"
 	"app/parser"
 	"fmt"
@@ -88,10 +88,10 @@ func TestTransaction(t *testing.T) {
 
 	for _, test := range tests {
 		log.Debug("------------------- New Transaction --------------------")
-		rawtx := misc.HexToBinary(test.rawtx)
+		rawtx := serial.HexToBinary(test.rawtx)
 		rawTx := &parser.RawTx{Body: rawtx, Pos: 0}
 		tx, _ := parseTransaction(rawTx)
-		txHash := fmt.Sprintf("%x", misc.ReverseHex(tx.Hash))
+		txHash := fmt.Sprintf("%x", serial.ReverseHex(tx.Hash))
 		if txHash != test.txhash {
 			t.Errorf("%v: String on decoded value does not match expected value: %v != %v",
 			test.name, txHash, test.txhash)

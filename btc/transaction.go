@@ -1,7 +1,7 @@
 package btc
 
 import (
-  "app/misc"
+  "app/serial"
   "app/models"
   "app/parser"
   log "github.com/sirupsen/logrus"
@@ -10,8 +10,7 @@ import (
   "bytes"
 )
 
-// Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
-const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
+// const serializeTransactionNoWitness = 0x40000000; // Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
 
 /*
 * Basic transaction serialization format:
@@ -31,7 +30,7 @@ const SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 * - uint32_t nLockTime
 */
 
-type BlockReader interface {
+type blockReader interface {
   Peek(int) ([]byte, error)
   ReadByte() byte
   ReadBytes(uint64) []byte
@@ -41,8 +40,8 @@ type BlockReader interface {
   ReadInt32() int32
 }
 
-func parseTransaction(br BlockReader) (*models.Transaction, error) {
-  var err error = nil
+func parseTransaction(br blockReader) (*models.Transaction, error) {
+  var err error
   emptyByte := make([]byte, 32)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
   tx := &models.Transaction{}
@@ -109,7 +108,7 @@ func parseTransaction(br BlockReader) (*models.Transaction, error) {
   tx.Locktime = br.ReadUint32()
 	putTransactionHash(tx)
   if err != nil {
-		log.Info(fmt.Sprintf("txHash: %x", misc.ReverseHex(tx.Hash)))
+		log.Info(fmt.Sprintf("txHash: %x", serial.ReverseHex(tx.Hash)))
   }
   return tx, err
 }
@@ -208,8 +207,8 @@ func putTransactionHash(tx *models.Transaction) {
 	binary.LittleEndian.PutUint32(locktime, tx.Locktime)
 	bin = append(bin, locktime...)
 
-	tx.Hash = misc.DoubleSha256(bin)
-  log.Debug(fmt.Sprintf("Transaction Hash: %x", misc.ReverseHex(tx.Hash)))
+	tx.Hash = serial.DoubleSha256(bin)
+  log.Debug(fmt.Sprintf("Transaction Hash: %x", serial.ReverseHex(tx.Hash)))
 }
 
 func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
@@ -218,7 +217,7 @@ func (btc *Btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) erro
     tx, err := parseTransaction(blockFile)
     putTransactionHash(tx)
     if err != nil {
-      log.Warn(fmt.Sprintf("txHash: %x", misc.ReverseHex(tx.Hash)))
+      log.Warn(fmt.Sprintf("txHash: %x", serial.ReverseHex(tx.Hash)))
     }
     tx.NVout = uint32(len(tx.Vout))
     btc.Transactions = append(btc.Transactions, *tx)

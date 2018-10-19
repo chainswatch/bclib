@@ -7,7 +7,7 @@ Functions used to discriminate between addresses
 */
 
 import (
-  "app/misc"
+  "app/serial"
   "fmt"
   "encoding/binary"
   log "github.com/sirupsen/logrus"
@@ -17,7 +17,7 @@ import (
 * Get Ops from Script
 */
 func getNumOps(script []byte) ([][]byte, error) {
-  var err error = nil
+  var err error
   scriptLength := uint32(len(script))
   log.Debug("Script Length: ", scriptLength)
   if scriptLength == 0 {
@@ -162,18 +162,18 @@ func decodeAddress() () {
 func getPublicAddress(txType uint8, hash []byte) string {
   var address string
   if txType == TX_P2PKH {
-    address = misc.Hash160ToAddress(hash, []byte{0x00})
+    address = serial.Hash160ToAddress(hash, []byte{0x00})
   } else if txType == TX_P2SH {
-    address = misc.Hash160ToAddress(hash, []byte{0x05})
+    address = serial.Hash160ToAddress(hash, []byte{0x05})
   } else if txType == TX_P2PK {
-    address = misc.SecToAddress(hash)
+    address = serial.SecToAddress(hash)
   } else if txType == TX_MULTISIG {
     log.Info("Script: Multisig, ", len(hash))
     return ""
   } else if txType == TX_P2WPKH {
-    address, _ = misc.EncodeBench32("bc", hash)
+    address, _ = serial.EncodeBench32("bc", hash)
   } else if txType == TX_P2WSH {
-    address, _ = misc.EncodeBench32("bc", hash)
+    address, _ = serial.EncodeBench32("bc", hash)
   } else if txType == TX_OPRETURN {
     address = fmt.Sprintf("%x", hash)
   } else {
@@ -207,7 +207,7 @@ func getAddressFromScript(script []byte) (uint8, []byte) {
   opsLength := len(ops)
   log.Debug("Number of ops: ", opsLength)
   version := getVersion(int32(ops[0][0]))
-	var outputScript string = ""
+	var outputScript string
   for i := 0; i < opsLength; i++ {
     outputScript += fmt.Sprintf("%#x ", ops[i])
   }

@@ -9,13 +9,14 @@ import (
 
 const (
   //! Magic numbers to identify start of block
-  BLOCK_MAGIC_ID_BITCOIN MagicID = 0xd9b4bef9
-  BLOCK_MAGIC_ID_TESTNET MagicID = 0x0709110b
+
+  blockMagicIDBitcoin magicID = 0xd9b4bef9
+  blockMagicIDTestnet magicID = 0x0709110b
 )
 
 // Parse the header fields except the MagicId
 // TODO: Currently won't return any error
-func (btc *Btc) ParseBlockHeaderFromFile(blockFile *parser.BlockFile) {
+func (btc *btc) parseBlockHeaderFromFile(blockFile *parser.BlockFile) {
   btc.Length = blockFile.ReadUint32()
   btc.NVersion = blockFile.ReadInt32() // TODO: Uint32? (Always 1)
   btc.HashPrevBlock = blockFile.ReadBytes(32)
@@ -26,7 +27,7 @@ func (btc *Btc) ParseBlockHeaderFromFile(blockFile *parser.BlockFile) {
   btc.NTx = uint32(blockFile.ReadVarint())
 }
 
-func (btc *Btc) ParseBlockFromFile(blockFile *parser.BlockFile) {
+func (btc *btc) parseBlockFromFile(blockFile *parser.BlockFile) {
   // Read header fields
   btc.ParseBlockHeaderFromFile(blockFile)
 
@@ -39,16 +40,16 @@ func (btc *Btc) ParseBlockFromFile(blockFile *parser.BlockFile) {
   }
 }
 
-func (btc *Btc) getBlockFromFile(blockFile *parser.BlockFile) bool {
+func (btc *btc) getBlockFromFile(blockFile *parser.BlockFile) bool {
   blockFile.Seek(int64(btc.NDataPos), 0)
 
-  magicID := MagicID(blockFile.ReadUint32())
-  if magicID == 0 {
+  mID := magicID(blockFile.ReadUint32())
+  if mID == 0 {
     log.Info("End of File")
     return true
-  } else if magicID != BLOCK_MAGIC_ID_BITCOIN {
+  } else if magicID != BlockMagicIDBitcoin {
     // blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
-    log.Fatal("Invalid block header: Can't find Magic ID ", magicID)
+    log.Fatal("Invalid block header: Can't find Magic ID ", mID)
   }
 
   btc.ParseBlockFromFile(blockFile)

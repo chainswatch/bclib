@@ -1,4 +1,4 @@
-package misc
+package serial
 
 import (
 	"math/big"
@@ -47,7 +47,7 @@ var b58 = [256]byte{
 var bigRadix = big.NewInt(58)
 var bigZero = big.NewInt(0)
 
-// Decode decodes a modified base58 string to a byte slice.
+// DecodeBase58 decodes a modified base58 string to a byte slice.
 func DecodeBase58(b string) []byte {
 	answer := big.NewInt(0)
 	j := big.NewInt(1)
@@ -79,7 +79,7 @@ func DecodeBase58(b string) []byte {
 	return val
 }
 
-// Encode encodes a byte slice to a modified base58 string.
+// EncodeBase58 encodes a byte slice to a modified base58 string.
 func EncodeBase58(b []byte) string {
 	x := new(big.Int)
 	x.SetBytes(b)

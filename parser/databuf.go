@@ -24,7 +24,7 @@ func (buf *DataBuf) Seek(pos uint64) {
 
 func (buf *DataBuf) ShiftByte() byte {
 	val := buf.b[buf.pos : buf.pos+1]
-	buf.pos += 1
+	buf.pos++
 	return val[0]
 }
 
@@ -68,7 +68,7 @@ func (buf *DataBuf) ShiftVarint() uint64 {
 	var n uint64
 	for true {
 		b := buf.b[buf.pos : buf.pos+1][0]
-		buf.pos += 1
+		buf.pos++
 		n = (n << uint64(7)) | uint64(b&uint8(0x7F))
 		if b&uint8(0x80) > 0 {
 			n++

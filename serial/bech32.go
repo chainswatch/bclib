@@ -1,4 +1,4 @@
-package misc
+package serial
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ const charset = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
 var gen = []int{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
 
-// Decode decodes a bech32 encoded string, returning the human-readable
+// DecodeBech32 decodes a bech32 encoded string, returning the human-readable
 // part and the data part excluding the checksum.
 func DecodeBech32(bech string) (string, []byte, error) {
 	// The maximum allowed length for a bech32 string is 90. It must also
@@ -93,6 +93,7 @@ func encodeBase32(hrp string, data []byte) (string, error) {
 	return hrp + "1" + dataChars, nil
 }
 
+// EncodeBench32 encodes a binary address into a bech32 string. 
 func EncodeBench32(hrp string, src []byte) (string, error) {
   witness, err := convertBits(src[1:], 8, 5, true)
   if err != nil {
