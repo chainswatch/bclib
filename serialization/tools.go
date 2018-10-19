@@ -2,7 +2,6 @@ package misc
 
 import (
   "encoding/hex"
-
   log "github.com/sirupsen/logrus"
 )
 
