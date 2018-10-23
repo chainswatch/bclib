@@ -97,7 +97,7 @@ func TestTransaction(t *testing.T) {
 	for _, test := range tests {
 		log.Debug("------------------- New Transaction --------------------")
 		rawtx := serial.HexToBinary(test.rawtx)
-		rawTx := parser.NewBuffer(rawtx)
+		rawTx := parser.New(rawtx)
 		tx, _ := DecodeTx(rawTx)
 		txHash := fmt.Sprintf("%x", serial.ReverseHex(tx.Hash))
 		if txHash != test.txhash {

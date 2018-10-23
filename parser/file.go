@@ -6,24 +6,9 @@ package parser
 
 import (
   "bytes"
-  "fmt"
   "encoding/binary"
-  "os"
 )
 
-func NewFile(blockchainDataDir string, fileNum uint32) (*File, error) {
-	filepath := fmt.Sprintf(blockchainDataDir + "/blocks/blk%05d.dat", fileNum)
-	//fmt.Printf("Opening file %s...\n", filepath)
-
-	file, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
-	if err != nil {
-		return nil, err
-	}
-
-	return &File{file: file, FileNum: fileNum}, nil
-}
-
-// TODO: Change *Btc into *file
 func (f *File) Close() {
 	f.file.Close()
 }

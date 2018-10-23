@@ -18,18 +18,6 @@ type btc struct {
   models.Block
 }
 
-/*
-type tx struct {
-	models.Transaction
-}
-*/
-
-/*
-func NewBtc(dataDir string) *btc {
-  return &btc{DataDir: dataDir}
-}
-*/
-
 const (
   blockHaveData = 8  //!< full block available in blk*.dat
   blockHaveUndo = 16 //!< undo data available in rev*.dat
