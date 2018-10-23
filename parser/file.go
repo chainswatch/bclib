@@ -40,9 +40,6 @@ func (f *File) Size() (int64, error) {
 	return fInfo.Size(), err
 }
 
-/*
-* BlockReader interface
-*/
 func (f *File) Peek(length int) ([]byte, error) {
 	pos, err := f.Seek(0, 1)
 	if err != nil {
@@ -57,36 +54,16 @@ func (f *File) Peek(length int) ([]byte, error) {
 	return val, nil
 }
 
-func (tx *Buffer) Peek(length int) ([]byte, error) {
-  return tx.Body[tx.Pos:(tx.Pos + uint32(length))], nil
-}
-
-/*
-* BlockReader interface
-*/
 func (f *File) ReadByte() byte {
 	val := make([]byte, 1)
 	f.file.Read(val)
 	return val[0]
 }
 
-func (tx *Buffer) ReadByte() byte {
-  tx.Pos++
-  return tx.Body[tx.Pos - 1]
-}
-
-/*
-* BlockReader interface
-*/
 func (f *File) ReadBytes(length uint64) []byte {
 	val := make([]byte, length)
 	f.file.Read(val)
 	return val
-}
-
-func (tx *Buffer) ReadBytes(length uint64) []byte {
-  tx.Pos += uint32(length)
-  return tx.Body[(tx.Pos - uint32(length)):tx.Pos]
 }
 
 func (f *File) ReadUint16() uint16 {
@@ -95,15 +72,6 @@ func (f *File) ReadUint16() uint16 {
 	return binary.LittleEndian.Uint16(val)
 }
 
-func (tx *Buffer) ReadUint16() uint16 {
-  tx.Pos += 2
-  val := tx.Body[(tx.Pos - 2):tx.Pos]
-	return binary.LittleEndian.Uint16(val)
-}
-
-/*
-* BlockReader interface
-*/
 func (f *File) ReadInt32() int32 {
 	raw := make([]byte, 4)
 	f.file.Read(raw)
@@ -112,26 +80,9 @@ func (f *File) ReadInt32() int32 {
 	return val
 }
 
-func (tx *Buffer) ReadInt32() int32 {
-  raw := tx.Body[tx.Pos:(tx.Pos + 4)]
-  tx.Pos += 4
-	var val int32
-	binary.Read(bytes.NewReader(raw), binary.LittleEndian, &val)
-	return val
-}
-
-/*
-* BlockReader interface
-*/
 func (f *File) ReadUint32() uint32 {
 	val := make([]byte, 4)
 	f.file.Read(val)
-	return binary.LittleEndian.Uint32(val)
-}
-
-func (tx *Buffer) ReadUint32() uint32 {
-  val := tx.Body[tx.Pos:(tx.Pos + 4)]
-  tx.Pos += 4
 	return binary.LittleEndian.Uint32(val)
 }
 
@@ -143,18 +94,9 @@ func (f *File) ReadInt64() int64 {
 	return val
 }
 
-/*
-* BlockReader interface
-*/
 func (f *File) ReadUint64() uint64 {
 	val := make([]byte, 8)
 	f.file.Read(val)
-	return binary.LittleEndian.Uint64(val)
-}
-
-func (tx *Buffer) ReadUint64() uint64 {
-  val := tx.Body[tx.Pos:(tx.Pos + 8)]
-  tx.Pos += 8
 	return binary.LittleEndian.Uint64(val)
 }
 
@@ -171,9 +113,6 @@ func (tx *Buffer) ReadUint64() uint64 {
 //	}
 //}
 
-/*
-* BlockReader interface
-*/
 func (f *File) ReadVarint() uint64 {
 	intType := f.ReadByte()
 	if intType == 0xFF {
@@ -182,19 +121,6 @@ func (f *File) ReadVarint() uint64 {
 		return uint64(f.ReadUint32())
 	} else if intType == 0xFD {
 		return uint64(f.ReadUint16())
-	}
-
-	return uint64(intType)
-}
-
-func (tx *Buffer) ReadVarint() uint64 {
-	intType := tx.ReadByte()
-	if intType == 0xFF {
-		return tx.ReadUint64()
-	} else if intType == 0xFE {
-		return uint64(tx.ReadUint32())
-	} else if intType == 0xFD {
-		return uint64(tx.ReadUint16())
 	}
 
 	return uint64(intType)

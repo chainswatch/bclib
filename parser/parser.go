@@ -4,14 +4,16 @@ import (
   "os"
 )
 
+// file.go
 type File struct {
   file      *os.File
   FileNum   uint32
 }
 
+// buffer.go
 type Buffer struct {
-  Body      []byte
-  Pos       uint32
+  b      []byte
+  pos    uint64
 }
 
 // TODO: Improve this to use Buffer interface

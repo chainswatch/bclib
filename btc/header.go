@@ -9,7 +9,7 @@ import (
 // https://github.com/bitcoin/bitcoin/blob/v0.15.1/src/chain.h#L387L407
 func (btc *btc) parseBlockHeaderData(data []byte) {
   // Parse the raw bytes
-  dataBuf := parser.NewDataBuf(data)
+  dataBuf := parser.NewBuffer(data)
 
   // Discard first varint
   // FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
