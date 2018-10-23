@@ -210,7 +210,8 @@ func putTransactionHash(tx *models.Transaction) {
 	tx.Hash = serial.DoubleSha256(bin)
 }
 
-func (btc *btc) parseBlockTransactionsFromFile(blockFile *parser.BlockFile) error {
+// Reads a transaction directly from a file
+func (btc *btc) parseBlockTransactionsFromFile(blockFile *parser.File) error {
   btc.Transactions = nil
   for t := uint32(0); t < btc.NTx; t++ {
     tx, err := DecodeTx(blockFile)

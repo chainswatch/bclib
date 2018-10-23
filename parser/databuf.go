@@ -4,12 +4,6 @@ import (
   "encoding/binary"
 )
 
-// TODO: Improve this to use Buffer interface
-type DataBuf struct {
-	b   []byte
-	pos uint64
-}
-
 func NewDataBuf(b []byte) *DataBuf {
 	return &DataBuf{b, 0}
 }

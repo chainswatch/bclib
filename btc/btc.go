@@ -1,15 +1,11 @@
 package btc
 
 /*
-
 btc holds structs and methods used to parse the bitcoin blockchain
-
 */
 
 import (
   "git.posc.in/cw/watchers/models"
-  "github.com/syndtr/goleveldb/leveldb"
-  "github.com/jmoiron/sqlx"
   "os"
 )
 
@@ -17,8 +13,6 @@ type magicID uint32
 
 // BtcBlockIndexRecord contains index records parameters specitic to BTC
 type btc struct {
-  IndexDb       *leveldb.DB
-  SQLDb         *sqlx.DB
 	file          *os.File
   DataDir       string
   models.Block
