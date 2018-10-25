@@ -1,11 +1,9 @@
 PROJECT_NAME := watchers
-PKG := "git.posc.in/cw/watchers"
+PKG := "git.posc.in/cw/$(PROJECT_NAME)"
 PKG_LIST := $(shell go list ${PKG}/... | grep -v /vendor/)
 GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
 
-.PHONY: all dep build clean test coverage coverhtml lint
-
-all: build
+.PHONY: dep build clean test coverage coverhtml lint
 
 lint: ## Lint the files
 	@revive -config lint.toml ${PKG_LIST}

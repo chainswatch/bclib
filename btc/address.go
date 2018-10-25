@@ -1,11 +1,5 @@
 package btc
 
-/*
-
-Functions used to discriminate between addresses
-
-*/
-
 import (
   "git.posc.in/cw/watchers/serial"
   "fmt"
@@ -13,13 +7,10 @@ import (
   log "github.com/sirupsen/logrus"
 )
 
-/*
-* Get Ops from Script
-*/
+// Get Ops from Script
 func getNumOps(script []byte) ([][]byte, error) {
   var err error
   scriptLength := uint32(len(script))
-  log.Debug("Script Length: ", scriptLength)
   if scriptLength == 0 {
     err = fmt.Errorf("Script of length 0")
     return nil, err
@@ -205,13 +196,13 @@ func getAddressFromScript(script []byte) (uint8, []byte) {
     log.Info(err)
   }
   opsLength := len(ops)
-  log.Debug("Number of ops: ", opsLength)
+  // log.Debug("Number of ops: ", opsLength)
   version := getVersion(int32(ops[0][0]))
 	var outputScript string
   for i := 0; i < opsLength; i++ {
     outputScript += fmt.Sprintf("%#x ", ops[i])
   }
-	log.Debug(outputScript)
+	// log.Debug(outputScript)
   var hash []byte
   var txType uint8
   if hash = scriptIsPubkeyHash(ops); hash != nil {

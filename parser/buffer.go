@@ -1,54 +1,75 @@
 package parser
 
 import (
-  "bytes"
   "encoding/binary"
 )
 
+// Reset cursor to position 0
 func (buf *Buffer) Reset() {
   buf.pos = 0
 }
 
+// Peek up to length without moving cursor
 func (buf *Buffer) Peek(length int) ([]byte, error) {
   return buf.b[buf.pos:(buf.pos + uint64(length))], nil
 }
 
+// Seek moves cursor tu position pos
+func (buf *Buffer) Seek(pos uint64) {
+  buf.pos = pos
+}
+
+// ReadByte reads next one byte of data
 func (buf *Buffer) ReadByte() byte {
+  val := buf.b[buf.pos : buf.pos+1]
   buf.pos++
-  return buf.b[buf.pos - 1]
+  return val[0]
 }
 
+// ReadBytes reads next length bytes of data
 func (buf *Buffer) ReadBytes(length uint64) []byte {
+  val := buf.b[buf.pos : buf.pos+length]
   buf.pos += length
-  return buf.b[(buf.pos - length):buf.pos]
-}
-
-func (buf *Buffer) ReadUint16() uint16 {
-  buf.pos += 2
-  val := buf.b[(buf.pos - 2):buf.pos]
-  return binary.LittleEndian.Uint16(val)
-}
-
-func (buf *Buffer) ReadInt32() int32 {
-  raw := buf.b[buf.pos:(buf.pos + 4)]
-  buf.pos += 4
-  var val int32
-  binary.Read(bytes.NewReader(raw), binary.LittleEndian, &val)
   return val
 }
 
-func (buf *Buffer) ReadUint32() uint32 {
-  val := buf.b[buf.pos:(buf.pos + 4)]
+// ReadUint16 reads next 4 bytes of data as uint16, LE
+func (buf *Buffer) ReadUint16() uint16 {
+  val := binary.LittleEndian.Uint16(buf.b[buf.pos : buf.pos+2])
+  buf.pos += 2
+  return val
+}
+
+// ReadInt32 reads next 8 bytes of data as int32, LE
+func (buf *Buffer) ReadInt32() int32 {
+  val := binary.LittleEndian.Uint32(buf.b[buf.pos : buf.pos+4])
   buf.pos += 4
-  return binary.LittleEndian.Uint32(val)
+  return int32(val)
 }
 
-func (buf *Buffer) ReadUint64() uint64 {
-  val := buf.b[buf.pos:(buf.pos + 8)]
+// ReadUint32 reads next 8 bytes of data as uint32, LE
+func (buf *Buffer) ReadUint32() uint32 {
+  val := binary.LittleEndian.Uint32(buf.b[buf.pos : buf.pos+4])
+  buf.pos += 4
+  return val
+}
+
+// ReadInt64 reads next 16 bytes of data as int64, LE
+func (buf *Buffer) ReadInt64() int64 {
+  val := binary.LittleEndian.Uint64(buf.b[buf.pos : buf.pos+8])
   buf.pos += 8
-  return binary.LittleEndian.Uint64(val)
+  return int64(val)
 }
 
+// ReadUint64 reads next 16 bytes of data as uint64, LE
+func (buf *Buffer) ReadUint64() uint64 {
+  val := binary.LittleEndian.Uint64(buf.b[buf.pos : buf.pos+8])
+  buf.pos += 8
+  return val
+}
+
+// ReadVarint reads N byte of data as uint64, LE.
+// N depends on the first byte
 func (buf *Buffer) ReadVarint() uint64 {
   intType := buf.ReadByte()
   if intType == 0xFF {
@@ -62,58 +83,8 @@ func (buf *Buffer) ReadVarint() uint64 {
   return uint64(intType)
 }
 
-/*
-* WARNING: Methods listed below belonger to DataBuf
-* They have been assigned to Buffer
-* Which may cause some unknown behavior
-*/
-
-func (buf *Buffer) Seek(pos uint64) {
-  buf.pos = pos
-}
-
-func (buf *Buffer) ShiftByte() byte {
-  val := buf.b[buf.pos : buf.pos+1]
-  buf.pos++
-  return val[0]
-}
-
-func (buf *Buffer) ShiftBytes(length uint64) []byte {
-  val := buf.b[buf.pos : buf.pos+length]
-  buf.pos += length
-  return val
-}
-
-func (buf *Buffer) Shift16bit() uint16 {
-  val := binary.LittleEndian.Uint16(buf.b[buf.pos : buf.pos+2])
-  buf.pos += 2
-  return val
-}
-
-func (buf *Buffer) ShiftU64bit() uint64 {
-  val := binary.LittleEndian.Uint64(buf.b[buf.pos : buf.pos+8])
-  buf.pos += 8
-  return val
-}
-
-func (buf *Buffer) Shift64bit() int64 {
-  val := binary.LittleEndian.Uint64(buf.b[buf.pos : buf.pos+8])
-  buf.pos += 8
-  return int64(val)
-}
-
-func (buf *Buffer) ShiftU32bit() uint32 {
-  val := binary.LittleEndian.Uint32(buf.b[buf.pos : buf.pos+4])
-  buf.pos += 4
-  return val
-}
-
-func (buf *Buffer) Shift32bit() int32 {
-  val := binary.LittleEndian.Uint32(buf.b[buf.pos : buf.pos+4])
-  buf.pos += 4
-  return int32(val)
-}
-
+// ShiftVarint reads N byte of data as uint64, LE.
+// N depends on the first byte
 func (buf *Buffer) ShiftVarint() uint64 {
   var n uint64
   for true {
