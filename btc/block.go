@@ -6,6 +6,7 @@ import (
   "git.posc.in/cw/watchers/parser"
 
   log "github.com/sirupsen/logrus"
+  "encoding/binary"
   "time"
   "fmt"
 )
@@ -44,5 +45,11 @@ func DecodeBlock(br parser.Reader) (*models.Block, error) {
   btc := &models.Block{}
   decodeBlockHeader(btc, br)
   err := decodeBlockTxs(btc, br)
+
+  cbase := btc.Txs[0].Vin[0].Script[0:5]
+  if cbase[0] == 3 {
+    cbase[4] = 0
+  }
+  btc.NHeight = binary.LittleEndian.Uint32(cbase[1:])
   return btc, err
 }
