@@ -13,12 +13,12 @@ import (
 // const serializeTransactionNoWitness = 0x40000000; // Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
 
 // DecodeTx decodes a transaction
-func DecodeTx(br parser.Reader) (*models.Transaction, error) {
+func DecodeTx(br parser.Reader) (*models.Tx, error) {
   var err error
   var txFlag byte // Check for extended transaction serialization format
   emptyByte := make([]byte, 32)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
-  tx := &models.Transaction{}
+  tx := &models.Tx{}
 
   tx.NVersion = br.ReadInt32()
   tx.NVin = uint32(br.ReadVarint())
@@ -108,7 +108,7 @@ func getOutputBinary(out models.TxOutput) []byte {
 }
 // 0100000001e507cb947464fc74540a9c197f815aa283ba9db74185ac08449c38491a8c34ac00000000
 // Compute transaction hash ( [nVersion][Inputs][Outputs][nLockTime] )
-func putTransactionHash(tx *models.Transaction) {
+func putTransactionHash(tx *models.Tx) {
 	bin := make([]byte, 0)
 	version := make([]byte, 4)
 	binary.LittleEndian.PutUint32(version, uint32(tx.NVersion))

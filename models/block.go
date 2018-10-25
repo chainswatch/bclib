@@ -24,8 +24,8 @@ type TxOutput struct {
   Script            []byte      `db:"script"`     // Where the magic happens
 }
 
-// Transaction holds transaction
-type Transaction struct {
+// Tx holds transaction
+type Tx struct {
   NVersion          int32       `db:"n_version"`  // Always 1 or 2
   Hash              Hash256     `db:"tx_hash"`    // Transaction hash (computed)
   NVin              uint32      `db:"n_vin"`      // Number of inputs
@@ -58,5 +58,5 @@ type BlockHeader struct {
 // Block contains block infos
 type Block struct {
   BlockHeader
-  Transactions  []Transaction
+  Txs               []Tx
 }

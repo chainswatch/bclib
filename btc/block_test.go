@@ -39,8 +39,8 @@ func TestBlock(t *testing.T) {
       t.Error("parse.New(): Wrong input type. Must be []byte or uint32")
     }
     btc, _ := DecodeBlock(rawBlock)
-    if btc.NTx != uint32(len(btc.Transactions)) {
-      t.Error("Wrong number of transactions: ", btc.NTx, " != ", len(btc.Transactions))
+    if btc.NTx != uint32(len(btc.Txs)) {
+      t.Error("Wrong number of transactions: ", btc.NTx, " != ", len(btc.Txs))
     }
 
     // Test each transaction hash
@@ -52,7 +52,7 @@ func TestBlock(t *testing.T) {
     scanner := bufio.NewScanner(file)
 
     for t := uint32(0); t < btc.NTx; t++ {
-      tx := btc.Transactions[t]
+      tx := btc.Txs[t]
       scanner.Scan()
       if fmt.Sprintf("%x", serial.ReverseHex(tx.Hash)) != scanner.Text() {
         log.Info(fmt.Sprintf("%x", serial.ReverseHex(tx.Hash)), " != ", scanner.Text())
