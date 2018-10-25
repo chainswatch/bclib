@@ -4,20 +4,9 @@ package btc
 btc holds structs and methods used to parse the bitcoin blockchain
 */
 
-import (
-  "git.posc.in/cw/watchers/models"
-  "os"
-)
-
 type magicID uint32
 
 // BtcBlockIndexRecord contains index records parameters specitic to BTC
-type btc struct {
-	file          *os.File
-  DataDir       string
-  models.Block
-}
-
 const (
   blockHaveData = 8  //!< full block available in blk*.dat
   blockHaveUndo = 16 //!< undo data available in rev*.dat

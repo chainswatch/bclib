@@ -1,8 +1,9 @@
 package btc
 
 import (
-  "git.posc.in/cw/watchers/parser"
   "git.posc.in/cw/watchers/serial"
+  "git.posc.in/cw/watchers/models"
+  "git.posc.in/cw/watchers/parser"
 
   log "github.com/sirupsen/logrus"
   "time"
@@ -11,9 +12,10 @@ import (
 
 // Parse the header fields except the MagicId
 // TODO: Currently won't return any error
-func decodeBlockHeader(btc *btc, br parser.Reader) {
-  btc.Length = br.ReadUint32()
-  btc.NVersion = br.ReadInt32() // TODO: Uint32? (Always 1)
+func decodeBlockHeader(btc *models.Block, br parser.Reader) {
+  // btc.Length = br.ReadUint32() // Maybe only for raw files?
+
+  btc.NVersion = br.ReadUint32()
   btc.HashPrevBlock = br.ReadBytes(32)
   btc.HashMerkleRoot = br.ReadBytes(32)
   btc.NTime = time.Unix(int64(br.ReadUint32()), 0)
@@ -22,13 +24,14 @@ func decodeBlockHeader(btc *btc, br parser.Reader) {
   btc.NTx = uint32(br.ReadVarint())
 }
 
-func decodeBlockTxs(btc *btc, br parser.Reader) error {
+func decodeBlockTxs(btc *models.Block, br parser.Reader) error {
   btc.Transactions = nil
   for t := uint32(0); t < btc.NTx; t++ {
     tx, err := DecodeTx(br)
     putTransactionHash(tx)
     if err != nil {
-      log.Warn(fmt.Sprintf("txHash: %x", serial.ReverseHex(tx.Hash)))
+      log.Warn(fmt.Sprintf("DecodeBlocksTxs(): txHash: %x", serial.ReverseHex(tx.Hash)))
+      return err
     }
     tx.NVout = uint32(len(tx.Vout))
     btc.Transactions = append(btc.Transactions, *tx)
@@ -36,14 +39,10 @@ func decodeBlockTxs(btc *btc, br parser.Reader) error {
   return nil
 }
 
-func DecodeBlock(br parser.Reader) {
-  btcBlock := &btc{}
-  decodeBlockHeader(btcBlock, br)
-
-  err := decodeBlockTxs(btcBlock, br)
-  if err != nil {
-    // blockFile.Seek(curPos, 0) // Seek back to original pos before we encounter the error
-    log.Warn(err)
-    // return
-  }
+// DecodeBlock decodes a block
+func DecodeBlock(br parser.Reader) (*models.Block, error) {
+  btc := &models.Block{}
+  decodeBlockHeader(btc, br)
+  err := decodeBlockTxs(btc, br)
+  return btc, err
 }
