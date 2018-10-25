@@ -19,7 +19,6 @@ local:
   script:
     - make lint
     - make test
-    - make coverage
 
 code_coverage_report:
   stage: test
