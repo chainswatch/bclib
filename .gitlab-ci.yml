@@ -3,18 +3,19 @@ variables:
   ROOTPATH: /go/src/git.posc.in/cw
   GO_IMAGE: registry.posc.in/cw/infra/go
 
-image: $GO_IMAGE
-
 stages:
   - test
+
+image: $GO_IMAGE
+
+before_script:
+  - mkdir -p ${ROOTPATH}
+  - cp -r $CI_PROJECT_DIR ${ROOTPATH}/${PROJECT_NAME}
+  - make dep
 
 # Run local tests
 local:
   stage: test
-  before_script:
-    - mkdir -p ${ROOTPATH}
-    - cp -r $CI_PROJECT_DIR ${ROOTPATH}/${PROJECT_NAME}
-    - make dep
   script:
     - make lint
     - make test
