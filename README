@@ -1,22 +1,5 @@
-https://hackernoon.com/golang-clean-archithecture-efd6d7c43047
+[![Build Status](https://git.posc.in/cw/watchers/badges/master/build.svg)](https://git.posc.in/cw/watchers/commits/master)
 
-models
-------
+[![Coverage Report](https://git.posc.in/cw/watchers/badges/master/coverage.svg)](https://git.posc.in/cw/watchers/commits/master)
 
-repository
-----------
-Stores any Database handler. Queries, creates, inserts into any database.
-No business process happens here.
-Only plain function to database.
-
-It has the responsibility to choose what DB to use.
-
-delivery
---------
-Acts as a presenter. Decides how the data is presented.
-GraphQL API.
-
-usecase
--------
-
-
+[![Go Report Card](https://goreportcard.com/badge/git.posc.in/cw/watchers)](https://goreportcard.com/report/git.posc.in/cw/watchers)
