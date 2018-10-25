@@ -25,7 +25,7 @@ func decodeBlockHeader(btc *models.Block, br parser.Reader) {
 }
 
 func decodeBlockTxs(btc *models.Block, br parser.Reader) error {
-  btc.Transactions = nil
+  btc.Txs = nil
   for t := uint32(0); t < btc.NTx; t++ {
     tx, err := DecodeTx(br)
     putTransactionHash(tx)
@@ -34,7 +34,7 @@ func decodeBlockTxs(btc *models.Block, br parser.Reader) error {
       return err
     }
     tx.NVout = uint32(len(tx.Vout))
-    btc.Transactions = append(btc.Transactions, *tx)
+    btc.Txs = append(btc.Txs, *tx)
   }
   return nil
 }
