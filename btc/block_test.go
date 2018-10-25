@@ -17,10 +17,12 @@ func TestBlock(t *testing.T) {
   tests := []struct {
     name    string
     fileNum int
+    height  uint32
   }{
     {
       name:       "Random block 1",
       fileNum:    1,
+      height:     547066,
     },
   }
 
@@ -41,6 +43,9 @@ func TestBlock(t *testing.T) {
     btc, _ := DecodeBlock(rawBlock)
     if btc.NTx != uint32(len(btc.Txs)) {
       t.Error("Wrong number of transactions: ", btc.NTx, " != ", len(btc.Txs))
+    }
+    if btc.NHeight != test.height {
+      t.Error("Wrong block height: ", btc.NHeight, " != ", test.height)
     }
 
     // Test each transaction hash
