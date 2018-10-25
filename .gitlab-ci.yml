@@ -17,7 +17,6 @@ local:
   script:
     - make lint
     - make test
-    - make race
 
 code_coverage_report:
   stage: test
