@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 COVERAGE_DIR="${COVERAGE_DIR:-coverage}"
 PKG_LIST=$(go list ./... | grep -v /vendor/ | tr -d '\r')
@@ -17,7 +17,7 @@ done
 go tool cover -func="${COVERAGE_DIR}"/coverage.cov
 
 # If needed, generate HTML report
-if [ "$1" == "html" ]; then
+if [ "$1" = "html" ]; then
     go tool cover -html="${COVERAGE_DIR}"/coverage.cov -o coverage.html
 fi
 
