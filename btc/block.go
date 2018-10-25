@@ -19,7 +19,7 @@ func decodeBlockHeader(btc *models.Block, br parser.Reader) {
   btc.HashPrevBlock = br.ReadBytes(32)
   btc.HashMerkleRoot = br.ReadBytes(32)
   btc.NTime = time.Unix(int64(br.ReadUint32()), 0)
-  btc.TargetDifficulty = br.ReadUint32() // TODO: Parse this as mantissa?
+  btc.NBits = br.ReadUint32() // TODO: Parse this as mantissa?
   btc.NNonce = br.ReadUint32()
   btc.NTx = uint32(br.ReadVarint())
 }

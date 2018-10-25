@@ -26,8 +26,8 @@ type File struct {
 
 // Buffer allows to use the Reader interface when storing data in memory
 type Buffer struct {
-  b      []byte
-  pos    uint64
+  b       []byte
+  pos     uint64
 }
 
 // New allows to declare a new Reader interface from a file or from raw data

@@ -38,7 +38,7 @@ type Transaction struct {
 // BlockHeader contains general index records parameters
 // It defines the structure of the postgres table
 type BlockHeader struct {
-  NVersion          uint32     `db:"n_version"`    // Version
+  NVersion          uint32    `db:"n_version"`    // Version
   NHeight           uint32    `db:"n_height"`             // (Index)
   NStatus           uint32    `db:"n_status"`// (Index)
   NTx               uint32    `db:"n_tx"`// (Index)
@@ -52,7 +52,7 @@ type BlockHeader struct {
   NBits             uint32    `db:"n_bits"`// (Index)
   NNonce            uint32    `db:"n_nonce"`// (Index)
   TargetDifficulty  uint32    `db:"target_difficulty"`//
-  Length            uint32
+  NSize             uint32    `db:"n_size"`
 }
 
 // Block contains block infos
