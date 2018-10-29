@@ -32,10 +32,8 @@ func getNumOps(script []byte) ([][]byte, error) {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
     } else {
       ops = append(ops, []byte{opCode})
-      //log.Debug("XgetNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
       continue
     }
-    //log.Debug("getNumOps: i=", i," dataLength=", dataLength, fmt.Sprintf(", opCode: %#x", opCode))
 
     // don't alloc a push buffer if there is no more data available
     if (i + dataLength > scriptLength) {
@@ -47,14 +45,11 @@ func getNumOps(script []byte) ([][]byte, error) {
   }
   if i < scriptLength {
     ops = append(ops, []byte{script[i]})
-    //log.Debug(fmt.Sprintf("Last opCode: %#x", script[i]))
   }
   return ops, nil
 }
 
-/*
-* Check if OP is a PubkeyHash (length == 20)
-*/
+// Check if OP is a PubkeyHash (length == 20)
 func isOpPubkeyhash(op []byte) bool {
   // TODO: OP_PUSHDATA4
   if len(op) != 20 {
@@ -126,10 +121,8 @@ func scriptIsOpReturn(ops [][]byte) []byte {
   return nil
 }
 
-/*
-* A witness program is any valid script that consists of a 1-byte push opcode
-* followed by a data push between 2 and 40 bytes
-*/
+// A witness program is any valid script that consists of a 1-byte push opcode
+// followed by a data push between 2 and 40 bytes
 func scriptIsWitnessProgram(script []byte, version int32) bool {
   if (version != 0) {
     return false
@@ -196,13 +189,11 @@ func getAddressFromScript(script []byte) (uint8, []byte) {
     log.Info(err)
   }
   opsLength := len(ops)
-  // log.Debug("Number of ops: ", opsLength)
   version := getVersion(int32(ops[0][0]))
 	var outputScript string
   for i := 0; i < opsLength; i++ {
     outputScript += fmt.Sprintf("%#x ", ops[i])
   }
-	// log.Debug(outputScript)
   var hash []byte
   var txType uint8
   if hash = scriptIsPubkeyHash(ops); hash != nil {

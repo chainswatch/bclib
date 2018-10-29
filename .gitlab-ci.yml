@@ -9,8 +9,6 @@ stages:
 image: $GO_IMAGE
 
 before_script:
-  - mkdir -p ${ROOTPATH}
-  - cp -r $CI_PROJECT_DIR ${ROOTPATH}/${PROJECT_NAME}
   - make dep
 
 # Run local tests
