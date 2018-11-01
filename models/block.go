@@ -19,7 +19,7 @@ type TxInput struct {
 // TxOutput holds tx outputs
 type TxOutput struct {
   Index             uint32      `db:"index"`      // Output index
-  Value             int64       `db:"value"`      // Satoshis
+  Value             uint64       `db:"value"`     // Satoshis
   Hash160           []byte      `db:"hash160"`    // Public key
   Script            []byte      `db:"script"`     // Where the magic happens
 }
@@ -38,21 +38,21 @@ type Tx struct {
 // BlockHeader contains general index records parameters
 // It defines the structure of the postgres table
 type BlockHeader struct {
-  NVersion          uint32    `db:"n_version"`    // Version
-  NHeight           uint32    `db:"n_height"`             // (Index)
-  NStatus           uint32    `db:"n_status"`// (Index)
-  NTx               uint32    `db:"n_tx"`// (Index)
-  NFile             uint32    `db:"n_file"`// (Index)
-  NDataPos          uint32    `db:"n_data_pos"`// (Index)
-  NUndoPos          uint32    `db:"n_undo_pos"`// (Index)
-  HashBlock         Hash256   `db:"hash_block"`// current block hash (Added)
-  HashPrevBlock     Hash256   `db:"hash_prev_block"`// previous block hash (Index)
-  HashMerkleRoot    Hash256   `db:"hash_merkle_root"`// (Index)
-  NTime             time.Time `db:"n_time"`// (Index)
-  NBits             uint32    `db:"n_bits"`// (Index)
-  NNonce            uint32    `db:"n_nonce"`// (Index)
+  NVersion          uint32    `db:"n_version"`        // Version
+  NHeight           uint32    `db:"n_height"`         //
+  NStatus           uint32    `db:"n_status"`         // ???
+  NTx               uint32    `db:"n_tx"`             // Number of txs
+  NFile             uint32    `db:"n_file"`           // File number
+  NDataPos          uint32    `db:"n_data_pos"`       // (Index)
+  NUndoPos          uint32    `db:"n_undo_pos"`       // (Index)
+  HashBlock         Hash256   `db:"hash_block"`       // current block hash (Added)
+  HashPrevBlock     Hash256   `db:"hash_prev_block"`  // previous block hash (Index)
+  HashMerkleRoot    Hash256   `db:"hash_merkle_root"` //
+  NTime             time.Time `db:"n_time"`           // (Index)
+  NBits             uint32    `db:"n_bits"`           // (Index)
+  NNonce            uint32    `db:"n_nonce"`          // (Index)
   TargetDifficulty  uint32    `db:"target_difficulty"`//
-  NSize             uint32    `db:"n_size"`
+  NSize             uint32    `db:"n_size"`           // Block size
 }
 
 // Block contains block infos
