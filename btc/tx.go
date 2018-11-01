@@ -49,7 +49,7 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
   for i := uint32(0); i < tx.NVout; i++ {
     output := models.TxOutput{}
     output.Index = i
-    output.Value = int64(br.ReadUint64())
+    output.Value = br.ReadUint64()
     scriptLength := br.ReadVarint()
     output.Script = br.ReadBytes(scriptLength)
     tx.Vout = append(tx.Vout, output)
