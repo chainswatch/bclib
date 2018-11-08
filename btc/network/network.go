@@ -1,15 +1,5 @@
 package network
 
-import (
-	"math/rand"
-	"bytes"
-	"encoding/binary"
-	"time"
-	"fmt"
-	log "github.com/sirupsen/logrus"
-)
-	= "37.59.38.74"
-
 /*
 func NetworkMessage() {
 	// network magic
@@ -21,14 +11,16 @@ func NetworkMessage() {
 */
 
 type Peer struct {
-	ip
+	ip						string
+	port					uint32
 }
 
 type Network struct {
-	networkMagic
-	version
-	services
-	userAgent
-	port
-	peers		[]Peer
+	networkMagic	uint32
+	version				uint32
+	services			uint32
+	userAgent			string
+	port					uint32
+	peers					[]Peer
+	nPeers				uint32
 }

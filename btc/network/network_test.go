@@ -1,10 +1,16 @@
-package main
+package network
 
 import (
   "testing"
 )
 
 func TestNetwork(t *testing.T) {
-	NetworkVersion()
+	net := Network{}
+	net.New()
+
+	peer := Peer{}
+	peer.New()
+
+	net.NetworkVersion(0)
 	t.Error()
 }
