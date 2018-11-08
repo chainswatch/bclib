@@ -5,4 +5,6 @@ import (
 )
 
 func TestNetwork(t *testing.T) {
+	NetworkVersion()
+	t.Error()
 }
