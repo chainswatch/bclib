@@ -3,8 +3,8 @@ package network
 import (
   "testing"
 
-	"fmt"
-	log "github.com/sirupsen/logrus"
+	//"fmt"
+	//log "github.com/sirupsen/logrus"
 )
 
 func TestNetwork(t *testing.T) {
@@ -34,12 +34,16 @@ func TestNetwork(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	handleMsg(rw)
+	/*
 
-	response, err := rw.Peek(24)
+	response, err := rw.Peek(100)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	log.Info(fmt.Sprintf("Response: %s", response))
+	log.Info(fmt.Sprintf("Response: %x", response))
+	*/
 	t.Error()
 }
