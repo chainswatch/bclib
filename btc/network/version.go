@@ -7,19 +7,20 @@ import (
 	"encoding/binary"
 	"time"
 	"fmt"
+	"net"
 	log "github.com/sirupsen/logrus"
 )
 
 // New initializes peer structure
 func (p *Peer) New() {
-	p.ip = "37.59.38.74"
-	p.port = 8333
+	p.ip = net.ParseIP("37.59.38.74")
+	p.port = "8333"
 }
 
 // New initializes network structure
 func (n *Network) New() {
 	n.networkMagic = 0xD9B4BEF9 // Maybe LE
-	n.version = 750015
+	n.version = 70015
 	n.services = 0
 	n.userAgent = "/CW:01/"
 	n.port = 8333
@@ -31,19 +32,26 @@ func (n *Network) AddPeer(p Peer) {
 	n.nPeers++
 }
 
+func (n *Network) netAddr() {
+}
+
 // NetworkVersion sends the protocol version to the selected peer
-func (n *Network) NetworkVersion(id int) {
+func (n *Network) NetworkVersion(id uint32) ([]byte, error) {
+	if id >= n.nPeers {
+		return nil, fmt.Errorf("NetworkVersion: (id %d) >= (nPeers %d)", id, n.nPeers)
+	}
 	peer := n.peers[id]
 
 	b := bytes.NewBuffer([]byte{})
 
 	binary.Write(b, binary.LittleEndian, uint32(n.version)) // Protocol version, 70015
-	binary.Write(b, binary.LittleEndian, uint64(n.services)) // Services
+	binary.Write(b, binary.LittleEndian, uint64(n.services)) // Network services
 	binary.Write(b, binary.LittleEndian, uint64(time.Now().Unix())) // Timestamp
 
 	// Network address of receiver (26)
-	b.Write([]byte(peer.ip)) // Network address of receiver
-	binary.Write(b, binary.LittleEndian, uint16(peer.port)) // Network port of receiver
+	// b.Write(c.PeerAddr.NetAddr.Bytes())
+	b.Write(peer.ip) // Network address of receiver
+	b.Write([]byte(peer.port)) // Network port of receiver
 
 	// Network address of emitter (26)
 	b.Write(bytes.Repeat([]byte{0}, 26))
@@ -58,11 +66,11 @@ func (n *Network) NetworkVersion(id int) {
 	b.WriteByte(1)  // don't notify me about txs (BIP37)
 
 	log.Info(fmt.Sprintf("version %x", b.Bytes()))
-	//SendRawMsg("version", b.Bytes())
+	return b.Bytes(), nil
 }
 
 // SendRawMsg sends command and payload
-func (n *Network) SendRawMsg(cmd string, pl []byte) (e error) {
+func (n *Network) NetworkMsg(cmd string, pl []byte) ([]byte, error) {
 	var sbuf [24]byte
 
 	// fmt.Println(c.ConnID, "sent", cmd, len(pl))
@@ -76,8 +84,11 @@ func (n *Network) SendRawMsg(cmd string, pl []byte) (e error) {
 
 	// c.append_to_send_buffer(sbuf[:])
 	// c.append_to_send_buffer(pl) // payload
+	msg := append(sbuf[:], pl...)
 
-	return
+	log.Info(fmt.Sprintf("raw msg %x", msg))
+
+	return msg, nil
 }
 
 // this function assumes that there is enough room inside sendBuf

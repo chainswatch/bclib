@@ -1,5 +1,9 @@
 package network
 
+import (
+	"net"
+)
+
 /*
 func NetworkMessage() {
 	// network magic
@@ -11,8 +15,8 @@ func NetworkMessage() {
 */
 
 type Peer struct {
-	ip						string
-	port					uint32
+	ip						net.IP
+	port					string
 }
 
 type Network struct {
