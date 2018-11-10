@@ -1,14 +1,12 @@
 package network
 
 import (
-	"git.posc.in/cw/watchers/serial"
 	"math/rand"
-	"bytes"
 	"encoding/binary"
+	"bytes"
 	"time"
 	"fmt"
 	"net"
-	log "github.com/sirupsen/logrus"
 )
 
 // New initializes peer structure
@@ -65,43 +63,9 @@ func (n *Network) NetworkVersion(id uint32) ([]byte, error) {
 	binary.Write(b, binary.LittleEndian, uint32(0)) // Last blockheight received
 	b.WriteByte(1)  // don't notify me about txs (BIP37)
 
-	log.Info(fmt.Sprintf("version %x", b.Bytes()))
-	return b.Bytes(), nil
+	response, err := n.networkMsg(id, "version", b.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
 }
-
-// SendRawMsg sends command and payload
-func (n *Network) NetworkMsg(cmd string, pl []byte) ([]byte, error) {
-	var sbuf [24]byte
-
-	// fmt.Println(c.ConnID, "sent", cmd, len(pl))
-
-	binary.LittleEndian.PutUint32(sbuf[0:4], n.networkMagic)
-	copy(sbuf[4:16], cmd) // version
-	binary.LittleEndian.PutUint32(sbuf[16:20], uint32(len(pl)))
-
-	chksum := serial.DoubleSha256(pl[:])
-	copy(sbuf[20:24], chksum[:4])
-
-	// c.append_to_send_buffer(sbuf[:])
-	// c.append_to_send_buffer(pl) // payload
-	msg := append(sbuf[:], pl...)
-
-	log.Info(fmt.Sprintf("raw msg %x", msg))
-
-	return msg, nil
-}
-
-// this function assumes that there is enough room inside sendBuf
-/*
-func append_to_send_buffer(d []byte) {
- room_left := SendBufSize - c.SendBufProd
- if room_left>=len(d) {
-  copy(c.sendBuf[c.SendBufProd:], d)
-  room_left = c.SendBufProd+len(d)
- } else {
-  copy(c.sendBuf[c.SendBufProd:], d[:room_left])
-  copy(c.sendBuf[:], d[room_left:])
- }
- c.SendBufProd = (c.SendBufProd + len(d)) & SendBufMask
-}
-*/

@@ -2,11 +2,7 @@ package network
 
 import (
 	"net"
-	"bytes"
 	"bufio"
-
-	"fmt"
-	log "github.com/sirupsen/logrus"
 )
 
 /*
@@ -22,6 +18,7 @@ func NetworkMessage() {
 type Peer struct {
 	ip						net.IP
 	port					string
+	rw						*bufio.ReadWriter
 }
 
 type Network struct {
