@@ -13,14 +13,17 @@ func TestNetwork(t *testing.T) {
 
 	peer := Peer{}
 	peer.New()
-	rw, err := Open(peer.ip.String() + ":" + peer.port)
+
+	go EvioOpen("127.0.0.1" + ":" + peer.port)
+
+	//rw, err := Open(peer.ip.String() + ":" + peer.port)
+	rw, err := Open("localhost" + ":" + peer.port)
 	if err != nil {
 		t.Fatal(err)
 	}
 	peer.rw = rw
 
 	net.AddPeer(peer)
-
 
 	response, err := net.NetworkVersion(0)
 	if err != nil {
