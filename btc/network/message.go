@@ -6,35 +6,32 @@ import (
 	"bytes"
 	"time"
 	"fmt"
-	"net"
+
+	log "github.com/sirupsen/logrus"
 )
 
-// New initializes peer structure
-func (p *Peer) New() {
-	p.ip = net.ParseIP("37.59.38.74")
-	p.port = "8333"
+func messageType(msg []byte) string {
+	return fmt.Sprintf("%s", bytes.Trim(msg[:12], "\x00"))
 }
 
-// New initializes network structure
-func (n *Network) New() {
-	n.networkMagic = 0xD9B4BEF9 // Maybe LE
-	n.version = 70015
-	n.services = 0
-	n.userAgent = "/CW:01/"
-	n.port = 8333
-	n.nPeers = 0
+func checkType(msg []byte, expected string) error {
+	received := messageType(msg)
+	log.Debug("Received:", received)
+	if received != expected {
+		return fmt.Errorf("checkType: Unexpected response from peer. Received %s != %s", received, expected)
+	}
+	return nil
 }
 
-func (n *Network) AddPeer(p Peer) {
-	n.peers = append(n.peers, p)
-	n.nPeers++
-}
-
-func (n *Network) netAddr() {
-}
+//sendheaders
+//sendcmpct
+//ping
+//addr
+//feefilter
+//inv
 
 // NetworkVersion sends the protocol version to the selected peer
-func (n *Network) NetworkVersion(id uint32) ([]byte, error) {
+func (n *Network) msgVersion(id uint32) ([]byte, error) {
 	if id >= n.nPeers {
 		return nil, fmt.Errorf("NetworkVersion: (id %d) >= (nPeers %d)", id, n.nPeers)
 	}
@@ -47,7 +44,6 @@ func (n *Network) NetworkVersion(id uint32) ([]byte, error) {
 	binary.Write(b, binary.LittleEndian, uint64(time.Now().Unix())) // Timestamp
 
 	// Network address of receiver (26)
-	// b.Write(c.PeerAddr.NetAddr.Bytes())
 	b.Write(peer.ip) // Network address of receiver
 	b.Write([]byte(peer.port)) // Network port of receiver
 
@@ -58,14 +54,31 @@ func (n *Network) NetworkVersion(id uint32) ([]byte, error) {
 
 	binary.Write(b, binary.LittleEndian, uint64(len(n.userAgent)))
 	b.Write([]byte(n.userAgent))
-	// b.Write([]byte{0})
 
 	binary.Write(b, binary.LittleEndian, uint32(0)) // Last blockheight received
 	b.WriteByte(1)  // don't notify me about txs (BIP37)
 
-	response, err := n.networkMsg(id, "version", b.Bytes())
+	response, err := n.sendMsg(id, "version", b.Bytes())
 	if err != nil {
 		return nil, err
 	}
+	if err = checkType(response, "version"); err != nil {
+		log.Warn(err)
+		return nil, err
+	}
+	return response, nil
+}
+
+//
+func (n *Network) msgVerack(id uint32) ([]byte, error) {
+	response, err := n.sendMsg(id, "verack", nil)
+	if err != nil {
+		return nil, err
+	}
+	if err = checkType(response, "verack"); err != nil {
+		log.Warn(err)
+		return nil, err
+	}
+	// TODO: Check if response is verack
 	return response, nil
 }

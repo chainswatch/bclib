@@ -3,43 +3,21 @@ package network
 import (
   "testing"
 
-	"fmt"
+	"time"
 	log "github.com/sirupsen/logrus"
 )
 
 func TestNetwork(t *testing.T) {
+
+	go EvioOpen("127.0.0.1" + ":" + "8333")
+
+	time.Sleep(time.Second)
+	log.Info("====================================================")
+
 	net := Network{}
 	net.New()
 
-	peer := Peer{}
-	peer.New()
+	net.NewPeer("37.59.38.74", "8333")
 
-	go EvioOpen("127.0.0.1" + ":" + peer.port)
-
-	//rw, err := Open(peer.ip.String() + ":" + peer.port)
-	rw, err := Open("localhost" + ":" + peer.port)
-	if err != nil {
-		t.Fatal(err)
-	}
-	peer.rw = rw
-
-	net.AddPeer(peer)
-
-	response, err := net.NetworkVersion(0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	log.Info(fmt.Sprintf("response %s", response))
-	log.Info(fmt.Sprintf("response %x", response))
-
-	/*
-	response, err := rw.Peek(100)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	log.Info(fmt.Sprintf("Response: %s", response))
-	log.Info(fmt.Sprintf("Response: %x", response))
-	*/
 	t.Error()
 }
