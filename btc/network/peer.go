@@ -2,9 +2,6 @@ package network
 
 import (
 	"net"
-	"fmt"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // New initializes peer structure
@@ -17,36 +14,6 @@ func (p *Peer) New(ip, port string) error {
 		return err
 	}
 	p.rw = rw
-	return nil
-}
-
-func (n *Network) handshake() error {
-	response, err := n.msgVersion(0)
-	if err != nil {
-		return err
-	}
-	log.Info(fmt.Sprintf("response %x", response))
-
-	response, err = n.msgVerack(0)
-	if err != nil {
-		return err
-	}
-	log.Info(fmt.Sprintf("response %x", response))
-	return nil
-}
-
-func (n *Network) handlePeerConnect(p Peer) error {
-	n.handshake()
-
-	for {
-		response, err := p.waitMsg()
-		if err != nil {
-			log.Warn(err)
-			break
-		}
-		log.Info(fmt.Sprintf("response %s", response))
-		log.Info(fmt.Sprintf("response %x", response))
-	}
 	return nil
 }
 
