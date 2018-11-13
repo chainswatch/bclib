@@ -1,6 +1,7 @@
 package network
 
 import (
+	"git.posc.in/cw/bclib/serial"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -37,6 +38,17 @@ func (p *Peer) handleInv(payload []byte) {
 
 //
 func (p *Peer) handleTx(payload []byte) {
+	var hash [32]byte
+	copy(hash[:], serial.DoubleSha256(payload))
+	if _, asked := p.nextTxs[hash]; asked {
+		if _, exist := p.txs[hash]; !exist {
+			p.txs[hash] = tx{raw: payload, timestamp: 0, fromIP: nil}
+		} else {
+			log.Warn("handleTx: Tx already exists")
+		}
+	} else {
+		log.Warn("handleTx: TxHash not found")
+	}
 	// Check if already exists
 	// If not then send
 	// ZMQ

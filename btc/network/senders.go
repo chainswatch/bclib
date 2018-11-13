@@ -22,10 +22,14 @@ func (p *Peer) sendPong(nonce []byte) {
 // to connected peer
 func (p *Peer) sendGetdata(inventory [][]byte, count uint64) {
 	b := bytes.NewBuffer([]byte{})
-
 	b.Write(parser.Varint(count))
+	var hash [32]byte
 	for i := uint64(0); i < count; i++ {
-		b.Write(inventory[i])
+		copy(hash[:], inventory[i][4:])
+		if _, found := p.txs[hash]; !found { // if not exist
+			p.nextTxs[hash] = true
+			b.Write(inventory[i])
+		}
 	}
 	p.sendMsg("getdata", b.Bytes())
 }

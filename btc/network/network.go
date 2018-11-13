@@ -19,6 +19,12 @@ const (
 	networkMagic = 0xD9B4BEF9
 )
 
+type tx struct {
+	timestamp			uint32
+	fromIP				net.IP
+	raw						[]byte
+}
+
 type Peer struct {
 	ip						net.IP
 	port					uint16
@@ -26,6 +32,8 @@ type Peer struct {
 	services			[]byte
 
 	rw						*bufio.ReadWriter
+	txs						map[[32]byte]tx
+	nextTxs				map[[32]byte]bool		// Buffer waiting for data
 }
 
 type Network struct {

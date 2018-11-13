@@ -26,7 +26,6 @@ func parseInv(payload []byte) ([][]byte, uint64) {
 	inventory := make([][]byte, count)
 	for i := uint64(0); i < count; i++ {
 		inventory[i] = buf.ReadBytes(36) // type (4) + hash (32)
-		// log.Info(fmt.Sprintf("%x %x", invType, hash))
 	}
 	return inventory, count
 }
