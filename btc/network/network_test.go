@@ -9,11 +9,6 @@ import (
 
 func TestNetwork(t *testing.T) {
 
-	go EvioOpen("127.0.0.1" + ":" + "8333")
-
-	time.Sleep(time.Second)
-	log.Info("====================================================")
-
 	net := Network{}
 	net.New()
 

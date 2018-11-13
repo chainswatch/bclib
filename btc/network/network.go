@@ -30,3 +30,10 @@ type Network struct {
 	peers					[]Peer
 	nPeers				uint32
 }
+
+type msg struct {
+	cmd				string
+	length		uint32
+	payload		[]byte
+}
+

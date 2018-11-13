@@ -59,7 +59,7 @@ func (p *Peer) waitMsg() (*msg, error) {
 func (n *Network) handlePeerConnect(p Peer) error {
 	n.handshake()
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 20; i++ {
 		message, err := p.waitMsg()
 		if err != nil {
 			log.Warn(err)
@@ -67,8 +67,13 @@ func (n *Network) handlePeerConnect(p Peer) error {
 		}
 		log.Info(fmt.Sprintf("Received: %s %d %x", message.cmd, message.length, message.payload))
 		switch message.cmd {
+		case "addr":
+			n.handleAddr(message.payload)
+			i = 20
 		case "ping":
 			n.msgPong(message.payload)
+		case "inv":
+			n.handleInv(message.payload)
 		}
 	}
 	return nil

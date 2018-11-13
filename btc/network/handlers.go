@@ -2,6 +2,7 @@ package network
 
 import (
 	"git.posc.in/cw/watchers/serial"
+	"git.posc.in/cw/watchers/parser"
 
 	"math/rand"
 	"encoding/binary"
@@ -11,12 +12,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
-
-type msg struct {
-	cmd				string
-	length		uint32
-	payload		[]byte
-}
 
 // SendRawMsg sends command and payload
 func (n *Network) sendMsg(pid uint32, cmd string, pl []byte) error {
@@ -59,9 +54,36 @@ func (n *Network) msgPong(nonce []byte) {
 	n.sendMsg(0, "pong", nonce) // TODO: Replace 0
 }
 
-//addr
 //feefilter
+//addr (version >= 31402)
+func (n *Network) handleAddr(payload []byte) [][]byte {
+	buf := parser.New(payload)
+	count := buf.ShiftVarint()
+	res := make([][]byte, count)
+	for i := uint64(0); i < count; i++ {
+		timestamp := buf.ReadBytes(4)
+		services := buf.ReadBytes(8)
+		ip := buf.ReadBytes(16)
+		port := buf.ReadBytes(2)
+		log.Info(fmt.Sprintf("%x %x %x %x", timestamp, services, ip, port))
+	}
+	log.Info(count)
+	return res
+}
+
 //inv
+func (n *Network) handleInv(payload []byte) [][]byte {
+	buf := parser.New(payload)
+	count := buf.ShiftVarint()
+	res := make([][]byte, count)
+	for i := uint64(0); i < count; i++ {
+		// invType := buf.ReadBytes(4)
+		hash := buf.ReadBytes(32)
+		res[i] = hash
+		// log.Info(fmt.Sprintf("%x %x", invType, hash))
+	}
+	return res
+}
 
 // NetworkVersion sends the protocol version to the selected peer and check its response
 func (n *Network) msgVersion(id uint32) (*msg, error) {
