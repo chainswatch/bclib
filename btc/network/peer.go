@@ -2,6 +2,9 @@ package network
 
 import (
 	"net"
+	"bufio"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // New initializes peer structure
@@ -30,10 +33,18 @@ func (n *Network) NewPeer(ip, port string) error {
 
 // New initializes network structure
 func (n *Network) New() {
-	n.networkMagic = 0xD9B4BEF9 // Maybe LE
 	n.version = 70015
 	n.services = 0
 	n.userAgent = "/CW:01/"
 	n.port = 8333
 	n.nPeers = 0
+}
+
+func Open(addr string) (*bufio.ReadWriter, error) {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("Open: ", conn.RemoteAddr())
+	return bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)), nil
 }

@@ -3,8 +3,7 @@ package network
 import (
   "testing"
 
-	"time"
-	log "github.com/sirupsen/logrus"
+	//log "github.com/sirupsen/logrus"
 )
 
 func TestNetwork(t *testing.T) {

@@ -17,6 +17,7 @@ type Reader interface {
   ReadUint64() uint64
   ReadInt32() int32
 
+  ReadUint16() uint16
 	ShiftVarint() uint64
 }
 

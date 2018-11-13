@@ -15,6 +15,10 @@ func NetworkMessage() {
 }
 */
 
+const (
+	networkMagic = 0xD9B4BEF9
+)
+
 type Peer struct {
 	ip						net.IP
 	port					string
@@ -22,7 +26,6 @@ type Peer struct {
 }
 
 type Network struct {
-	networkMagic	uint32
 	version				uint32
 	services			uint32
 	userAgent			string
@@ -36,4 +39,3 @@ type msg struct {
 	length		uint32
 	payload		[]byte
 }
-

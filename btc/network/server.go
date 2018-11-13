@@ -1,12 +1,40 @@
 package network
 
 import (
+	"git.posc.in/cw/watchers/serial"
+
 	"encoding/binary"
 	"bytes"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
 )
+
+// SendRawMsg sends command and payload
+func (p *Peer) sendMsg(cmd string, pl []byte) error {
+	var sbuf [24]byte
+
+	binary.LittleEndian.PutUint32(sbuf[0:4], networkMagic)
+	copy(sbuf[4:16], cmd) // version
+	binary.LittleEndian.PutUint32(sbuf[16:20], uint32(len(pl)))
+
+	chksum := serial.DoubleSha256(pl[:])
+	copy(sbuf[20:24], chksum[:4])
+
+	msg := append(sbuf[:], pl...)
+
+	log.Info(fmt.Sprintf("Sending [%x] %x", sbuf, pl))
+	_, err := p.rw.Write(msg)
+	if err != nil {
+		return err
+	}
+	err = p.rw.Flush()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 
 func parseMsg(data []byte) *msg {
 	message := msg{}
@@ -21,13 +49,13 @@ func parseMsg(data []byte) *msg {
 }
 
 func (n *Network) handshake() error {
-	response, err := n.msgVersion(0)
+	response, err := n.sendVersion(0)
 	if err != nil {
 		return err
 	}
 	log.Info(fmt.Sprintf("response %x", response))
 
-	response, err = n.msgVerack(0)
+	response, err = n.sendVerack(0)
 	if err != nil {
 		return err
 	}
@@ -59,7 +87,7 @@ func (p *Peer) waitMsg() (*msg, error) {
 func (n *Network) handlePeerConnect(p Peer) error {
 	n.handshake()
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 10; i++ {
 		message, err := p.waitMsg()
 		if err != nil {
 			log.Warn(err)
@@ -68,12 +96,15 @@ func (n *Network) handlePeerConnect(p Peer) error {
 		log.Info(fmt.Sprintf("Received: %s %d %x", message.cmd, message.length, message.payload))
 		switch message.cmd {
 		case "addr":
-			n.handleAddr(message.payload)
-			i = 20
+			p.handleAddr(message.payload)
 		case "ping":
-			n.msgPong(message.payload)
+			p.handlePing(message.payload)
 		case "inv":
-			n.handleInv(message.payload)
+			p.handleInv(message.payload)
+		case "tx":
+			p.handleTx(message.payload)
+		case "reject":
+			p.handleReject(message.payload)
 		}
 	}
 	return nil
