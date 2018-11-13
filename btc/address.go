@@ -1,7 +1,7 @@
 package btc
 
 import (
-  "git.posc.in/cw/watchers/serial"
+  "git.posc.in/cw/bclib/serial"
   "fmt"
   "encoding/binary"
   log "github.com/sirupsen/logrus"

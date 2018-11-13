@@ -1,7 +1,7 @@
 package network
 
 import (
-	"git.posc.in/cw/watchers/serial"
+	"git.posc.in/cw/bclib/serial"
 
 	"encoding/binary"
 	"bytes"

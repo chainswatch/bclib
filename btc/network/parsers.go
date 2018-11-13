@@ -1,7 +1,7 @@
 package network
 
 import (
-	"git.posc.in/cw/watchers/parser"
+	"git.posc.in/cw/bclib/parser"
 
 	"time"
 	"fmt"
