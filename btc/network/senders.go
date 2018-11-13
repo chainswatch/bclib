@@ -49,7 +49,7 @@ func (n *Network) sendVersion(id uint32) (*msg, error) {
 
 	// Network address of receiver (26)
 	b.Write(peer.ip) // Network address of receiver
-	b.Write([]byte(peer.port)) // Network port of receiver
+	b.Write([]byte(fmt.Sprintf("%d", peer.port))) // Network port of receiver
 
 	// Network address of emitter (26)
 	b.Write(bytes.Repeat([]byte{0}, 26))

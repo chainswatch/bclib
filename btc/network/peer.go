@@ -3,16 +3,17 @@ package network
 import (
 	"net"
 	"bufio"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // New initializes peer structure
-func (p *Peer) New(ip, port string) error {
+func (p *Peer) New(ip string, port uint16) error {
 	p.ip = net.ParseIP(ip)
 	p.port = port
 
-	rw, err := Open(p.ip.String() + ":" + p.port)
+	rw, err := Open(fmt.Sprintf("%s:%d", p.ip.String(), p.port))
 	if err != nil {
 		return err
 	}
@@ -20,7 +21,7 @@ func (p *Peer) New(ip, port string) error {
 	return nil
 }
 
-func (n *Network) NewPeer(ip, port string) error {
+func (n *Network) NewPeer(ip string, port uint16) error {
 	peer := Peer{}
 	if err := peer.New(ip, port); err != nil {
 		return err

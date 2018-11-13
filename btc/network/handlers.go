@@ -1,11 +1,7 @@
 package network
 
 import (
-	"git.posc.in/cw/bclib/parser"
-
-	"time"
 	"fmt"
-	"net"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -29,8 +25,8 @@ func (p *Peer) handlePing(nonce []byte) {
 //feefilter
 //addr (version >= 31402)
 func (p *Peer) handleAddr(payload []byte) {
-	_, count := parseAddr()
-	log.Info("Addr: ", count)
+	peers := parseAddr(payload)
+	log.Info("Addr: ", len(peers))
 }
 
 //inv
@@ -40,7 +36,7 @@ func (p *Peer) handleInv(payload []byte) {
 }
 
 //
-func (p *Peer) handleTx() {
+func (p *Peer) handleTx(payload []byte) {
 	// Check if already exists
 	// If not then send
 	// ZMQ

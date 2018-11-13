@@ -21,7 +21,10 @@ const (
 
 type Peer struct {
 	ip						net.IP
-	port					string
+	port					uint16
+	timestamp			uint32
+	services			[]byte
+
 	rw						*bufio.ReadWriter
 }
 
