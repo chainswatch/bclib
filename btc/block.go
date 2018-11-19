@@ -1,9 +1,9 @@
 package btc
 
 import (
-  "git.posc.in/cw/watchers/serial"
-  "git.posc.in/cw/watchers/models"
-  "git.posc.in/cw/watchers/parser"
+  "git.posc.in/cw/bclib/serial"
+  "git.posc.in/cw/bclib/models"
+  "git.posc.in/cw/bclib/parser"
 
   log "github.com/sirupsen/logrus"
   "encoding/binary"
@@ -17,7 +17,7 @@ func decodeBlockHeader(btc *models.Block, br parser.Reader) {
   // btc.Length = br.ReadUint32() // Maybe only for raw files?
 
   btc.NVersion = br.ReadUint32()
-  btc.HashPrevBlock = br.ReadBytes(32)
+	btc.HashPrevBlock = br.ReadBytes(32) // TODO: Slice out of bound (in production)
   btc.HashMerkleRoot = br.ReadBytes(32)
   btc.NTime = time.Unix(int64(br.ReadUint32()), 0)
   btc.NBits = br.ReadUint32() // TODO: Parse this as mantissa?

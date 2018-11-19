@@ -16,6 +16,9 @@ type Reader interface {
   ReadUint32() uint32
   ReadUint64() uint64
   ReadInt32() int32
+
+  ReadUint16() uint16
+	ShiftVarint() uint64
 }
 
 // File allows to use the Reader interface when reading a file
