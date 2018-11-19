@@ -21,8 +21,6 @@ func (p *Peer) handlePing(nonce []byte) {
 	p.sendPong(nonce)
 }
 
-//pong
-
 //feefilter
 //addr (version >= 31402)
 func (p *Peer) handleAddr(payload []byte) {
@@ -36,22 +34,23 @@ func (p *Peer) handleInv(payload []byte) {
 	p.sendGetdata(inventory, count)
 }
 
-//
-func (p *Peer) handleTx(payload []byte) {
+// handleObject tx and block
+func (p *Peer) handleObject(object string, payload []byte) {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
-	if _, asked := p.nextTxs[hash]; asked {
-		if _, exist := p.txs[hash]; !exist {
-			p.txs[hash] = tx{raw: payload, timestamp: 0, fromIP: nil}
+	if _, asked := p.nextInvs[hash]; asked {
+		if _, exist := p.invs[hash]; !exist {
+			p.invs[hash] = inv{object: object,
+				raw: payload,
+				timestamp: 0,
+				fromIP: nil}
 		} else {
-			log.Warn("handleTx: Tx already exists")
+			log.Warn("handleTx: ", object, " already exists")
 		}
 	} else {
-		log.Warn("handleTx: TxHash not found")
+		log.Warn("handleTx: Hash not found")
 	}
-	// Check if already exists
-	// If not then send
-	// ZMQ
+	// TODO: Send through ZMQ
 }
 
 // version

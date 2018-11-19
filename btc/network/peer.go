@@ -19,8 +19,8 @@ func (p *Peer) New(ip string, port uint16) error {
 	}
 	p.rw = rw
 
-	p.txs = make(map[[32]byte]tx)
-	p.nextTxs = make(map[[32]byte]bool)
+	p.invs = make(map[[32]byte]inv)
+	p.nextInvs = make(map[[32]byte]bool)
 	return nil
 }
 

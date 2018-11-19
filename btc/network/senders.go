@@ -26,8 +26,8 @@ func (p *Peer) sendGetdata(inventory [][]byte, count uint64) {
 	var hash [32]byte
 	for i := uint64(0); i < count; i++ {
 		copy(hash[:], inventory[i][4:])
-		if _, found := p.txs[hash]; !found { // if not exist
-			p.nextTxs[hash] = true
+		if _, found := p.invs[hash]; !found { // if not exist
+			p.nextInvs[hash] = true
 			b.Write(inventory[i])
 		}
 	}
@@ -62,8 +62,9 @@ func (n *Network) sendVersion(id uint32) (*msg, error) {
 	binary.Write(b, binary.LittleEndian, uint64(len(n.userAgent)))
 	b.Write([]byte(n.userAgent))
 
-	binary.Write(b, binary.LittleEndian, uint32(0)) // Last blockheight received
-	b.WriteByte(1)  // don't notify me about txs (BIP37)
+	// Last blockheight received
+	binary.Write(b, binary.LittleEndian, uint32(0))
+	b.WriteByte(1)	// don't notify me about txs (BIP37)
 
 	err := peer.sendMsg("version", b.Bytes())
 	if err != nil {

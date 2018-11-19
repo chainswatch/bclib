@@ -19,7 +19,9 @@ const (
 	networkMagic = 0xD9B4BEF9
 )
 
-type tx struct {
+// Inventory structure
+type inv struct {
+	object				string
 	timestamp			uint32
 	fromIP				net.IP
 	raw						[]byte
@@ -32,8 +34,8 @@ type Peer struct {
 	services			[]byte
 
 	rw						*bufio.ReadWriter
-	txs						map[[32]byte]tx
-	nextTxs				map[[32]byte]bool		// Buffer waiting for data
+	invs					map[[32]byte]inv		// Stores raw txs and blocks
+	nextInvs			map[[32]byte]bool		// Buffer waiting for data
 }
 
 type Network struct {
