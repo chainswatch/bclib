@@ -10,7 +10,8 @@ import (
   "bytes"
 )
 
-// const serializeTransactionNoWitness = 0x40000000; // Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
+// Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
+// const serializeTransactionNoWitness = 0x40000000;
 
 // DecodeTx decodes a transaction
 func DecodeTx(br parser.Reader) (*models.Tx, error) {
@@ -21,13 +22,13 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
   tx := &models.Tx{}
 
   tx.NVersion = br.ReadInt32()
-  tx.NVin = uint32(br.ReadVarint())
+  tx.NVin = uint32(br.ReadCompactSize())
   if tx.NVin == 0 { // We are dealing with extended transaction (witness format)
     txFlag = br.ReadByte()
     if (txFlag != 0x01) { // Must be 1, other flags may be supported in the future
-      log.Fatal("Witness tx but flag is ", txFlag, " != 0x01")
+      log.Warn("Witness tx but flag is ", txFlag, " != 0x01")
     }
-    tx.NVin = uint32(br.ReadVarint())
+    tx.NVin = uint32(br.ReadCompactSize())
   }
 
   for i := uint32(0); i < tx.NVin; i++ {
@@ -39,18 +40,18 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
       " Input: ", input.Index,
       " Hash: ", input.Hash)
     }
-    scriptLength := br.ReadVarint()
+    scriptLength := br.ReadCompactSize()
     input.Script = br.ReadBytes(scriptLength)
     input.Sequence = br.ReadUint32()
     tx.Vin = append(tx.Vin, input)
   }
 
-  tx.NVout = uint32(br.ReadVarint())
+  tx.NVout = uint32(br.ReadCompactSize())
   for i := uint32(0); i < tx.NVout; i++ {
     output := models.TxOutput{}
     output.Index = i
     output.Value = br.ReadUint64()
-    scriptLength := br.ReadVarint()
+    scriptLength := br.ReadCompactSize()
     output.Script = br.ReadBytes(scriptLength)
     tx.Vout = append(tx.Vout, output)
   }
@@ -58,17 +59,17 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
   if (txFlag & 1) == 1 && allowWitness {
     txFlag ^= 1 // Not sure what this is for
     for i := uint32(0); i < tx.NVin; i++ {
-      witnessCount := br.ReadVarint()
+      witnessCount := br.ReadCompactSize()
       tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
       for j := uint64(0); j < witnessCount; j++ {
-        length := br.ReadVarint()
+        length := br.ReadCompactSize()
         tx.Vin[i].ScriptWitness[j] = br.ReadBytes(length)
       }
     }
   } // TODO: Missing 0 field?
 
   tx.Locktime = br.ReadUint32()
-	putTransactionHash(tx)
+	putTxHash(tx)
   return tx, err
 }
 
@@ -108,7 +109,7 @@ func getOutputBinary(out models.TxOutput) []byte {
 }
 // 0100000001e507cb947464fc74540a9c197f815aa283ba9db74185ac08449c38491a8c34ac00000000
 // Compute transaction hash ( [nVersion][Inputs][Outputs][nLockTime] )
-func putTransactionHash(tx *models.Tx) {
+func putTxHash(tx *models.Tx) {
 	bin := make([]byte, 0)
 	version := make([]byte, 4)
 	binary.LittleEndian.PutUint32(version, uint32(tx.NVersion))

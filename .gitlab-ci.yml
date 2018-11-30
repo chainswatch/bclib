@@ -2,6 +2,7 @@ variables:
   PROJECT_NAME: watchers
   ROOTPATH: /go/src/git.posc.in/cw
   GO_IMAGE: registry.posc.in/cw/infra/go
+  DATADIR: /data/btc-data
 
 stages:
   - test

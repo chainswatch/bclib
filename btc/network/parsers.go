@@ -7,9 +7,12 @@ import (
 )
 
 // TODO: Return an Addr struct?
-func parseAddr(payload []byte) []Peer {
-	buf := parser.New(payload)
-	count := buf.ShiftVarint()
+func parseAddr(payload []byte) ([]Peer, error) {
+	buf, err := parser.New(payload)
+	if err != nil {
+		return nil, err
+	}
+	count := buf.ReadVarint()
 	peers := make([]Peer, count)
 	for _, peer := range peers {
 		peer.timestamp = buf.ReadUint32()
@@ -17,15 +20,18 @@ func parseAddr(payload []byte) []Peer {
 		peer.ip = net.IP(buf.ReadBytes(16))
 		peer.port = buf.ReadUint16()
 	}
-	return peers
+	return peers, nil
 }
 
-func parseInv(payload []byte) ([][]byte, uint64) {
-	buf := parser.New(payload)
-	count := buf.ShiftVarint()
+func parseInv(payload []byte) ([][]byte, uint64, error) {
+	buf, err := parser.New(payload)
+	if err != nil {
+		return nil, 0, err
+	}
+	count := buf.ReadVarint()
 	inventory := make([][]byte, count)
 	for i := uint64(0); i < count; i++ {
 		inventory[i] = buf.ReadBytes(36) // type (4) + hash (32)
 	}
-	return inventory, count
+	return inventory, count, nil
 }

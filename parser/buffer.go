@@ -4,6 +4,11 @@ import (
   "encoding/binary"
 )
 
+// Type returns type of reader
+func (buf *Buffer) Type() string {
+	return "buffer"
+}
+
 // Reset cursor to position 0
 func (buf *Buffer) Reset() {
   buf.pos = 0
@@ -15,8 +20,15 @@ func (buf *Buffer) Peek(length int) ([]byte, error) {
 }
 
 // Seek moves cursor tu position pos
-func (buf *Buffer) Seek(pos uint64) {
-  buf.pos = pos
+func (buf *Buffer) Seek(pos int64, whence int) (int64, error) {
+	switch whence {
+	case 0:
+		buf.pos = uint64(pos)
+	case 1:
+		buf.pos += uint64(pos)
+		// TODO: case 2
+	}
+	return pos, nil
 }
 
 // ReadByte reads next one byte of data
@@ -68,9 +80,9 @@ func (buf *Buffer) ReadUint64() uint64 {
   return val
 }
 
-// ReadVarint reads N byte of data as uint64, LE.
+// ReadCompactSize reads N byte of data as uint64, LE.
 // N depends on the first byte
-func (buf *Buffer) ReadVarint() uint64 {
+func (buf *Buffer) ReadCompactSize() uint64 {
   intType := buf.ReadByte()
   if intType == 0xFF {
     return buf.ReadUint64()
@@ -83,9 +95,9 @@ func (buf *Buffer) ReadVarint() uint64 {
   return uint64(intType)
 }
 
-// ShiftVarint reads N byte of data as uint64, LE.
+// ReadVarint reads N byte of data as uint64, LE.
 // N depends on the first byte
-func (buf *Buffer) ShiftVarint() uint64 {
+func (buf *Buffer) ReadVarint() uint64 {
   var n uint64
   for true {
     b := buf.b[buf.pos : buf.pos+1][0]

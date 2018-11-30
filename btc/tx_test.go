@@ -95,9 +95,11 @@ func TestTransaction(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		log.Debug("------------------- ", test.name, " --------------------")
 		rawtx := serial.HexToBinary(test.rawtx)
-		rawTx := parser.New(rawtx)
+		rawTx, err := parser.New(rawtx)
+		if err != nil {
+			t.Fatal(err)
+		}
 		tx, _ := DecodeTx(rawTx)
 		txHash := fmt.Sprintf("%x", serial.ReverseHex(tx.Hash))
 		if txHash != test.txhash {
@@ -118,7 +120,5 @@ func TestTransaction(t *testing.T) {
 				test.name, decoded, test.encoded[idx])
 			}
 		}
-    // log.Info(fmt.Sprintf("%x", serial.DoubleSha256(rawtx)))
-    // log.Info(fmt.Sprintf("%x", rawtx))
 	}
 }

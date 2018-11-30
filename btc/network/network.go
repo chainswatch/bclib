@@ -27,6 +27,7 @@ type inv struct {
 	raw						[]byte
 }
 
+// Peer holds information about connected peer
 type Peer struct {
 	ip						net.IP
 	port					uint16
@@ -38,6 +39,7 @@ type Peer struct {
 	nextInvs			map[[32]byte]bool		// Buffer waiting for data
 }
 
+// Network holds information about the network status
 type Network struct {
 	version				uint32
 	services			uint32
