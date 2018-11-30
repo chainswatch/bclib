@@ -23,15 +23,23 @@ func (p *Peer) handlePing(nonce []byte) {
 
 //feefilter
 //addr (version >= 31402)
-func (p *Peer) handleAddr(payload []byte) {
-	peers := parseAddr(payload)
+func (p *Peer) handleAddr(payload []byte) error {
+	peers, err := parseAddr(payload)
+	if err != nil {
+		return err
+	}
 	log.Info("Addr: ", len(peers))
+	return nil
 }
 
 //inv
-func (p *Peer) handleInv(payload []byte) {
-	inventory, count := parseInv(payload)
+func (p *Peer) handleInv(payload []byte) error {
+	inventory, count, err := parseInv(payload)
+	if err != nil {
+		return err
+	}
 	p.sendGetdata(inventory, count)
+	return nil
 }
 
 // handleObject tx and block

@@ -7,7 +7,7 @@ import (
 
 // OpenSub opens a ZMQ subscription socket
 func OpenSub(zmqURL string, topics ...string) func(stop bool) ([]string, error) {
-  subscriber, _ := zmq.NewSocket(zmq.SUB)
+	subscriber, _ := zmq.NewSocket(zmq.SUB) // TODO: Error handling
   subscriber.Connect("tcp://" + zmqURL)
   log.Info("Listening to tcp://", zmqURL)
 
@@ -28,7 +28,7 @@ func OpenSub(zmqURL string, topics ...string) func(stop bool) ([]string, error) 
 
 // OpenPub opens a ZMQ publication socket
 func OpenPub(zmqURL string) func(msg []string) error {
-  publisher, _ := zmq.NewSocket(zmq.PUB)
+	publisher, _ := zmq.NewSocket(zmq.PUB) // TODO: Error handling
   publisher.Bind("tcp://" + zmqURL)
   log.Info("Publishing on tcp://", zmqURL)
 

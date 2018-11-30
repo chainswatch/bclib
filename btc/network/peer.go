@@ -24,6 +24,7 @@ func (p *Peer) New(ip string, port uint16) error {
 	return nil
 }
 
+// NewPeer adds a new peer
 func (n *Network) NewPeer(ip string, port uint16) error {
 	peer := Peer{}
 	if err := peer.New(ip, port); err != nil {
@@ -44,6 +45,7 @@ func (n *Network) New() {
 	n.nPeers = 0
 }
 
+// Open a new connection
 func Open(addr string) (*bufio.ReadWriter, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
