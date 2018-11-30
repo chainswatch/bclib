@@ -1,5 +1,5 @@
 variables:
-  PROJECT_NAME: watchers
+  PROJECT_NAME: bclib
   ROOTPATH: /go/src/git.posc.in/cw
   GO_IMAGE: registry.posc.in/cw/infra/go
   DATADIR: /data/btc-data
