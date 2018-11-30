@@ -1,4 +1,4 @@
-module git.posc.in/cw/watchers
+module git.posc.in/cw/bclib
 
 require (
 	github.com/sirupsen/logrus v1.1.1

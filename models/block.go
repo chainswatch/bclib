@@ -1,16 +1,12 @@
 package models
 
-import (
-  "time"
-)
-
 // Hash256 holds address
 type Hash256 []byte
 
 // TxInput holds tx inputs
 type TxInput struct {
-  Hash              Hash256     `db:"hash"`       // Hash of some previous transaction
-  Index             uint32      `db:"index"`      // Output of the previous transaction
+  Hash              Hash256     `db:"hash"`       // Hash previous tx
+  Index             uint32      `db:"index"`      // Output previous tx
   Script            []byte      `db:"script"`     // Useless?
   Sequence          uint32      `db:"sequence"`   // Always 0xFFFFFFFF
   ScriptWitness     [][]byte
@@ -48,7 +44,7 @@ type BlockHeader struct {
   HashBlock         Hash256   `db:"hash_block"`       // current block hash (Added)
   HashPrevBlock     Hash256   `db:"hash_prev_block"`  // previous block hash (Index)
   HashMerkleRoot    Hash256   `db:"hash_merkle_root"` //
-  NTime             time.Time `db:"n_time"`           // (Index)
+  NTime             uint32		`db:"n_time"`           // (Index)
   NBits             uint32    `db:"n_bits"`           // (Index)
   NNonce            uint32    `db:"n_nonce"`          // (Index)
   TargetDifficulty  uint32    `db:"target_difficulty"`//

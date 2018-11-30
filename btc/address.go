@@ -1,7 +1,7 @@
 package btc
 
 import (
-  "git.posc.in/cw/watchers/serial"
+  "git.posc.in/cw/bclib/serial"
   "fmt"
   "encoding/binary"
   log "github.com/sirupsen/logrus"
@@ -22,13 +22,13 @@ func getNumOps(script []byte) ([][]byte, error) {
     opCode := script[i]
     i++
 
-    if (opCode < opPushdata1 && opCode > op0) {
+    if opCode < opPushdata1 && opCode > op0 {
       dataLength = uint32(opCode)
-    } else if (opCode == opPushdata1) {
+    } else if opCode == opPushdata1 {
       dataLength = uint32(script[i])
-    } else if (opCode == opPushdata2) {
+    } else if opCode == opPushdata2 {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+2)])
-    } else if (opCode == opPushdata4) {
+    } else if opCode == opPushdata4 {
       dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
     } else {
       ops = append(ops, []byte{opCode})
