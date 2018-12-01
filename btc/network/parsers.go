@@ -4,6 +4,11 @@ import (
 	"git.posc.in/cw/bclib/parser"
 
 	"net"
+	"fmt"
+	"bytes"
+	"encoding/binary"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // TODO: Return an Addr struct?
@@ -34,4 +39,38 @@ func parseInv(payload []byte) ([][]byte, uint64, error) {
 		inventory[i] = buf.ReadBytes(36) // type (4) + hash (32)
 	}
 	return inventory, count, nil
+}
+
+func parseMsg(data []byte) *msg {
+	message := msg{}
+	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
+	message.length = binary.LittleEndian.Uint32(data[12:16])
+	// 16-20 = checksum
+	message.payload = data[20:len(data)-4]
+	if int(message.length) != len(message.payload) {
+		log.Info(message.length, "!=", len(message.payload))
+	}
+	return &message
+}
+
+// WaitMsg waits next message from peer
+func (p *Peer) WaitMsg() (*msg, error) {
+	data := make([]byte, 0)
+	for {
+		// TODO: Timeout
+		r, err := p.rw.ReadBytes(byte(0xD9))
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, r...)
+		if bytes.Contains(r, []byte{0xF9, 0xBE, 0xB4, 0xD9}) {
+			if len(data) == 4 && len(r) == 4 {
+				data = nil
+				continue
+			}
+			break
+		}
+	}
+	message := parseMsg(data)
+	return message, nil
 }
