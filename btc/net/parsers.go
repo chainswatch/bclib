@@ -1,4 +1,4 @@
-package network
+package net
 
 import (
 	"git.posc.in/cw/bclib/parser"
@@ -43,8 +43,8 @@ func ParseInv(payload []byte) ([][]byte, uint64, error) {
 	return inventory, count, nil
 }
 
-func parseMsg(data []byte) *msg {
-	message := msg{}
+func parseMsg(data []byte) *Message {
+	message := Message{}
 	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
 	message.length = binary.LittleEndian.Uint32(data[12:16])
 	// 16-20 = checksum
@@ -56,7 +56,7 @@ func parseMsg(data []byte) *msg {
 }
 
 // WaitMsg waits next message from peer
-func (p *Peer) WaitMsg() (*msg, error) {
+func (p *Peer) WaitMsg() (*Message, error) {
 	data := make([]byte, 0)
 	for {
 		// TODO: Timeout
