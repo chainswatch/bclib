@@ -1,4 +1,4 @@
-package network
+package net
 
 import (
 	"net"
@@ -49,7 +49,7 @@ type Network struct {
 	nPeers				uint32
 }
 
-type msg struct {
+type Message struct {
 	cmd				string
 	length		uint32
 	payload		[]byte

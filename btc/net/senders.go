@@ -1,4 +1,4 @@
-package network
+package net
 
 import (
 	"git.posc.in/cw/bclib/parser"
@@ -72,7 +72,7 @@ func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
 // sendGetaddr
 
 // sendVersion sends the protocol version to the selected peer and check its response
-func (n *Network) sendVersion(id uint32) (*msg, error) {
+func (n *Network) sendVersion(id uint32) (*Message, error) {
 	if id >= n.nPeers {
 		return nil, fmt.Errorf("NetworkVersion: (id %d) >= (nPeers %d)", id, n.nPeers)
 	}
@@ -116,7 +116,7 @@ func (n *Network) sendVersion(id uint32) (*msg, error) {
 }
 
 //
-func (n *Network) sendVerack(id uint32) (*msg, error) {
+func (n *Network) sendVerack(id uint32) (*Message, error) {
 	peer := n.peers[id]
 	err := peer.sendMsg("verack", nil)
 	if err != nil {
