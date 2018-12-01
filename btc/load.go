@@ -31,9 +31,8 @@ func loadHeaderIndex(db *leveldb.DB) (map[uint32]*models.Block, error) {
 
 type apply func(string) (func(b *models.Block) error, error)
 
-// TODO: This function should take a pointer to function as input
-// Its main purpose is only to parse the blocks fromh toh.
-func loadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) error {
+// LoadFile allows to traverse the blocks by height order while applying a function argFn
+func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) error {
 	lookup, err := loadHeaderIndex(db)
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {
@@ -76,6 +75,5 @@ func loadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) erro
 		// TODO: Close file if necessary
 		// TODO: Check number of file open (always <= 2)
 	}
-	log.Info(b.NHeight)
-	return nil
+	return fn(nil) // Signal fn to close
 }
