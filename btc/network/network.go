@@ -54,3 +54,23 @@ type msg struct {
 	length		uint32
 	payload		[]byte
 }
+
+// AddPeer adds a new peer
+func (n *Network) AddPeer(ip string, port uint16) error {
+	peer := Peer{}
+	if err := peer.newConnection(ip, port); err != nil {
+		return err
+	}
+	n.peers = append(n.peers, peer)
+	n.nPeers++
+	return n.handshake(0) // TODO: Set peerID
+}
+
+// New initializes network structure
+func (n *Network) New() {
+	n.version = 70015
+	n.services = 0
+	n.userAgent = "/CW:01/"
+	n.port = 8333
+	n.nPeers = 0
+}
