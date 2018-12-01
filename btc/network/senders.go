@@ -2,6 +2,7 @@ package network
 
 import (
 	"git.posc.in/cw/bclib/parser"
+	"git.posc.in/cw/bclib/serial"
 
 	"math/rand"
 	"encoding/binary"
@@ -13,14 +14,46 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func checkType(received string, expected string) error {
+	if received != expected {
+		return fmt.Errorf("checkType: Unexpected response from peer. Received %s != %s", received, expected)
+	}
+	return nil
+}
+
+// sendMsg sends command and payload
+func (p *Peer) sendMsg(cmd string, pl []byte) error {
+	var sbuf [24]byte
+
+	binary.LittleEndian.PutUint32(sbuf[0:4], networkMagic)
+	copy(sbuf[4:16], cmd) // version
+	binary.LittleEndian.PutUint32(sbuf[16:20], uint32(len(pl)))
+
+	chksum := serial.DoubleSha256(pl[:])
+	copy(sbuf[20:24], chksum[:4])
+
+	msg := append(sbuf[:], pl...)
+
+	log.Info(fmt.Sprintf("Sending [%x] %x", sbuf, pl))
+	_, err := p.rw.Write(msg)
+	if err != nil {
+		return err
+	}
+	err = p.rw.Flush()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // sendPong sends a pong message to conneted peer
-func (p *Peer) sendPong(nonce []byte) {
+func (p *Peer) SendPong(nonce []byte) {
 	p.sendMsg("pong", nonce) // TODO: Replace 0
 }
 
 // sendGetdata requests a single block or transaction by hash
 // to connected peer
-func (p *Peer) sendGetdata(inventory [][]byte, count uint64) {
+func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
 	b := bytes.NewBuffer([]byte{})
 	b.Write(parser.Varint(count))
 	var hash [32]byte
@@ -38,7 +71,7 @@ func (p *Peer) sendGetdata(inventory [][]byte, count uint64) {
 // sendGetheaders
 // sendGetaddr
 
-// NetworkVersion sends the protocol version to the selected peer and check its response
+// sendVersion sends the protocol version to the selected peer and check its response
 func (n *Network) sendVersion(id uint32) (*msg, error) {
 	if id >= n.nPeers {
 		return nil, fmt.Errorf("NetworkVersion: (id %d) >= (nPeers %d)", id, n.nPeers)
@@ -70,7 +103,7 @@ func (n *Network) sendVersion(id uint32) (*msg, error) {
 	if err != nil {
 		return nil, err
 	}
-	response, err := peer.waitMsg()
+	response, err := peer.WaitMsg()
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +122,7 @@ func (n *Network) sendVerack(id uint32) (*msg, error) {
 	if err != nil {
 		return nil, err
 	}
-	response, err := peer.waitMsg()
+	response, err := peer.WaitMsg()
 	if err != nil {
 		return nil, err
 	}
@@ -99,4 +132,20 @@ func (n *Network) sendVerack(id uint32) (*msg, error) {
 		return nil, err
 	}
 	return response, nil
+}
+
+// Handshake sends the Version message (wait for response) followed by a verack message (wait for response)
+func (n *Network) handshake(peerID uint32) error {
+	response, err := n.sendVersion(peerID)
+	if err != nil {
+		return err
+	}
+	log.Info(fmt.Sprintf("response %x", response))
+
+	response, err = n.sendVerack(peerID)
+	if err != nil {
+		return err
+	}
+	log.Info(fmt.Sprintf("response %x", response))
+	return nil
 }

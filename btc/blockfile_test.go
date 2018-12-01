@@ -5,37 +5,18 @@ import (
 	"git.posc.in/cw/bclib/parser"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
+  "github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/joho/godotenv"
+	"encoding/binary"
 	"testing"
+	"fmt"
 	"os"
 )
 
-/*
-func txAbstractDb(filename string) (func(b *models.Block) error, error) {
-	db, err := leveldb.OpenFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	db.NewIterator(util.BytesPrefix([]byte("n")), nil)
-	lastKey := iter.Last()
-	iter.Release()
-	err = iter.Error()
-	if err != nil {
-	}
-
-	return func(b *models.Block) error {
-		batch := new(leveldb.Batch)
-		for _, tx := range b.Txs {
-			batch.Put("", tx.Hash)
-			batch.Put([]byte("") + tx.Hash, "")
-		}
-		err = db.Write(batch, nil)
-		return nil
-	}, nil
-}
-
 // TODO: Move this function to application repository?
+/*
 func csvExport(filename string) (func(b *models.Block) error, error) {
 	file, err := os.Create(filename)
 	if err != nil {
@@ -62,9 +43,51 @@ func csvExport(filename string) (func(b *models.Block) error, error) {
 }
 */
 
+/*
 func dummyFunc(_ string) (func(b *models.Block) error, error) {
 	return func(b *models.Block) error {
 		return nil
+	}, nil
+}
+*/
+
+func txAbstractDB(filename string) (func(b *models.Block) error, error) {
+	var idx uint32
+	db, err := leveldb.OpenFile(filename, nil)
+	if err != nil {
+		return nil, err
+	}
+	iter := db.NewIterator(util.BytesPrefix([]byte("n")), nil)
+	for iter.Next() {
+		log.Info(fmt.Sprintf("%x", iter.Key()))
+	}
+	if iter.Last() { // load last idx if exists
+		idx = binary.BigEndian.Uint32(iter.Key()[1:])
+	}
+	log.Info("Start from idx = ", idx)
+	iter.Release()
+	if err = iter.Error(); err != nil {
+		return nil, err
+	}
+
+	return func(b *models.Block) error {
+		if b == nil {
+			return db.Close()
+		}
+		batch := new(leveldb.Batch)
+		nbuf := make([]byte, 5)
+		tbuf := make([]byte, 1 + 32 + 4)
+		nbuf[0] = byte('n')
+		tbuf[0] = byte('t')
+		for _, tx := range b.Txs {
+			binary.BigEndian.PutUint32(nbuf[1:], idx)
+			batch.Put(nbuf, tx.Hash)
+			copy(tbuf[1:], tx.Hash)
+			copy(tbuf[33:], nbuf[1:])
+			batch.Put(tbuf, nil)
+			idx++
+		}
+		return db.Write(batch, nil)
 	}, nil
 }
 
@@ -115,13 +138,48 @@ func TestBlockFile(t *testing.T) {
 		}
 	}
 
-	// Test loadFile
+	// Test LoadFile with a dummyFunc
 	db, err := OpenIndexDb()
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = loadFile(db, 0, 10, dummyFunc, "output.csv")
+
+	// Test on tmp storage
+	err = LoadFile(db, 0, 1e5, txAbstractDB, "/tmp/abstracts")
 	if err != nil {
 		t.Fatal(err)
 	}
+
+  dbtx, err := leveldb.OpenFile("/tmp/abstracts", &opt.Options{
+    ReadOnly: true,
+  })
+	if err != nil {
+		t.Fatal(err)
+	}
+	iter = dbtx.NewIterator(util.BytesPrefix([]byte("n")), nil)
+	ncount := 0
+	for iter.Next() {
+		// log.Info(fmt.Sprintf("%x %x", iter.Key(), iter.Value()))
+		ncount++
+	}
+	iter.Release()
+	if err = iter.Error(); err != nil {
+		t.Fatal(err)
+	}
+
+	iter = dbtx.NewIterator(util.BytesPrefix([]byte("t")), nil)
+	tcount := 0
+	for iter.Next() {
+		// log.Info(fmt.Sprintf("%x %x", iter.Key(), iter.Value()))
+		tcount++
+	}
+	iter.Release()
+	if err = iter.Error(); err != nil {
+		t.Fatal(err)
+	}
+	if ncount != tcount {
+		t.Fatalf("Number of records in 'n' and 't' should be equal: %d != %d", ncount, tcount)
+	}
+
+	// err = LoadFile(db, 0, 10, txAbstractDB, os.Getenv("DATADIR") + "/abstracts")
 }
