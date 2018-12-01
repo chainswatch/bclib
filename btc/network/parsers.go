@@ -12,7 +12,8 @@ import (
 )
 
 // TODO: Return an Addr struct?
-func parseAddr(payload []byte) ([]Peer, error) {
+// ParseAddr returns peer slice from payload
+func ParseAddr(payload []byte) ([]Peer, error) {
 	buf, err := parser.New(payload)
 	if err != nil {
 		return nil, err
@@ -28,7 +29,8 @@ func parseAddr(payload []byte) ([]Peer, error) {
 	return peers, nil
 }
 
-func parseInv(payload []byte) ([][]byte, uint64, error) {
+// ParseInv returns a slice of slices of inventories
+func ParseInv(payload []byte) ([][]byte, uint64, error) {
 	buf, err := parser.New(payload)
 	if err != nil {
 		return nil, 0, err
