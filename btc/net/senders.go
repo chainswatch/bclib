@@ -51,7 +51,7 @@ func (p *Peer) SendPong(nonce []byte) {
 	p.sendMsg("pong", nonce) // TODO: Replace 0
 }
 
-// SendHeaders
+// SendHeaders send a sendheaders message to connected peer
 func (p *Peer) SendHeaders() {
 	p.sendMsg("sendheaders", []byte{0})
 }
