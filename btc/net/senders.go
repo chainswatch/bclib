@@ -103,7 +103,7 @@ func (n *Network) sendVersion(id uint32) (*Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	response, err := peer.WaitMsg()
+	response, err := peer.waitMsg()
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (n *Network) sendVerack(id uint32) (*Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	response, err := peer.WaitMsg()
+	response, err := peer.waitMsg()
 	if err != nil {
 		return nil, err
 	}

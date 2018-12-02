@@ -40,7 +40,7 @@ func (p *Peer) HandlePing(nonce []byte) {
 
 // HandleAddr parse peer addresses (version >= 31402)
 func (p *Peer) HandleAddr(payload []byte) error {
-	peers, err := ParseAddr(payload)
+	peers, err := parseAddr(payload)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (p *Peer) HandleAddr(payload []byte) error {
 
 // HandleInv parse inventories
 func (p *Peer) HandleInv(payload []byte) error {
-	inventory, count, err := ParseInv(payload)
+	inventory, count, err := parseInv(payload)
 	if err != nil {
 		return err
 	}

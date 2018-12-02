@@ -13,7 +13,7 @@ import (
 
 // ParseAddr returns peer slice from payload
 // TODO: Return an Addr struct?
-func ParseAddr(payload []byte) ([]Peer, error) {
+func parseAddr(payload []byte) ([]Peer, error) {
 	buf, err := parser.New(payload)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func ParseAddr(payload []byte) ([]Peer, error) {
 }
 
 // ParseInv returns a slice of slices of inventories
-func ParseInv(payload []byte) ([][]byte, uint64, error) {
+func parseInv(payload []byte) ([][]byte, uint64, error) {
 	buf, err := parser.New(payload)
 	if err != nil {
 		return nil, 0, err
@@ -55,8 +55,8 @@ func parseMsg(data []byte) *Message {
 	return &message
 }
 
-// WaitMsg waits next message from peer
-func (p *Peer) WaitMsg() (*Message, error) {
+// waitMsg waits next message from peer
+func (p *Peer) waitMsg() (*Message, error) {
 	data := make([]byte, 0)
 	for {
 		// TODO: Timeout
