@@ -51,8 +51,14 @@ func (p *Peer) SendPong(nonce []byte) {
 	p.sendMsg("pong", nonce) // TODO: Replace 0
 }
 
+// SendHeaders
+func (p *Peer) SendHeaders() {
+	p.sendMsg("sendheaders", []byte{0})
+}
+
 // SendGetdata requests a single block or transaction by hash
 // to connected peer
+// TODO: Separate them (tx, block) by type when checking uniqueness?
 func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
 	b := bytes.NewBuffer([]byte{})
 	b.Write(parser.Varint(count))
@@ -72,38 +78,33 @@ func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
 // sendGetaddr
 
 // sendVersion sends the protocol version to the selected peer and check its response
-func (n *Network) sendVersion(id uint32) (*Message, error) {
-	if id >= n.nPeers {
-		return nil, fmt.Errorf("NetworkVersion: (id %d) >= (nPeers %d)", id, n.nPeers)
-	}
-	peer := n.peers[id]
-
+func (p *Peer) sendVersion(version, services uint32, userAgent string) (*Message, error) {
 	b := bytes.NewBuffer([]byte{})
 
-	binary.Write(b, binary.LittleEndian, uint32(n.version)) // Protocol version, 70015
-	binary.Write(b, binary.LittleEndian, uint64(n.services)) // Network services
+	binary.Write(b, binary.LittleEndian, uint32(version)) // Protocol version, 70015
+	binary.Write(b, binary.LittleEndian, uint64(services)) // Network services
 	binary.Write(b, binary.LittleEndian, uint64(time.Now().Unix())) // Timestamp
 
 	// Network address of receiver (26)
-	b.Write(peer.ip) // Network address of receiver
-	b.Write([]byte(fmt.Sprintf("%d", peer.port))) // Network port of receiver
+	b.Write(p.ip) // Network address of receiver
+	b.Write([]byte(fmt.Sprintf("%d", p.port))) // Network port of receiver
 
 	// Network address of emitter (26)
 	b.Write(bytes.Repeat([]byte{0}, 26))
 
 	binary.Write(b, binary.LittleEndian, uint64(rand.Intn(2^64))) // nonce, 8 bytes
-	binary.Write(b, binary.LittleEndian, uint64(len(n.userAgent)))
-	b.Write([]byte(n.userAgent))
+	binary.Write(b, binary.LittleEndian, uint64(len(userAgent)))
+	b.Write([]byte(userAgent))
 
 	// Last blockheight received
 	binary.Write(b, binary.LittleEndian, uint32(0))
 	b.WriteByte(1)	// don't notify me about txs (BIP37)
 
-	err := peer.sendMsg("version", b.Bytes())
+	err := p.sendMsg("version", b.Bytes())
 	if err != nil {
 		return nil, err
 	}
-	response, err := peer.waitMsg()
+	response, err := p.waitMsg()
 	if err != nil {
 		return nil, err
 	}
@@ -115,13 +116,12 @@ func (n *Network) sendVersion(id uint32) (*Message, error) {
 }
 
 //
-func (n *Network) sendVerack(id uint32) (*Message, error) {
-	peer := n.peers[id]
-	err := peer.sendMsg("verack", nil)
+func (p *Peer) sendVerack() (*Message, error) {
+	err := p.sendMsg("verack", nil)
 	if err != nil {
 		return nil, err
 	}
-	response, err := peer.waitMsg()
+	response, err := p.waitMsg()
 	if err != nil {
 		return nil, err
 	}
@@ -133,18 +133,19 @@ func (n *Network) sendVerack(id uint32) (*Message, error) {
 }
 
 // Handshake sends the Version message (wait for response) followed by a verack message (wait for response)
-func (n *Network) handshake(peerID uint32) error {
-	response, err := n.sendVersion(peerID)
+func (p *Peer) handshake(version, services uint32, userAgent string) error {
+	response, err := p.sendVersion(version, services, userAgent)
 	if err != nil {
 		return err
 	}
 	log.Debug(fmt.Sprintf("response %x", response))
 
-	response, err = n.sendVerack(peerID)
+	response, err = p.sendVerack()
 	if err != nil {
 		return err
 	}
 	log.Debug(fmt.Sprintf("response %x", response))
 
+	p.SendHeaders()
 	return nil
 }

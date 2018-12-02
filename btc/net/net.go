@@ -57,7 +57,7 @@ func (n *Network) AddPeer(ip string, port uint16) error {
 	}
 	n.peers = append(n.peers, peer)
 	n.nPeers++
-	return n.handshake(0) // TODO: Set peerID
+	return peer.handshake(n.version, n.services, n.userAgent)
 }
 
 // New initializes network structure
