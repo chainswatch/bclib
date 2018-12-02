@@ -14,7 +14,7 @@ func openConnection(addr string) (*bufio.ReadWriter, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Info("Open: ", conn.RemoteAddr())
+	log.Info("openConnection: ", conn.RemoteAddr())
 	return bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)), nil
 }
 
