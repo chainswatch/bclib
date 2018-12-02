@@ -46,12 +46,12 @@ func (p *Peer) sendMsg(cmd string, pl []byte) error {
 	return nil
 }
 
-// sendPong sends a pong message to conneted peer
+// SendPong sends a pong message to conneted peer
 func (p *Peer) SendPong(nonce []byte) {
 	p.sendMsg("pong", nonce) // TODO: Replace 0
 }
 
-// sendGetdata requests a single block or transaction by hash
+// SendGetdata requests a single block or transaction by hash
 // to connected peer
 func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
 	b := bytes.NewBuffer([]byte{})
