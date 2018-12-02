@@ -49,13 +49,6 @@ type Network struct {
 	nPeers				uint32
 }
 
-// Message holds components of a network message
-type Message struct {
-	cmd				string
-	length		uint32
-	payload		[]byte
-}
-
 // AddPeer adds a new peer
 func (n *Network) AddPeer(ip string, port uint16) error {
 	peer := Peer{}
