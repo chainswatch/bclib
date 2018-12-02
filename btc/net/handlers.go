@@ -8,36 +8,38 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// handleObject tx and block
-func (p *Peer) handleObject(object string, payload []byte) (*inv, error) {
+// HandleObject manages tx and block messages
+func (p *Peer) HandleObject(object string, payload []byte) error {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
 	if _, asked := p.nextInvs[hash]; !asked {
-		return nil, fmt.Errorf("handleTx: Hash not found: %x", hash)
+		return fmt.Errorf("handleTx: Hash not found: %x", hash)
 	}
 	if _, exist := p.invs[hash]; exist {
-		return nil, fmt.Errorf("handleTx: %s already exists", object)
+		return fmt.Errorf("handleTx: %s already exists", object)
 	}
-	invObj := &inv{object: object,
+	invObj := &inv {
+		object: object,
 		raw: payload,
 		timestamp: 0,
 		fromIP: nil,
 	}
 	p.invs[hash] = invObj
-	return invObj, nil
+	return nil
 }
 
 //sendheaders
 //sendcmpct
 
-//ping
-func (p *Peer) handlePing(nonce []byte) {
+// HandlePing replies pong to ping
+func (p *Peer) HandlePing(nonce []byte) {
 	p.SendPong(nonce)
 }
 
 //feefilter
-//addr (version >= 31402)
-func (p *Peer) handleAddr(payload []byte) error {
+
+// HandleAddr parse peer addresses (version >= 31402)
+func (p *Peer) HandleAddr(payload []byte) error {
 	peers, err := ParseAddr(payload)
 	if err != nil {
 		return err
@@ -46,8 +48,8 @@ func (p *Peer) handleAddr(payload []byte) error {
 	return nil
 }
 
-//inv
-func (p *Peer) handleInv(payload []byte) error {
+// HandleInv parse inventories
+func (p *Peer) HandleInv(payload []byte) error {
 	inventory, count, err := ParseInv(payload)
 	if err != nil {
 		return err
@@ -56,7 +58,7 @@ func (p *Peer) handleInv(payload []byte) error {
 	return nil
 }
 
-//reject
-func (p *Peer) handleReject(payload []byte) {
+// HandleReject prints reject error message
+func (p *Peer) HandleReject(payload []byte) {
 	log.Info(fmt.Sprintf("%s", payload))
 }
