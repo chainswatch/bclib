@@ -35,7 +35,7 @@ type Peer struct {
 	services			[]byte
 
 	rw						*bufio.ReadWriter
-	invs					map[[32]byte]inv		// Stores raw txs and blocks
+	invs					map[[32]byte]*inv		// Stores raw txs and blocks
 	nextInvs			map[[32]byte]bool		// Buffer waiting for data
 }
 
@@ -49,6 +49,7 @@ type Network struct {
 	nPeers				uint32
 }
 
+// Message holds components of a network message
 type Message struct {
 	cmd				string
 	length		uint32

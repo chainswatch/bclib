@@ -11,8 +11,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// TODO: Return an Addr struct?
 // ParseAddr returns peer slice from payload
+// TODO: Return an Addr struct?
 func ParseAddr(payload []byte) ([]Peer, error) {
 	buf, err := parser.New(payload)
 	if err != nil {

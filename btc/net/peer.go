@@ -29,7 +29,7 @@ func (p *Peer) newConnection(ip string, port uint16) error {
 	}
 	p.rw = rw
 
-	p.invs = make(map[[32]byte]inv)
+	p.invs = make(map[[32]byte]*inv)
 	p.nextInvs = make(map[[32]byte]bool)
 	return nil
 }
