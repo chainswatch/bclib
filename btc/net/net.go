@@ -69,17 +69,19 @@ func (n *Network) New() {
 	n.nPeers = 0
 }
 
-type apply func(*Message) error
+// Apply is passed as an argument to Watch
+type Apply func(*Peer, *Message) error
 
 // Watch connected peers and apply fn when a message is received
-func (n *Network) Watch(fn apply) error {
+func (n *Network) Watch(fn Apply) error {
 	// TODO: process peers in parallel (or one by one with select?)
+	peer := n.peers[0]
 	for {
-		msg, err := n.peers[0].waitMsg()
+		msg, err := peer.waitMsg()
 		if err != nil {
 			return err
 		}
-		if err = fn(msg); err != nil {
+		if err = fn(&peer, msg); err != nil {
 			return err
 		}
 	}
