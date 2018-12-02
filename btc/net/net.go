@@ -68,3 +68,20 @@ func (n *Network) New() {
 	n.port = 8333
 	n.nPeers = 0
 }
+
+type apply func(*Message) error
+
+// Watch connected peers and apply fn when a message is received
+func (n *Network) Watch(fn apply) error {
+	// TODO: process peers in parallel (or one by one with select?)
+	for {
+		msg, err := n.peers[0].waitMsg()
+		if err != nil {
+			return err
+		}
+		if err = fn(msg); err != nil {
+			return err
+		}
+	}
+	return nil
+}
