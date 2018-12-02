@@ -47,19 +47,19 @@ func (p *Peer) sendMsg(cmd string, pl []byte) error {
 }
 
 // SendPong sends a pong message to conneted peer
-func (p *Peer) SendPong(nonce []byte) {
-	p.sendMsg("pong", nonce) // TODO: Replace 0
+func (p *Peer) SendPong(nonce []byte) error {
+	return p.sendMsg("pong", nonce) // TODO: Replace 0
 }
 
 // SendHeaders send a sendheaders message to connected peer
-func (p *Peer) SendHeaders() {
-	p.sendMsg("sendheaders", []byte{0})
+func (p *Peer) SendHeaders() error {
+	return p.sendMsg("sendheaders", []byte{0})
 }
 
 // SendGetdata requests a single block or transaction by hash
 // to connected peer
 // TODO: Separate them (tx, block) by type when checking uniqueness?
-func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
+func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
 	b := bytes.NewBuffer([]byte{})
 	b.Write(parser.Varint(count))
 	var hash [32]byte
@@ -70,7 +70,7 @@ func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
 			b.Write(inventory[i])
 		}
 	}
-	p.sendMsg("getdata", b.Bytes())
+	return p.sendMsg("getdata", b.Bytes())
 }
 
 // sendGetblocks

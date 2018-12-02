@@ -32,8 +32,8 @@ func (p *Peer) HandleObject(object string, payload []byte) error {
 //sendcmpct
 
 // HandlePing replies pong to ping
-func (p *Peer) HandlePing(nonce []byte) {
-	p.SendPong(nonce)
+func (p *Peer) HandlePing(nonce []byte) error {
+	return p.SendPong(nonce)
 }
 
 //feefilter
@@ -54,8 +54,7 @@ func (p *Peer) HandleInv(payload []byte) error {
 	if err != nil {
 		return err
 	}
-	p.SendGetdata(inventory, count)
-	return nil
+	return p.sendGetData(inventory, count)
 }
 
 // HandleReject prints reject error message
