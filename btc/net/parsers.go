@@ -50,7 +50,7 @@ func parseMsg(data []byte) *Message {
 	// 16-20 = checksum
 	message.payload = data[20:len(data)-4]
 	if int(message.length) != len(message.payload) {
-		log.Info(message.length, "!=", len(message.payload))
+		log.Warn(fmt.Sprintf("parseMsg: length and len(payload) differ: %d != %d", message.length, len(message.payload)))
 	}
 	return &message
 }

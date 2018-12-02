@@ -44,7 +44,7 @@ func (p *Peer) HandleAddr(payload []byte) error {
 	if err != nil {
 		return err
 	}
-	log.Info("Addr: ", len(peers))
+	log.Debug("Addr: Number of peers received: ", len(peers))
 	return nil
 }
 
@@ -60,5 +60,5 @@ func (p *Peer) HandleInv(payload []byte) error {
 
 // HandleReject prints reject error message
 func (p *Peer) HandleReject(payload []byte) {
-	log.Info(fmt.Sprintf("%s", payload))
+	log.Warn(fmt.Sprintf("Rejected: %s", payload))
 }

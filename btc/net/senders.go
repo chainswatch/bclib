@@ -34,7 +34,7 @@ func (p *Peer) sendMsg(cmd string, pl []byte) error {
 
 	msg := append(sbuf[:], pl...)
 
-	log.Info(fmt.Sprintf("Sending [%x] %x", sbuf, pl))
+	log.Debug(fmt.Sprintf("Sending [%x] %x", sbuf, pl))
 	_, err := p.rw.Write(msg)
 	if err != nil {
 		return err
@@ -109,7 +109,6 @@ func (n *Network) sendVersion(id uint32) (*Message, error) {
 	}
 	err = checkType(response.cmd, "version")
 	if err != nil {
-		log.Warn(err)
 		return nil, err
 	}
 	return response, nil
@@ -128,7 +127,6 @@ func (n *Network) sendVerack(id uint32) (*Message, error) {
 	}
 	err = checkType(response.cmd, "verack")
 	if err != nil {
-		log.Warn(err)
 		return nil, err
 	}
 	return response, nil
@@ -140,12 +138,13 @@ func (n *Network) handshake(peerID uint32) error {
 	if err != nil {
 		return err
 	}
-	log.Info(fmt.Sprintf("response %x", response))
+	log.Debug(fmt.Sprintf("response %x", response))
 
 	response, err = n.sendVerack(peerID)
 	if err != nil {
 		return err
 	}
-	log.Info(fmt.Sprintf("response %x", response))
+	log.Debug(fmt.Sprintf("response %x", response))
+
 	return nil
 }
