@@ -92,7 +92,7 @@ func DecodeBlock(b *models.Block, br parser.Reader) error {
 	if br.Type() == "file" {
 		magicID := uint32(br.ReadUint32())
 		if magicID == 0 {
-			return fmt.Errorf("EOF")
+			return fmt.Errorf("DecodeBlock: EOF")
 		} else if magicID != blockMagicID {
 			// blockFile.Seek(curPos, 0) // Restore pos before the error
 			return fmt.Errorf("Invalid block header: Can't find Magic ID")
