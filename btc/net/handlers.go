@@ -1,6 +1,7 @@
 package net
 
 import (
+  "git.posc.in/cw/bclib/parser"
 	"git.posc.in/cw/bclib/serial"
 
 	"fmt"
@@ -45,6 +46,19 @@ func (p *Peer) HandleAddr(payload []byte) error {
 		return err
 	}
 	log.Debug("Addr: Number of peers received: ", len(peers))
+	return nil
+}
+
+// HandleVersion
+func (p *Peer) HandleVersion(payload []byte) error {
+	buf, err := parser.New(payload)
+	if err != nil {
+		return err
+	}
+	version := buf.ReadUint32()
+	services := buf.ReadUint64()
+	ts := buf.ReadUint64()
+	log.Info("Peer version: ", version, services, ts)
 	return nil
 }
 

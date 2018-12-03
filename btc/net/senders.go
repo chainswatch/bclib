@@ -143,6 +143,8 @@ func (p *Peer) handshake(version, services uint32, userAgent string) error {
 		return err
 	}
 	log.Trace(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
+	p.HandleVersion(m.Payload())
+	// TODO: Print host name, IP and version
 
 	m, err = p.sendVerack()
 	if err != nil {

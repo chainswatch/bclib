@@ -2,13 +2,28 @@ package net
 
 import (
   "testing"
+	//"time"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func testPeer(p *Peer, m *Message, ch *chan bool) error {
+func handlePeers(p *Peer, m *Message, ch *chan bool) error {
 	log.Info(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
+	switch m.Cmd() {
+	case "addr":
+		p.HandleAddr(m.Payload())
+	case "ping":
+		p.HandlePing(m.Payload())
+	case "inv":
+		p.HandleInv(m.Payload())
+	case "tx":
+		p.HandleObject("tx", m.Payload())
+		return fmt.Errorf("OK")
+	case "reject":
+		return fmt.Errorf("Reject error")
+	default:
+	}
 	return nil
 }
 
@@ -24,17 +39,28 @@ func TestNetwork(t *testing.T) {
 
 	net := Network{}
 	net.New()
-	if err := net.AddPeer("37.59.38.74", 8333); err != nil{
+	//if err := net.AddPeer("37.59.38.74", 8333); err != nil{
+	if err := net.AddPeer("72.65.246.83", 8333); err != nil {
 		t.Fatal(err)
 	}
+	t.Fatal()
 
+	/*
+	var err error
+	go func() {
+		err = net.Watch(handlePeers, nil)
+	}()
+	time.Sleep(10 * time.Second)
+	t.Fatal(err)
+	*/
+
+	/*
 	net = Network{}
 	net.New()
 	if err := net.AddPeer("72.65.246.83", 8333); err != nil {
 		t.Fatal(err)
 	}
 
-	/*
 	if err := net.Watch(testPeer, nil); err != nil {
 		t.Fatal(err)
 	}
