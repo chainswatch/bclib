@@ -34,7 +34,7 @@ func (p *Peer) sendMsg(cmd string, pl []byte) error {
 
 	msg := append(sbuf[:], pl...)
 
-	log.Trace(fmt.Sprintf("Sending [%x] %x", sbuf, pl))
+	log.Trace(fmt.Sprintf("Sending [%s] %x", sbuf, pl))
 	_, err := p.rw.Write(msg)
 	if err != nil {
 		return err
