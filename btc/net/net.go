@@ -49,6 +49,13 @@ type Network struct {
 	nPeers				uint32
 }
 
+// Message holds components of a network message
+type Message struct {
+	cmd				string
+	length		uint32
+	payload		[]byte
+}
+
 // AddPeer adds a new peer
 func (n *Network) AddPeer(ip string, port uint16) error {
 	peer := Peer{}
@@ -73,7 +80,7 @@ func (n *Network) New() {
 type apply func(*Peer, *Message, *chan bool) error
 
 // Watch connected peers and apply fn when a message is received
-func (n *Network) Watch(fn apply) error {
+func (n *Network) Watch(fn apply, ch *chan bool) error {
 	// TODO: process peers in parallel (or one by one with select?)
 	peer := n.peers[0]
 	for {
@@ -81,7 +88,7 @@ func (n *Network) Watch(fn apply) error {
 		if err != nil {
 			return err
 		}
-		if err = fn(&peer, msg); err != nil {
+		if err = fn(&peer, msg, ch); err != nil {
 			return err
 		}
 	}

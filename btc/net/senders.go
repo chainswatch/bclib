@@ -134,17 +134,17 @@ func (p *Peer) sendVerack() (*Message, error) {
 
 // Handshake sends the Version message (wait for response) followed by a verack message (wait for response)
 func (p *Peer) handshake(version, services uint32, userAgent string) error {
-	response, err := p.sendVersion(version, services, userAgent)
+	m, err := p.sendVersion(version, services, userAgent)
 	if err != nil {
 		return err
 	}
-	log.Debug(fmt.Sprintf("response %s %x", response, response))
+	log.Debug(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
 
-	response, err = p.sendVerack()
+	m, err = p.sendVerack()
 	if err != nil {
 		return err
 	}
-	log.Debug(fmt.Sprintf("response %s %x", response, response))
+	log.Debug(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
 
 	p.SendHeaders()
 	return nil
