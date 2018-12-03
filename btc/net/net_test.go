@@ -2,7 +2,7 @@ package net
 
 import (
   "testing"
-	//"time"
+	"time"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -39,20 +39,16 @@ func TestNetwork(t *testing.T) {
 
 	net := Network{}
 	net.New()
-	//if err := net.AddPeer("37.59.38.74", 8333); err != nil{
-	if err := net.AddPeer("72.65.246.83", 8333); err != nil {
+	if err := net.AddPeer("37.59.38.74", 8333); err != nil{
 		t.Fatal(err)
 	}
-	t.Fatal()
 
-	/*
 	var err error
 	go func() {
 		err = net.Watch(handlePeers, nil)
 	}()
 	time.Sleep(10 * time.Second)
 	t.Fatal(err)
-	*/
 
 	/*
 	net = Network{}

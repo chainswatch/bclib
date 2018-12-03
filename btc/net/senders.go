@@ -46,6 +46,13 @@ func (p *Peer) sendMsg(cmd string, pl []byte) error {
 	return nil
 }
 
+// SendPing sends a ping message
+func (p *Peer) SendPing() error {
+	nonce := make([]byte, 8)
+	binary.LittleEndian.PutUint64(nonce, uint64(rand.Intn(2^64)))
+	return p.sendMsg("ping", nonce)
+}
+
 // SendPong sends a pong message to conneted peer
 func (p *Peer) SendPong(nonce []byte) error {
 	return p.sendMsg("pong", nonce) // TODO: Replace 0
@@ -152,6 +159,6 @@ func (p *Peer) handshake(version, services uint32, userAgent string) error {
 	}
 	log.Trace(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
 
-	// p.SendHeaders()
+	p.SendHeaders()
 	return nil
 }
