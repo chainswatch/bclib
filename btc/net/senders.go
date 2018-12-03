@@ -56,10 +56,19 @@ func (p *Peer) SendHeaders() error {
 	return p.sendMsg("sendheaders", []byte{0})
 }
 
+// SendHeaders send a sendheaders message to connected peer
+func (p *Peer) SendHeaders() {
+	p.sendMsg("sendheaders", []byte{0})
+}
+
 // SendGetdata requests a single block or transaction by hash
 // to connected peer
 // TODO: Separate them (tx, block) by type when checking uniqueness?
+<<<<<<< HEAD
 func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
+=======
+func (p *Peer) SendGetdata(inventory [][]byte, count uint64) {
+>>>>>>> 59f8792f67a4088008d40fc1fe49d2d312ecfe1a
 	b := bytes.NewBuffer([]byte{})
 	b.Write(parser.Varint(count))
 	var hash [32]byte
