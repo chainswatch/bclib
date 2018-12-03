@@ -48,7 +48,7 @@ func parseMsg(data []byte) *Message {
 	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
 	message.length = binary.LittleEndian.Uint32(data[12:16])
 	// 16-20 = checksum
-	message.payload = data[20:len(data)-4]
+	message.payload = data[20:len(data)]
 	if int(message.length) != len(message.payload) {
 		log.Warn(fmt.Sprintf("parseMsg: length and len(payload) differ: %d != %d", message.length, len(message.payload)))
 	}
@@ -61,17 +61,19 @@ func (p *Peer) waitMsg() (*Message, error) {
 	for {
 		// TODO: Timeout
 		r, err := p.rw.ReadBytes(byte(0xD9))
-		if err != nil {
+		log.Info("length:", len(r))
+		if err != nil && err.Error() != "EOF" {
+			log.Warn(fmt.Sprintf("waitMsg: %s. (With empty buffer)", err))
 			return nil, err
 		}
-		data = append(data, r...)
-		if bytes.Contains(r, []byte{0xF9, 0xBE, 0xB4, 0xD9}) {
-			if len(data) == 4 && len(r) == 4 {
-				data = nil
-				continue
+		if bytes.Contains(r, []byte{0xF9, 0xBE, 0xB4, 0xD9}) { // TODO: Improve
+			r = r[:len(r)-4]
+			if len(data) != 0 || len(r) != 0 {
+				data = append(data, r...)
+				break
 			}
-			break
 		}
+		data = append(data, r...)
 	}
 	message := parseMsg(data)
 	return message, nil
