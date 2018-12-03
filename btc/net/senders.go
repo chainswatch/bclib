@@ -34,7 +34,7 @@ func (p *Peer) sendMsg(cmd string, pl []byte) error {
 
 	msg := append(sbuf[:], pl...)
 
-	log.Debug(fmt.Sprintf("Sending [%x] %x", sbuf, pl))
+	log.Trace(fmt.Sprintf("Sending [%x] %x", sbuf, pl))
 	_, err := p.rw.Write(msg)
 	if err != nil {
 		return err
@@ -142,13 +142,13 @@ func (p *Peer) handshake(version, services uint32, userAgent string) error {
 	if err != nil {
 		return err
 	}
-	log.Debug(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
+	log.Trace(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
 
 	m, err = p.sendVerack()
 	if err != nil {
 		return err
 	}
-	log.Debug(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
+	log.Trace(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
 
 	p.SendHeaders()
 	return nil
