@@ -61,16 +61,20 @@ func (p *Peer) SendHeaders() error {
 // TODO: Separate them (tx, block) by type when checking uniqueness?
 func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
 	b := bytes.NewBuffer([]byte{})
-	b.Write(parser.Varint(count))
 	var hash [32]byte
+	newCount := uint64(0)
 	for i := uint64(0); i < count; i++ {
 		copy(hash[:], inventory[i][4:])
 		if _, found := p.invs[hash]; !found { // if not exist
 			p.nextInvs[hash] = true
 			b.Write(inventory[i])
+			newCount++
+			log.Debug(fmt.Sprintf("Debug inv: %x", inventory[i][:4]))
 		}
 	}
-	return p.sendMsg("getdata", b.Bytes())
+	buf := b.Bytes()
+	msg := append(parser.Varint(newCount), buf...)
+	return p.sendMsg("getdata", msg)
 }
 
 // sendGetblocks
