@@ -61,7 +61,6 @@ func (p *Peer) waitMsg() (*Message, error) {
 	for {
 		// TODO: Timeout
 		r, err := p.rw.ReadBytes(byte(0xD9))
-		log.Info("length:", len(r))
 		if err != nil {
 			if err.Error() != "EOF" {
 				return nil, err
