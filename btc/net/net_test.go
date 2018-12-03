@@ -24,15 +24,18 @@ func TestNetwork(t *testing.T) {
 
 	net := Network{}
 	net.New()
-	if err := net.AddPeer("37.59.38.74", 8333); err != nil{
-		t.Fatal(err)
-	}
-
-	//t.Fatal()
-
 	if err := net.AddPeer("72.65.246.83", 8333); err != nil {
 		t.Fatal(err)
 	}
+
+	net = Network{}
+	net.New()
+	if err := net.AddPeer("37.59.38.74", 8333); err != nil{
+		t.Fatal(err)
+	}
+	t.Fatal()
+
+
 
 	/*
 	if err := net.Watch(testPeer, nil); err != nil {

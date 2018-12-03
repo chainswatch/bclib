@@ -62,9 +62,12 @@ func (p *Peer) waitMsg() (*Message, error) {
 		// TODO: Timeout
 		r, err := p.rw.ReadBytes(byte(0xD9))
 		log.Info("length:", len(r))
-		if err != nil && err.Error() != "EOF" {
-			log.Warn(fmt.Sprintf("waitMsg: %s. (With empty buffer)", err))
-			return nil, err
+		if err != nil {
+			if err.Error() != "EOF" {
+				return nil, err
+			} else if len(r) == 0 { // EOF
+				break
+			}
 		}
 		if bytes.Contains(r, []byte{0xF9, 0xBE, 0xB4, 0xD9}) { // TODO: Improve
 			r = r[:len(r)-4]
