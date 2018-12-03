@@ -45,6 +45,7 @@ func parseInv(payload []byte) ([][]byte, uint64, error) {
 
 func parseMsg(data []byte) *Message {
 	message := Message{}
+	log.Info("Message length:", len(data))
 	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
 	message.length = binary.LittleEndian.Uint32(data[12:16])
 	// 16-20 = checksum
@@ -58,21 +59,29 @@ func parseMsg(data []byte) *Message {
 // waitMsg waits next message from peer
 func (p *Peer) waitMsg() (*Message, error) {
 	data := make([]byte, 0)
+	var flag bool
 	for {
-		// TODO: Timeout
-		r, err := p.rw.ReadBytes(byte(0xD9))
+		r, err := p.rw.ReadBytes(byte(0xD9)) // TODO: Timeout
 		if err != nil {
 			if err.Error() != "EOF" {
 				return nil, err
-			} else if len(r) == 0 { // EOF
-				break
+			} else {
+				flag = true
 			}
 		}
 		if bytes.Contains(r, []byte{0xF9, 0xBE, 0xB4, 0xD9}) { // TODO: Improve
 			r = r[:len(r)-4]
-			if len(data) != 0 || len(r) != 0 {
+			flag = true
+		}
+		if flag {
+			if len(r) != 0 {
 				data = append(data, r...)
+			}
+			if len(data) != 0 {
 				break
+			} else {
+				flag = false
+				continue
 			}
 		}
 		data = append(data, r...)
