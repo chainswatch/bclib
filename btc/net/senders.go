@@ -138,13 +138,13 @@ func (p *Peer) handshake(version, services uint32, userAgent string) error {
 	if err != nil {
 		return err
 	}
-	log.Debug(fmt.Sprintf("response %x", response))
+	log.Debug(fmt.Sprintf("response %s %x", response, response))
 
 	response, err = p.sendVerack()
 	if err != nil {
 		return err
 	}
-	log.Debug(fmt.Sprintf("response %x", response))
+	log.Debug(fmt.Sprintf("response %s %x", response, response))
 
 	p.SendHeaders()
 	return nil

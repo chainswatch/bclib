@@ -70,7 +70,7 @@ func (n *Network) New() {
 }
 
 // apply is passed as an argument to Watch
-type apply func(*Peer, *Message) error
+type apply func(*Peer, *Message, *chan bool) error
 
 // Watch connected peers and apply fn when a message is received
 func (n *Network) Watch(fn apply) error {
