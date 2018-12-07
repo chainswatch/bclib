@@ -58,8 +58,9 @@ func New(x interface{}) (Reader, error) {
   }
 }
 
-// Varint convert an int to a series of 1 to 8 bytes
-func Varint(n uint64) []byte {
+// CompactSize convert an int to a series of 1 to 8 bytes
+// Used for scriptLength, NVin, NVout, witnessCount
+func CompactSize(n uint64) []byte {
 	if n > 0xFFFFFFFF {
 		val := make([]byte, 8)
 		binary.LittleEndian.PutUint64(val, n)

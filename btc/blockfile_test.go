@@ -51,6 +51,7 @@ func dummyFunc(_ string) (func(b *models.Block) error, error) {
 }
 */
 
+// Create an abstract database of the transactions
 func txAbstractDB(filename string) (func(b *models.Block) error, error) {
 	var idx uint32
 	db, err := leveldb.OpenFile(filename, nil)
@@ -145,7 +146,7 @@ func TestBlockFile(t *testing.T) {
 	}
 
 	// Test on tmp storage
-	err = LoadFile(db, 0, 1e5, txAbstractDB, "/tmp/abstracts")
+	err = LoadFile(db, 0, 1e1, txAbstractDB, "/tmp/abstracts")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,7 +160,7 @@ func TestBlockFile(t *testing.T) {
 	iter = dbtx.NewIterator(util.BytesPrefix([]byte("n")), nil)
 	ncount := 0
 	for iter.Next() {
-		// log.Info(fmt.Sprintf("%x %x", iter.Key(), iter.Value()))
+		log.Info(fmt.Sprintf("%x %x", iter.Key(), iter.Value()))
 		ncount++
 	}
 	iter.Release()
@@ -170,7 +171,7 @@ func TestBlockFile(t *testing.T) {
 	iter = dbtx.NewIterator(util.BytesPrefix([]byte("t")), nil)
 	tcount := 0
 	for iter.Next() {
-		// log.Info(fmt.Sprintf("%x %x", iter.Key(), iter.Value()))
+		log.Info(fmt.Sprintf("%x %x", iter.Key(), iter.Value()))
 		tcount++
 	}
 	iter.Release()

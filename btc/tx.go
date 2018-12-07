@@ -81,7 +81,7 @@ func getInputBinary(in models.TxInput) []byte {
 	binary.LittleEndian.PutUint32(index, uint32(in.Index))
 	bin = append(bin, index...)
 
-	scriptLength := parser.Varint(uint64(len(in.Script)))
+	scriptLength := parser.CompactSize(uint64(len(in.Script)))
 	bin = append(bin, scriptLength...)
 
 	bin = append(bin, in.Script...)
@@ -100,7 +100,7 @@ func getOutputBinary(out models.TxOutput) []byte {
 	binary.LittleEndian.PutUint64(value, uint64(out.Value))
 	bin = append(bin, value...)
 
-	scriptLength := parser.Varint(uint64(len(out.Script)))
+	scriptLength := parser.CompactSize(uint64(len(out.Script)))
 	bin = append(bin, scriptLength...)
 
 	bin = append(bin, out.Script...)
@@ -115,13 +115,13 @@ func putTxHash(tx *models.Tx) {
 	binary.LittleEndian.PutUint32(version, uint32(tx.NVersion))
 	bin = append(bin, version...)
 
-	vinLength := parser.Varint(uint64(tx.NVin))
+	vinLength := parser.CompactSize(uint64(tx.NVin))
 	bin = append(bin, vinLength...)
 	for _, in := range tx.Vin {
 		bin = append(bin, getInputBinary(in)...)
 	}
 
-	voutLength := parser.Varint(uint64(tx.NVout))
+	voutLength := parser.CompactSize(uint64(tx.NVout))
 	bin = append(bin, voutLength...)
 	for _, out := range tx.Vout {
 		bin = append(bin, getOutputBinary(out)...)

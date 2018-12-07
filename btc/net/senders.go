@@ -80,7 +80,7 @@ func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
 		}
 	}
 	buf := b.Bytes()
-	msg := append(parser.Varint(newCount), buf...)
+	msg := append(parser.CompactSize(newCount), buf...)
 	return p.sendMsg("getdata", msg)
 }
 

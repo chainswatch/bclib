@@ -48,7 +48,9 @@ func TestNetwork(t *testing.T) {
 		err = net.Watch(handlePeers, nil)
 	}()
 	time.Sleep(10 * time.Second)
-	t.Fatal(err)
+	if err != nil && err.Error() != "OK" {
+		t.Fatal(err)
+	}
 
 	/*
 	net = Network{}
