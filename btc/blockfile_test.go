@@ -53,7 +53,8 @@ func dummyFunc(_ string) (func(b *models.Block) error, error) {
 
 // Create an abstract database of the transactions
 func txAbstractDB(filename string) (func(b *models.Block) error, error) {
-	var idx uint32
+	var idx uint32 = 1 // 0 is reserved
+
 	db, err := leveldb.OpenFile(filename, nil)
 	if err != nil {
 		return nil, err
@@ -64,6 +65,15 @@ func txAbstractDB(filename string) (func(b *models.Block) error, error) {
 	}
 	if iter.Last() { // load last idx if exists
 		idx = binary.BigEndian.Uint32(iter.Key()[1:])
+	} else {
+		log.Info("Start from new")
+		tkey := make([]byte, 1 + 32 + 4)
+		tval := make([]byte, 4)
+		tkey[0] = byte('t')
+		binary.BigEndian.PutUint32(tval, 0)
+		if err = db.Put(tkey, tval, nil); err != nil {
+			log.Warn("Initial insert: ", err)
+		}
 	}
 	log.Info("Start from idx = ", idx)
 	iter.Release()
@@ -75,17 +85,44 @@ func txAbstractDB(filename string) (func(b *models.Block) error, error) {
 		if b == nil {
 			return db.Close()
 		}
+		nkey := make([]byte, 1 + 4)
+		nval := make([]byte, 32 + 4 + 4) // hash + block height + NVin
+		tkey := make([]byte, 1 + 32 + 4)
+		tval := make([]byte, 4)
+		nkey[0] = byte('n')
+		tkey[0] = byte('t')
+
 		batch := new(leveldb.Batch)
-		nbuf := make([]byte, 5)
-		tbuf := make([]byte, 1 + 32 + 4)
-		nbuf[0] = byte('n')
-		tbuf[0] = byte('t')
 		for _, tx := range b.Txs {
-			binary.BigEndian.PutUint32(nbuf[1:], idx)
-			batch.Put(nbuf, tx.Hash)
-			copy(tbuf[1:], tx.Hash)
-			copy(tbuf[33:], nbuf[1:])
-			batch.Put(tbuf, nil)
+			binary.BigEndian.PutUint32(nkey[1:], b.NHeight) // TODO: Opti
+			copy(tkey[1:], tx.Hash)
+			copy(tkey[33:], nkey[1:])
+			binary.BigEndian.PutUint32(tval, idx)
+			batch.Put(tkey, tval)
+
+			// 'n' + id -> tx hash + block height + NVin + {id, id, id...}
+			// height
+			// tx.NVin
+			// tx.Vin[].Hash
+			copy(nval, tx.Hash)
+			binary.BigEndian.PutUint32(nval[32:], b.NHeight) // TODO: Opti
+			binary.BigEndian.PutUint32(nval[36:], tx.NVin)
+			var i uint32
+			for i = 0; i < tx.NVin; i++ {
+				copy(tkey[1:], tx.Vin[i].Hash)
+				iter := db.NewIterator(util.BytesPrefix(tkey[:33]), nil)
+				if iter.Next() {
+					index := make([]byte, 4)
+					binary.BigEndian.PutUint32(index, tx.Vin[i].Index)
+					data := iter.Value()
+					nval = append(nval, data...)
+					nval = append(nval, index...)
+				} else { // TODO: Error
+					log.Info(fmt.Sprintf("Key not found: %x %x", tkey[:33], tx.Vin[i].Hash))
+				}
+				iter.Release()
+			}
+			batch.Put(nkey, nval)
 			idx++
 		}
 		return db.Write(batch, nil)
@@ -181,6 +218,7 @@ func TestBlockFile(t *testing.T) {
 	if ncount != tcount {
 		t.Fatalf("Number of records in 'n' and 't' should be equal: %d != %d", ncount, tcount)
 	}
+	t.Fatal()
 
 	// err = LoadFile(db, 0, 10, txAbstractDB, os.Getenv("DATADIR") + "/abstracts")
 }
