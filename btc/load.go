@@ -31,6 +31,27 @@ func loadHeaderIndex(db *leveldb.DB) (map[uint32]*models.Block, error) {
 
 type apply func(string) (func(b *models.Block) error, error)
 
+func closeOldFile(b *models.Block, lookup map[uint32]*models.Block, files map[uint32]parser.Reader) error {
+	if b.NHeight < 1024 {
+		return nil
+	}
+	oldh := b.NHeight - 1024
+	oldb, exist := lookup[oldh]
+	if !exist {
+		return fmt.Errorf("closeOldFile: Could not find old file for height %d", oldh)
+	}
+	if oldb.NFile >= b.NFile - 1 {
+		return nil
+	}
+	oldf, exist := files[oldb.NFile]
+	if !exist {
+		return fmt.Errorf("closeOldFile: Could not find old file reader. Height %d File %d", oldh, oldb.NFile) 
+	}
+	oldf.Close()
+	delete(files, b.NFile)
+	return nil
+}
+
 // LoadFile allows to traverse the blocks by height order while applying a function argFn
 func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) error {
 	lookup, err := loadHeaderIndex(db)
@@ -57,24 +78,29 @@ func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) erro
 		}
 		file, exist := files[b.NFile]
 		if !exist { // file open ?
-			log.Info(b.NFile)
 			buf, err := parser.New(b.NFile)
 			if err != nil {
 				return err
 			}
-			files[h] = buf
+			files[b.NFile] = buf
 			file = buf
+			if err = closeOldFile(b, lookup, files); err != nil {
+				return err
+			}
 		}
 		file.Seek(int64(b.NDataPos - 8), 0)
-		err = DecodeBlock(b, file)
-		b.NHeight = h // TODO: DecodeBlock does not work for genesis block
-		if err != nil {
+		if err = DecodeBlock(b, file); err != nil {
 			return fmt.Errorf("File %d, height %d: %s", b.NFile, h, err.Error())
 		}
+		b.NHeight = h // FIXME: DecodeBlock does not work for genesis block
 		if err = fn(b); err != nil {
 			return err
 		}
 		// TODO: Check number of file open (always <= 2)
+	}
+	log.Info("Number of files still open: ", len(files))
+	for _, value := range files {
+		value.Close()
 	}
 	return fn(nil) // Signal fn to close
 }

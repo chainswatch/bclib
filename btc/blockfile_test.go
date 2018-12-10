@@ -11,41 +11,11 @@ import (
 	"os"
 )
 
-// TODO: Move this function to application repository?
-/*
-func csvExport(filename string) (func(b *models.Block) error, error) {
-	file, err := os.Create(filename)
-	if err != nil {
-		return nil, err
-	}
-	// defer file.Close()
-	writer := csv.NewWriter(file)
-
-	return func(b *models.Block) error {
-		head := []string{fmt.Sprintf("%d", b.NHeight)}
-		record := make([]string, 0)
-		for _, tx := range b.Txs {
-			for _, in := range tx.Vin {
-				record = append(head, string(in.Hash))
-			}
-			record = append(record, string(tx.Hash))
-			if err := writer.Write(record); err != nil {
-				return err
-			}
-		}
-		writer.Flush()
-		return nil
-	}, nil
-}
-*/
-
-/*
 func dummyFunc(_ string) (func(b *models.Block) error, error) {
 	return func(b *models.Block) error {
 		return nil
 	}, nil
 }
-*/
 
 func TestBlockFile(t *testing.T) {
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
@@ -55,7 +25,7 @@ func TestBlockFile(t *testing.T) {
 		}
 	}
 
-	indexDb, err := OpenIndexDb() // TODO: Error handling
+	indexDb, err := OpenIndexDb()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,5 +64,8 @@ func TestBlockFile(t *testing.T) {
 		}
 	}
 
-	// err = LoadFile(db, 0, 10, txAbstractDB, os.Getenv("DATADIR") + "/abstracts")
+	err = LoadFile(indexDb, 0, 150000, dummyFunc, "")
+	if err != nil {
+		t.Fatal(err)
+	}
 }
