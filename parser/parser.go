@@ -22,6 +22,7 @@ type Reader interface {
 	ReadCompactSize() uint64
 
   ReadUint16() uint16
+	Close()
 }
 
 // File allows to use the Reader interface when reading a file

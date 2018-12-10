@@ -14,6 +14,11 @@ func (buf *Buffer) Reset() {
   buf.pos = 0
 }
 
+// Close buffer
+// TODO: Is it relevant for Buffer?
+func (buf *Buffer) Close() {
+}
+
 // Peek up to length without moving cursor
 func (buf *Buffer) Peek(length int) ([]byte, error) {
   return buf.b[buf.pos:(buf.pos + uint64(length))], nil
