@@ -5,13 +5,9 @@ import (
 	"git.posc.in/cw/bclib/parser"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
-  "github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/joho/godotenv"
-	"encoding/binary"
 	"testing"
-	"fmt"
 	"os"
 )
 
@@ -50,86 +46,6 @@ func dummyFunc(_ string) (func(b *models.Block) error, error) {
 	}, nil
 }
 */
-
-// Create an abstract database of the transactions
-func txAbstractDB(filename string) (func(b *models.Block) error, error) {
-	var idx uint32 = 1 // 0 is reserved
-
-	db, err := leveldb.OpenFile(filename, nil)
-	if err != nil {
-		return nil, err
-	}
-	iter := db.NewIterator(util.BytesPrefix([]byte("n")), nil)
-	for iter.Next() {
-		log.Info(fmt.Sprintf("%x", iter.Key()))
-	}
-	if iter.Last() { // load last idx if exists
-		idx = binary.BigEndian.Uint32(iter.Key()[1:])
-	} else {
-		log.Info("Start from new")
-		tkey := make([]byte, 1 + 32 + 4)
-		tkey[0] = byte('t')
-		tval := []byte{'n',0,0,0,0}
-		binary.BigEndian.PutUint32(tval[1:], 0)
-		if err = db.Put(tkey, tval[1:], nil); err != nil {
-			return nil, err
-		}
-		if err = db.Put(tval, tkey[1:], nil); err != nil {
-			return nil, err
-		}
-	}
-	log.Info("Start from idx = ", idx)
-	iter.Release()
-	if err = iter.Error(); err != nil {
-		return nil, err
-	}
-
-	return func(b *models.Block) error {
-		if b == nil {
-			return db.Close()
-		}
-		nkey := []byte{'n',0,0,0,0}
-		nval := make([]byte, 32 + 4 + 4) // hash + block height + NVin
-		tkey := make([]byte, 1 + 32 + 4)
-		tval := []byte{0,0,0,0}
-		tkey[0] = byte('t')
-
-		for _, tx := range b.Txs {
-			binary.BigEndian.PutUint32(nkey[1:], b.NHeight) // TODO: Opti
-			copy(tkey[1:], tx.Hash)
-			copy(tkey[33:], nkey[1:])
-			binary.BigEndian.PutUint32(tval, idx)
-			if err := db.Put(tkey, tval, nil); err != nil {
-				return err
-			}
-			// log.Info(fmt.Sprintf("Insert (height: %d, tx no %d): %x %x (%x)", b.NHeight, j, tkey, tval, tx.Hash))
-
-			// 'n' + id -> height + tx.Nvin + tx.Vin[].Hash
-			copy(nval, tx.Hash)
-			binary.BigEndian.PutUint32(nval[32:], b.NHeight) // TODO: Opti
-			binary.BigEndian.PutUint32(nval[36:], tx.NVin)
-			for i := uint32(0); i < tx.NVin; i++ {
-				copy(tkey[1:], tx.Vin[i].Hash)
-				iter := db.NewIterator(util.BytesPrefix(tkey[:33]), nil)
-				if iter.Next() {
-					index := make([]byte, 4)
-					binary.BigEndian.PutUint32(index, tx.Vin[i].Index)
-					data := iter.Value()
-					nval = append(nval, data...)
-					nval = append(nval, index...)
-				} else {
-					return fmt.Errorf("Key not found (height: %d, tx no %d): %x %x", b.NHeight, i, tkey[:33], tx.Vin[i].Hash)
-				}
-				iter.Release()
-			}
-			if err := db.Put(nkey, nval, nil); err != nil { // 'n' + id -> tx hash + block height + NVin + {(nid, idx), (nid, idx), ...}
-				return err
-			}
-			idx++
-		}
-		return nil
-	}, nil
-}
 
 func TestBlockFile(t *testing.T) {
 	if _, err := os.Stat(".env"); !os.IsNotExist(err) {
@@ -177,52 +93,6 @@ func TestBlockFile(t *testing.T) {
 			t.Error(err)
 		}
 	}
-
-	// Test LoadFile with a dummyFunc
-	db, err := OpenIndexDb()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Test on tmp storage
-	err = LoadFile(db, 0, 1e3, txAbstractDB, "/tmp/abstracts")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-  dbtx, err := leveldb.OpenFile("/tmp/abstracts", &opt.Options{
-    ReadOnly: true,
-  })
-	if err != nil {
-		t.Fatal(err)
-	}
-	iter = dbtx.NewIterator(util.BytesPrefix([]byte("n")), nil)
-	ncount := 0
-	for iter.Next() {
-		if len(iter.Value()) > 48 {
-			log.Info(fmt.Sprintf("%d %x %x", len(iter.Value()), iter.Key(), iter.Value()))
-		}
-		ncount++
-	}
-	iter.Release()
-	if err = iter.Error(); err != nil {
-		t.Fatal(err)
-	}
-
-	iter = dbtx.NewIterator(util.BytesPrefix([]byte("t")), nil)
-	tcount := 0
-	for iter.Next() {
-		// log.Info(fmt.Sprintf("%x %x", iter.Key(), iter.Value()))
-		tcount++
-	}
-	iter.Release()
-	if err = iter.Error(); err != nil {
-		t.Fatal(err)
-	}
-	if ncount != tcount {
-		t.Fatalf("Number of records in 'n' and 't' should be equal: %d != %d", ncount, tcount)
-	}
-	t.Fatal()
 
 	// err = LoadFile(db, 0, 10, txAbstractDB, os.Getenv("DATADIR") + "/abstracts")
 }

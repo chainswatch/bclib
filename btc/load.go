@@ -66,6 +66,7 @@ func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) erro
 		}
 		file.Seek(int64(b.NDataPos - 8), 0)
 		err = DecodeBlock(b, file)
+		b.NHeight = h // TODO: DecodeBlock does not work for genesis block
 		if err != nil {
 			return fmt.Errorf("File %d, height %d: %s", b.NFile, h, err.Error())
 		}

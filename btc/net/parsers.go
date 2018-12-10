@@ -65,9 +65,8 @@ func (p *Peer) waitMsg() (*Message, error) {
 		if err != nil {
 			if err.Error() != "EOF" {
 				return nil, err
-			} else {
-				flag = true
 			}
+			flag = true
 		}
 		if bytes.Contains(r, []byte{0xF9, 0xBE, 0xB4, 0xD9}) { // TODO: Improve
 			r = r[:len(r)-4]
@@ -79,10 +78,9 @@ func (p *Peer) waitMsg() (*Message, error) {
 			}
 			if len(data) != 0 {
 				break
-			} else {
-				flag = false
-				continue
 			}
+			flag = false
+			continue
 		}
 		data = append(data, r...)
 	}
