@@ -55,8 +55,9 @@ func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) erro
 		if b.NHeight != h {
 			return fmt.Errorf("Loaded header has wrong height %d != %d", b.NHeight, h)
 		}
-		file, exist := files[h]
+		file, exist := files[b.NFile]
 		if !exist { // file open ?
+			log.Info(b.NFile)
 			buf, err := parser.New(b.NFile)
 			if err != nil {
 				return err
@@ -73,7 +74,6 @@ func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) erro
 		if err = fn(b); err != nil {
 			return err
 		}
-		// TODO: Close file if necessary
 		// TODO: Check number of file open (always <= 2)
 	}
 	return fn(nil) // Signal fn to close
