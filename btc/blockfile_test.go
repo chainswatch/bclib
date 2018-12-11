@@ -64,7 +64,12 @@ func TestBlockFile(t *testing.T) {
 		}
 	}
 
-	err = LoadFile(indexDb, 0, 150000, dummyFunc, "")
+	err = LoadFile(indexDb, 0, 100000, dummyFunc, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = LoadFile(indexDb, 200000, 201000, dummyFunc, "")
 	if err != nil {
 		t.Fatal(err)
 	}

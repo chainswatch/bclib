@@ -8,6 +8,8 @@ import (
   "github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"fmt"
+
+	"sort"
 )
 
 // constructs a map of the form map[BlockHeight] = BlockHeader.
@@ -40,15 +42,22 @@ func closeOldFile(b *models.Block, lookup map[uint32]*models.Block, files map[ui
 	if !exist {
 		return fmt.Errorf("closeOldFile: Could not find old file for height %d", oldh)
 	}
-	if oldb.NFile >= b.NFile - 1 {
-		return nil
+	var keys []uint32
+	for k := range files {
+		keys = append(keys, k)
 	}
-	oldf, exist := files[oldb.NFile]
-	if !exist {
-		return fmt.Errorf("closeOldFile: Could not find old file reader. Height %d File %d", oldh, oldb.NFile) 
+	sort.Slice(keys, func(i, j int) bool {return keys[i] < keys[j]})
+	for _, k := range keys {
+		if k > oldb.NFile || k + 1 >= b.NFile {
+			break
+		}
+		oldf, exist := files[k]
+		if !exist {
+			return fmt.Errorf("closeOldFile: Could not find old file reader. Height %d File %d", oldh, k) 
+		}
+		oldf.Close()
+		delete(files, k)
 	}
-	oldf.Close()
-	delete(files, b.NFile)
 	return nil
 }
 
