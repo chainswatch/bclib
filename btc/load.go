@@ -32,10 +32,10 @@ func loadHeaderIndex(db *leveldb.DB) (map[uint32]*models.Block, error) {
 type apply func(string) (func(b *models.Block) error, error)
 
 func closeOldFile(b *models.Block, lookup map[uint32]*models.Block, files map[uint32]parser.Reader) error {
-	if b.NHeight < 1024 {
+	if b.NHeight < 2048 {
 		return nil
 	}
-	oldh := b.NHeight - 1024
+	oldh := b.NHeight - 2048
 	oldb, exist := lookup[oldh]
 	if !exist {
 		return fmt.Errorf("closeOldFile: Could not find old file for height %d", oldh)
