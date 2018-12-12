@@ -31,6 +31,7 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
     tx.NVin = uint32(br.ReadCompactSize())
   }
 
+	tx.Vin = make([]models.TxInput, tx.NVin)
   for i := uint32(0); i < tx.NVin; i++ {
     input := models.TxInput{}
     input.Hash = br.ReadBytes(32) // Transaction hash in a prev transaction
@@ -43,17 +44,18 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
     scriptLength := br.ReadCompactSize()
     input.Script = br.ReadBytes(scriptLength)
     input.Sequence = br.ReadUint32()
-    tx.Vin = append(tx.Vin, input)
+    tx.Vin[i] = input
   }
 
   tx.NVout = uint32(br.ReadCompactSize())
+	tx.Vout = make([]models.TxOutput, tx.NVout)
   for i := uint32(0); i < tx.NVout; i++ {
     output := models.TxOutput{}
     output.Index = i
     output.Value = br.ReadUint64()
     scriptLength := br.ReadCompactSize()
     output.Script = br.ReadBytes(scriptLength)
-    tx.Vout = append(tx.Vout, output)
+    tx.Vout[i] = output
   }
 
   if (txFlag & 1) == 1 && allowWitness {

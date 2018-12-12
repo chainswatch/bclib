@@ -74,15 +74,16 @@ func decodeBlockTxs(b *models.Block, br parser.Reader) error {
 	b.Txs = nil
 
 	b.NTx = uint32(br.ReadCompactSize()) // TODO: Move outside of blockHeader?
+	b.Txs = make([]models.Tx, b.NTx)
 	for t := uint32(0); t < b.NTx; t++ {
 		tx, err := DecodeTx(br)
-		putTxHash(tx)
+		// putTxHash(tx) // TODO: Already done inside DecodeTx
 		if err != nil {
 			log.Warn(fmt.Sprintf("DecodeBlocksTxs(): txHash: %x", serial.ReverseHex(tx.Hash)))
 			return err
 		}
 		tx.NVout = uint32(len(tx.Vout))
-		b.Txs = append(b.Txs, *tx)
+		b.Txs[t] = *tx
 	}
 	return nil
 }
