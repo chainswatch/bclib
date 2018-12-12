@@ -65,13 +65,21 @@ func TestBlockFile(t *testing.T) {
 	buf.Reset()
 
 	b := &models.Block{}
-	for i := 0; i <= 100000; i++ { // TODO: Test EOF
-		err := DecodeBlock(b, buf)
-		if err != nil {
-			t.Error(err)
+	i := 0
+	for { // TODO: Test EOF
+		if err := DecodeBlock(b, buf); err != nil {
+			if err.Error() != "DecodeBlock: EOF" {
+				t.Error(err)
+			}
+			break
 		}
+		i++
+	}
+	if i < 110000 {
+		t.Errorf("Only %d blocks read in blockfile 0", i)
 	}
 
+	/*
 	err = LoadFile(0, 100000, dummyFunc, "")
 	if err != nil {
 		t.Fatal(err)
@@ -81,4 +89,5 @@ func TestBlockFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	*/
 }
