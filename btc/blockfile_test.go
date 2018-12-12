@@ -8,11 +8,25 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/joho/godotenv"
 	"testing"
+	"fmt"
 	"os"
 )
 
 func dummyFunc(_ string) (func(b *models.Block) error, error) {
 	return func(b *models.Block) error {
+		return nil
+	}, nil
+}
+
+func jumpFunc(_ string) (func(b *models.Block) error, error) {
+	var min uint32 = 201000
+	return func(b *models.Block) error {
+		if b == nil {
+			return nil
+		}
+		if b.NHeight < min {
+			return fmt.Errorf("Jump to height %d", min)
+		}
 		return nil
 	}, nil
 }
@@ -77,7 +91,8 @@ func TestBlockFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = LoadFile(200000, 201000, dummyFunc, "")
+	log.Info("Jump start")
+	err = LoadFile(200000, 202000, jumpFunc, "")
 	if err != nil {
 		t.Fatal(err)
 	}

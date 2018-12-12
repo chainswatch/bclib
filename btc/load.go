@@ -9,6 +9,8 @@ import (
 	"fmt"
 
 	"sort"
+	"strings"
+	"strconv"
 )
 
 // constructs a map of the form map[BlockHeight] = BlockHeader.
@@ -109,6 +111,15 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn string) error {
 		}
 		b.NHeight = h // FIXME: DecodeBlock does not work for genesis block
 		if err = fn(b); err != nil {
+			if strings.HasPrefix(err.Error(), "Jump to height ") {
+				s := strings.TrimPrefix(err.Error(), "Jump to height ")
+				tmp, err := strconv.ParseUint(s, 10, 32)
+				if err != nil {
+					return err
+				}
+				h = uint32(tmp)
+				continue
+			}
 			return err
 		}
 		// TODO: Check number of file open (always <= 2)
