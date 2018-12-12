@@ -109,7 +109,7 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn string) error {
 		if err != nil {
 			return fmt.Errorf("File %d, height %d: %s", b.NFile, h, err.Error())
 		}
-		b.NHeight = h // FIXME: DecodeBlock does not work for genesis block
+		b.NHeight = h// FIXME: DecodeBlock does not work for genesis block
 		if err = fn(b); err != nil {
 			if strings.HasPrefix(err.Error(), "Jump to height ") {
 				s := strings.TrimPrefix(err.Error(), "Jump to height ")
@@ -117,7 +117,7 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn string) error {
 				if err != nil {
 					return err
 				}
-				h = uint32(tmp)
+				h = uint32(tmp) - 1
 				continue
 			}
 			return err
