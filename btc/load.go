@@ -20,6 +20,7 @@ func loadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
 	}
 	defer db.Close()
 	iter := db.NewIterator(util.BytesPrefix([]byte("b")), nil)
+	lookup = make(map[uint32]*models.BlockHeader)
 	for iter.Next() {
 		// hashBlock := iter.Key()
 		data := iter.Value()

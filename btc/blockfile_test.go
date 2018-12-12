@@ -8,7 +8,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/joho/godotenv"
 	"testing"
-	"runtime"
 	"os"
 )
 
@@ -33,7 +32,7 @@ func TestBlockFile(t *testing.T) {
 
 	// Iter over leveldb block index
 	iter := indexDb.NewIterator(util.BytesPrefix([]byte("b")), nil)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 200; i++ {
 		iter.Next()
 		// hashBlock := iter.Key()
 		data := iter.Value()
@@ -57,10 +56,6 @@ func TestBlockFile(t *testing.T) {
 	}
 	buf.Reset()
 
-	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(1))
-	var start, end runtime.MemStats
-	runtime.GC()
-	runtime.ReadMemStats(&start)
 
 	i := 0
 	for { // TODO: Test EOF
@@ -72,18 +67,9 @@ func TestBlockFile(t *testing.T) {
 			break
 		}
 		i++
-		if i > 1000 {
-			break
-		}
 	}
 	if i < 110000 {
 		t.Errorf("Only %d blocks read in blockfile 0", i)
-	}
-	runtime.ReadMemStats(&end)
-	alloc := end.TotalAlloc - start.TotalAlloc
-	limit := uint64(64 * 1000)
-	if alloc > 0 {
-		t.Fatalf("memUse: allocated %d-%d=%d limit %d", end.TotalAlloc, start.TotalAlloc, alloc, limit)
 	}
 
 	err = LoadFile(0, 100000, dummyFunc, "")
