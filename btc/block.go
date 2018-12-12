@@ -15,7 +15,7 @@ const (
 	serGetHash = 1 << 2
 )
 
-func putBlockHash(b *models.Block) {
+func putBlockHash(b *models.BlockHeader) {
 	bin := make([]byte, 0) // TODO: Optimize. 4 + 4 + 4 + 8 + 4 + 4
 
 	value := make([]byte, 4)
@@ -38,36 +38,35 @@ func putBlockHash(b *models.Block) {
 }
 
 // TODO: Currently won't return any error
-func decodeBlockHeader(b *models.Block, br parser.Reader) {
-	b.NVersion = br.ReadUint32()
-	b.HashPrevBlock = br.ReadBytes(32) // FIXME: Slice out of bound (in production)
-	b.HashMerkleRoot = br.ReadBytes(32)
-	b.NTime = br.ReadUint32()
-	b.NBits = br.ReadUint32() // TODO: Parse this as mantissa?
-	b.NNonce = br.ReadUint32()
-	putBlockHash(b)
+func decodeBlockHeader(bh *models.BlockHeader, br parser.Reader) {
+	bh.NVersion = br.ReadUint32()
+	bh.HashPrevBlock = br.ReadBytes(32) // FIXME: Slice out of bound (in production)
+	bh.HashMerkleRoot = br.ReadBytes(32)
+	bh.NTime = br.ReadUint32()
+	bh.NBits = br.ReadUint32() // TODO: Parse this as mantissa?
+	bh.NNonce = br.ReadUint32()
+	putBlockHash(bh)
 }
 
-func decodeBlockHeaderIdx(br parser.Reader) (*models.Block) {
-	b := &models.Block{}
+func decodeBlockHeaderIdx(br parser.Reader) (bh models.BlockHeader) {
   // Discard first varint
   // FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
 	br.ReadVarint() // SerGetHash = 1 << 2
 
-  b.NHeight = uint32(br.ReadVarint())
-  b.NStatus = uint32(br.ReadVarint())
-  b.NTx = uint32(br.ReadVarint())
-  if b.NStatus & (blockHaveData|blockHaveUndo) > 0 {
-    b.NFile = uint32(br.ReadVarint())
+  bh.NHeight = uint32(br.ReadVarint())
+  bh.NStatus = uint32(br.ReadVarint())
+  bh.NTx = uint32(br.ReadVarint())
+  if bh.NStatus & (blockHaveData|blockHaveUndo) > 0 {
+    bh.NFile = uint32(br.ReadVarint())
   }
-  if b.NStatus & blockHaveData > 0 {
-    b.NDataPos = uint32(br.ReadVarint())
+  if bh.NStatus & blockHaveData > 0 {
+    bh.NDataPos = uint32(br.ReadVarint())
   }
-  if b.NStatus & blockHaveUndo > 0 {
-    b.NUndoPos = uint32(br.ReadVarint())
+  if bh.NStatus & blockHaveUndo > 0 {
+    bh.NUndoPos = uint32(br.ReadVarint())
   }
-	decodeBlockHeader(b, br)
-	return b
+	decodeBlockHeader(&bh, br)
+	return
 }
 
 func decodeBlockTxs(b *models.Block, br parser.Reader) error {
@@ -89,22 +88,23 @@ func decodeBlockTxs(b *models.Block, br parser.Reader) error {
 }
 
 // DecodeBlock decodes a block
-func DecodeBlock(b *models.Block, br parser.Reader) error {
+func DecodeBlock(br parser.Reader) (b *models.Block, err error) {
+	b = &models.Block{}
 	if br.Type() == "file" {
 		magicID := uint32(br.ReadUint32())
 		if magicID == 0 {
-			return fmt.Errorf("DecodeBlock: EOF")
+			return nil, fmt.Errorf("DecodeBlock: EOF")
 		} else if magicID != blockMagicID {
 			// blockFile.Seek(curPos, 0) // Restore pos before the error
-			return fmt.Errorf("Invalid block header: Can't find Magic ID")
+			return nil, fmt.Errorf("Invalid block header: Can't find Magic ID")
 		}
 		b.NSize = br.ReadUint32() // Only for block files
 	}
 
-	decodeBlockHeader(b, br)
-	err := decodeBlockTxs(b, br)
+	decodeBlockHeader(&b.BlockHeader, br)
+	err = decodeBlockTxs(b, br)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if b.NHeight == 0 && len(b.Txs[0].Vin[0].Script) > 4 {
@@ -114,5 +114,5 @@ func DecodeBlock(b *models.Block, br parser.Reader) error {
 		}
 		b.NHeight = binary.LittleEndian.Uint32(cbase[1:])
 	}
-	return err
+	return b, err
 }

@@ -1,7 +1,6 @@
 package btc
 
 import (
-	"git.posc.in/cw/bclib/models"
 	"git.posc.in/cw/bclib/serial"
 	"git.posc.in/cw/bclib/parser"
 
@@ -41,8 +40,7 @@ func TestBlock(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b := &models.Block{}
-		err = DecodeBlock(b, rawBlock)
+		b, err := DecodeBlock(rawBlock)
 		if err != nil {
 			t.Fatal(err)
 		}

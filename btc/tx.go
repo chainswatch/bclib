@@ -109,6 +109,7 @@ func getOutputBinary(out models.TxOutput) []byte {
 
 	return bin
 }
+
 // 0100000001e507cb947464fc74540a9c197f815aa283ba9db74185ac08449c38491a8c34ac00000000
 // Compute transaction hash ( [nVersion][Inputs][Outputs][nLockTime] )
 func putTxHash(tx *models.Tx) {

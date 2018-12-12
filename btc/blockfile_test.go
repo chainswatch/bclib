@@ -8,10 +8,8 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/joho/godotenv"
 	"testing"
+	"runtime"
 	"os"
-
-	_ "net/http/pprof"
-	"net/http"
 )
 
 func dummyFunc(_ string) (func(b *models.Block) error, error) {
@@ -27,11 +25,6 @@ func TestBlockFile(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
-
 
 	indexDb, err := OpenIndexDb()
 	if err != nil {
@@ -64,22 +57,35 @@ func TestBlockFile(t *testing.T) {
 	}
 	buf.Reset()
 
-	b := &models.Block{}
+	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(1))
+	var start, end runtime.MemStats
+	runtime.GC()
+	runtime.ReadMemStats(&start)
+
 	i := 0
 	for { // TODO: Test EOF
-		if err := DecodeBlock(b, buf); err != nil {
+		_, err := DecodeBlock(buf)
+		if err != nil {
 			if err.Error() != "DecodeBlock: EOF" {
 				t.Error(err)
 			}
 			break
 		}
 		i++
+		if i > 1000 {
+			break
+		}
 	}
 	if i < 110000 {
 		t.Errorf("Only %d blocks read in blockfile 0", i)
 	}
+	runtime.ReadMemStats(&end)
+	alloc := end.TotalAlloc - start.TotalAlloc
+	limit := uint64(64 * 1000)
+	if alloc > 0 {
+		t.Fatalf("memUse: allocated %d-%d=%d limit %d", end.TotalAlloc, start.TotalAlloc, alloc, limit)
+	}
 
-	/*
 	err = LoadFile(0, 100000, dummyFunc, "")
 	if err != nil {
 		t.Fatal(err)
@@ -89,5 +95,4 @@ func TestBlockFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	*/
 }

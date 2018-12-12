@@ -13,14 +13,13 @@ import (
 
 // constructs a map of the form map[BlockHeight] = BlockHeader.
 // In particular, BlockHeader contains DataPos and FileNum
-func loadHeaderIndex() (map[uint32]*models.Block, error) {
+func loadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
 	db, err := OpenIndexDb()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 	iter := db.NewIterator(util.BytesPrefix([]byte("b")), nil)
-	lookup := make(map[uint32]*models.Block)
 	for iter.Next() {
 		// hashBlock := iter.Key()
 		data := iter.Value()
@@ -29,7 +28,7 @@ func loadHeaderIndex() (map[uint32]*models.Block, error) {
 			return nil, err
 		}
 		tmp := decodeBlockHeaderIdx(buf)
-		lookup[tmp.NHeight] = tmp
+		lookup[tmp.NHeight] = &tmp
 	}
 	iter.Release()
 	return lookup, nil
@@ -37,11 +36,11 @@ func loadHeaderIndex() (map[uint32]*models.Block, error) {
 
 type apply func(string) (func(b *models.Block) error, error)
 
-func closeOldFile(b *models.Block, lookup map[uint32]*models.Block, files map[uint32]parser.Reader) error {
-	if b.NHeight < 2048 {
+func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader, files map[uint32]parser.Reader) error {
+	if bh.NHeight < 2048 {
 		return nil
 	}
-	oldh := b.NHeight - 2048
+	oldh := bh.NHeight - 2048
 	oldb, exist := lookup[oldh]
 	if !exist {
 		return fmt.Errorf("closeOldFile: Could not find old file for height %d", oldh)
@@ -52,7 +51,7 @@ func closeOldFile(b *models.Block, lookup map[uint32]*models.Block, files map[ui
 	}
 	sort.Slice(keys, func(i, j int) bool {return keys[i] < keys[j]})
 	for _, k := range keys {
-		if k > oldb.NFile || k + 1 >= b.NFile {
+		if k > oldb.NFile || k + 1 >= bh.NFile {
 			break
 		}
 		oldf, exist := files[k]
@@ -79,31 +78,32 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn string) error {
 		return err
 	}
 
-	var b = &models.Block{}
+	var bh = &models.BlockHeader{}
 	var exist bool
 	for h := fromh; h <= toh; h++ {
-		b, exist = lookup[h]
+		bh, exist = lookup[h]
 		if !exist { // header ?
 			return fmt.Errorf("File for height %d does not exist", h)
 		}
-		if b.NHeight != h {
-			return fmt.Errorf("Loaded header has wrong height %d != %d", b.NHeight, h)
+		if bh.NHeight != h {
+			return fmt.Errorf("Loaded header has wrong height %d != %d", bh.NHeight, h)
 		}
-		file, exist := files[b.NFile]
+		file, exist := files[bh.NFile]
 		if !exist { // file open ?
-			log.Info(fmt.Sprintf("Height: %d File: %d Length(files)= %d", b.NHeight, b.NFile, len(files)))
-			buf, err := parser.New(b.NFile)
+			log.Info(fmt.Sprintf("Height: %d File: %d Length(files)= %d", bh.NHeight, bh.NFile, len(files)))
+			buf, err := parser.New(bh.NFile)
 			if err != nil {
 				return err
 			}
-			files[b.NFile] = buf
+			files[bh.NFile] = buf
 			file = buf
-			if err = closeOldFile(b, lookup, files); err != nil {
+			if err = closeOldFile(bh, lookup, files); err != nil {
 				return err
 			}
 		}
-		file.Seek(int64(b.NDataPos - 8), 0)
-		if err = DecodeBlock(b, file); err != nil {
+		file.Seek(int64(bh.NDataPos - 8), 0)
+		b, err := DecodeBlock(file)
+		if err != nil {
 			return fmt.Errorf("File %d, height %d: %s", b.NFile, h, err.Error())
 		}
 		b.NHeight = h // FIXME: DecodeBlock does not work for genesis block

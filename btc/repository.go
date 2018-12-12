@@ -35,17 +35,16 @@ func decodeBlockFileIdx(br parser.Reader) *blockFile {
 }
 
 // Get block index record by hash
-func blockIndexRecord(db *leveldb.DB, h []byte) (*models.Block, error) {
+func blockIndexRecord(db *leveldb.DB, h []byte) (bh models.BlockHeader, err error) {
 	data, err := db.Get(append([]byte("b"), h...), nil)
 	if err != nil {
-		return nil, err
+		return
 	}
 	buf, err := parser.New(data)
 	if err != nil {
-		return nil, err
+		return
 	}
-	b := decodeBlockHeaderIdx(buf)
-	return b, nil
+	return decodeBlockHeaderIdx(buf), err
 }
 
 // Get file index record by number
