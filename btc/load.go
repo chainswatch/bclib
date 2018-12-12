@@ -87,6 +87,7 @@ func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) erro
 		}
 		file, exist := files[b.NFile]
 		if !exist { // file open ?
+			log.Info(fmt.Sprintf("Height: %d File: %d Length(files)= %d", b.NHeight, b.NFile, len(files)))
 			buf, err := parser.New(b.NFile)
 			if err != nil {
 				return err
