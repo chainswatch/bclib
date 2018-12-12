@@ -9,6 +9,9 @@ import (
 	"github.com/joho/godotenv"
 	"testing"
 	"os"
+
+	_ "net/http/pprof"
+	"net/http"
 )
 
 func dummyFunc(_ string) (func(b *models.Block) error, error) {
@@ -25,11 +28,15 @@ func TestBlockFile(t *testing.T) {
 		}
 	}
 
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
+
 	indexDb, err := OpenIndexDb()
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer indexDb.Close()
 
 	// Iter over leveldb block index
 	iter := indexDb.NewIterator(util.BytesPrefix([]byte("b")), nil)
@@ -48,6 +55,7 @@ func TestBlockFile(t *testing.T) {
 	if err != nil {
 		log.Warn(err)
 	}
+	indexDb.Close()
 
 	// Open blockfile 0 and parse blocks
 	buf, err := parser.New(uint32(0))
@@ -64,12 +72,12 @@ func TestBlockFile(t *testing.T) {
 		}
 	}
 
-	err = LoadFile(indexDb, 0, 100000, dummyFunc, "")
+	err = LoadFile(0, 100000, dummyFunc, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = LoadFile(indexDb, 200000, 201000, dummyFunc, "")
+	err = LoadFile(200000, 201000, dummyFunc, "")
 	if err != nil {
 		t.Fatal(err)
 	}

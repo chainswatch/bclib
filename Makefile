@@ -14,7 +14,7 @@ test: ## Run unittests
 race: dep ## Run data race detector
 	@go test -race -short ${PKG_LIST}
 
-msan: dep ## Run memory sanitizer
+msan: ## Run memory sanitizer
 	@go test -msan -short ${PKG_LIST}
 
 coverage: ## Generate global code coverage report

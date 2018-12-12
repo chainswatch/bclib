@@ -5,7 +5,6 @@ import (
 	"git.posc.in/cw/bclib/parser"
 
 	log "github.com/sirupsen/logrus"
-  "github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"fmt"
 
@@ -14,7 +13,12 @@ import (
 
 // constructs a map of the form map[BlockHeight] = BlockHeader.
 // In particular, BlockHeader contains DataPos and FileNum
-func loadHeaderIndex(db *leveldb.DB) (map[uint32]*models.Block, error) {
+func loadHeaderIndex() (map[uint32]*models.Block, error) {
+	db, err := OpenIndexDb()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
 	iter := db.NewIterator(util.BytesPrefix([]byte("b")), nil)
 	lookup := make(map[uint32]*models.Block)
 	for iter.Next() {
@@ -62,8 +66,8 @@ func closeOldFile(b *models.Block, lookup map[uint32]*models.Block, files map[ui
 }
 
 // LoadFile allows to traverse the blocks by height order while applying a function argFn
-func LoadFile(db *leveldb.DB, fromh, toh uint32, newFn apply, argFn string) error {
-	lookup, err := loadHeaderIndex(db)
+func LoadFile(fromh, toh uint32, newFn apply, argFn string) error {
+	lookup, err := loadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {
 		return err
