@@ -140,9 +140,6 @@ func scriptIsWitnessProgram(script []byte, version int32) bool {
   return false
 }
 
-func decodeAddress() () {
-}
-
 func getPublicAddress(txType uint8, hash []byte) string {
   var address string
   if txType == txP2pkh {
