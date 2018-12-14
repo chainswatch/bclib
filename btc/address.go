@@ -172,7 +172,7 @@ func getVersion(op int32) int32 {
     return 0;
   }
   if (op >= op1 && op <= op16) {
-    log.Fatal("Error in getVersion ", op)
+    log.Info("Error in getVersion ", op)
   }
   return op - (op1 - 1)
 }

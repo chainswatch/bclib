@@ -54,7 +54,8 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
     output.Index = i
     output.Value = br.ReadUint64()
     scriptLength := br.ReadCompactSize()
-    output.Script = br.ReadBytes(scriptLength)
+		output.Script = br.ReadBytes(scriptLength)
+		_, output.Hash160 = getAddressFromScript(output.Script)
     tx.Vout[i] = output
   }
 
