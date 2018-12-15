@@ -14,12 +14,11 @@ import (
 // const serializeTransactionNoWitness = 0x40000000;
 
 // DecodeTx decodes a transaction
-func DecodeTx(br parser.Reader) (*models.Tx, error) {
-  var err error
+func DecodeTx(br parser.Reader) (tx *models.Tx, err error) {
   var txFlag byte // Check for extended transaction serialization format
   emptyByte := make([]byte, 32)
   allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
-  tx := &models.Tx{}
+  tx = &models.Tx{}
 
   tx.NVersion = br.ReadInt32()
   tx.NVin = uint32(br.ReadCompactSize())
@@ -56,9 +55,6 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
     scriptLength := br.ReadCompactSize()
 		output.Script = br.ReadBytes(scriptLength)
 		output.TxType, output.Hash, err = getPkeyFromScript(output.Script)
-		if err != nil {
-			return nil, err
-		}
     tx.Vout[i] = output
   }
 

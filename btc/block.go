@@ -76,7 +76,9 @@ func decodeBlockTxs(b *models.Block, br parser.Reader) error {
 	for t := uint32(0); t < b.NTx; t++ {
 		tx, err := DecodeTx(br)
 		if err != nil {
-			return err
+			if tx.Hash != nil {
+				return fmt.Errorf("DecodeBlocksTxs(): %s (xHash: %x)", err.Error(), serial.ReverseHex(tx.Hash))
+			}
 		}
 		tx.NVout = uint32(len(tx.Vout))
 		b.Txs[t] = *tx
