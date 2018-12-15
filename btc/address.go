@@ -54,9 +54,6 @@ func isOpPubkeyhash(op []byte) bool {
 	return true
 }
 
-/*
-*
-*/
 func isOpPubkey(op []byte) bool {
 	// TODO: OP_PUSHDATA4
 	dataLength := len(op)
@@ -66,7 +63,7 @@ func isOpPubkey(op []byte) bool {
 	return true
 }
 
-// P2PKH: OP_DUP, OP_HASH160, OP_PUBKEYHASH, OP_EQUALVERIFY, OP_CHECKSIG
+// P2PKH
 func scriptIsPubkeyHash(ops [][]byte) []byte {
 	if len(ops) == 5 {
 		if ops[0][0] == opDup &&
@@ -80,7 +77,7 @@ func scriptIsPubkeyHash(ops [][]byte) []byte {
 	return nil
 }
 
-// P2SH: OP_HASH160, OP_PUBKEYHASH, OP_EQUAL
+// P2SH
 func scriptIsScriptHash(ops [][]byte) []byte {
 	if len(ops) == 3 {
 		if ops[0][0] == opHash160 &&
@@ -92,7 +89,7 @@ func scriptIsScriptHash(ops [][]byte) []byte {
 	return nil
 }
 
-// P2PK: OP_PUBKEY, OP_CHECKSIG
+// P2PK
 func scriptIsPubkey(ops [][]byte) []byte {
 	if len(ops) == 2 {
 		if ops[1][0] == opChecksig && isOpPubkey(ops[0]) {
@@ -207,6 +204,8 @@ func getPkeyFromScript(script []byte) (txType uint8, hash []byte) {
 			txType = txP2wpkh
 		} else if len(hash) == 32 + 1 {
 			txType = txP2wsh
+		} else {
+			txType = txUnknown
 		}
 	} else if hash = scriptIsOpReturn(ops); hash != nil {
 		txType = txOpreturn
