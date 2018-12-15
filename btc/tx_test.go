@@ -117,7 +117,10 @@ func TestTransaction(t *testing.T) {
 			if err != nil {
 				t.Fatal("getPkeyFromScript: ", err)
 			}
-			decoded := DecodeAddr(txType, hash)
+			decoded, err := DecodeAddr(txType, hash)
+			if err != nil {
+				t.Fatal("DecodeAddr: ", err)
+			}
 			if test.encoded[idx] != decoded {
 				t.Errorf("%v: String on decoded value does not match expected value: %v != %v",
 				test.name, decoded, test.encoded[idx])

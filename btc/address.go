@@ -141,28 +141,28 @@ func scriptIsWitnessProgram(script []byte, version int32) bool {
 }
 
 // DecodeAddr decodes address from hash
-func DecodeAddr(txType uint8, hash []byte) string {
+func DecodeAddr(txType uint8, hash []byte) (string, error) {
   var address string
-  if txType == txP2pkh {
+	switch txType {
+	case txP2pkh:
     address = serial.Hash160ToAddress(hash, []byte{0x00})
-  } else if txType == txP2sh {
+	case txP2sh:
     address = serial.Hash160ToAddress(hash, []byte{0x05})
-  } else if txType == txP2pk {
+	case txP2pk:
     address = serial.SecToAddress(hash)
-  } else if txType == txMultisig {
+	case txMultisig:
     log.Info("Script: Multisig, ", len(hash))
-    return ""
-  } else if txType == txP2wpkh {
+    return "", nil
+	case txP2wpkh:
     address, _ = serial.EncodeBench32("bc", hash)
-  } else if txType == txP2wsh {
+	case txP2wsh:
     address, _ = serial.EncodeBench32("bc", hash)
-  } else if txType == txOpreturn {
+	case txOpreturn:
     address = fmt.Sprintf("%x", hash)
-  } else {
-    log.Info("Script: NOT FOUND")
-    return ""
-  }
-  return address
+	default:
+		return "", fmt.Errorf("DecodeAddr: Unable to decode addr from script")
+	}
+  return address, nil
 }
 
 func getVersion(op int32) int32 {
