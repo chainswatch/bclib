@@ -113,7 +113,10 @@ func TestTransaction(t *testing.T) {
 			t.Error("Wrong number of output. Should be tx.NVout =", len(test.encoded))
 		}
 		for idx, vout := range tx.Vout {
-			txType, hash := getPkeyFromScript(vout.Script)
+			txType, hash, err := getPkeyFromScript(vout.Script)
+			if err != nil {
+				t.Fatal("getPkeyFromScript: ", err)
+			}
 			decoded := DecodeAddr(txType, hash)
 			if test.encoded[idx] != decoded {
 				t.Errorf("%v: String on decoded value does not match expected value: %v != %v",

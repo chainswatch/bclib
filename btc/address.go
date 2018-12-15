@@ -181,10 +181,10 @@ func getVersion(op int32) int32 {
 * version:
 * Return hash and hash type (P2PKH,P2SH...) from output script
 */
-func getPkeyFromScript(script []byte) (uint8, []byte) {
+func getPkeyFromScript(script []byte) (uint8, []byte, error) {
   ops, err := getNumOps(script)
   if err != nil {
-    log.Info(err)
+		return 0, nil, err
   }
   opsLength := len(ops)
   version := getVersion(int32(ops[0][0]))
@@ -202,7 +202,7 @@ func getPkeyFromScript(script []byte) (uint8, []byte) {
     txType = txP2pk
   } else if hash = scriptIsMultiSig(ops); hash != nil {
     txType = txMultisig
-    return 0, nil
+		return 0, nil, nil // TODO: MULTISIG
   } else if scriptIsWitnessProgram(script, version) {
     hash = append(ops[0], ops[1]...)
     if len(hash) == 20 + 1 {
@@ -217,5 +217,5 @@ func getPkeyFromScript(script []byte) (uint8, []byte) {
     txType = txUnknown
   }
 
-  return txType, hash
+  return txType, hash, nil
 }
