@@ -15,6 +15,7 @@ type TxOutput struct {
   Value             uint64       `db:"value"`     // Satoshis
 	// TODO: Add type
   Hash           		[]byte      `db:"hash160"`    // Public key
+	TxType						uint8
   Script            []byte      `db:"script"`     // Where the magic happens
 }
 
