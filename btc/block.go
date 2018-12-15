@@ -18,19 +18,19 @@ func putBlockHash(b *models.BlockHeader) {
 	bin := make([]byte, 0) // TODO: Optimize. 4 + 4 + 4 + 8 + 4 + 4
 
 	value := make([]byte, 4)
-	binary.LittleEndian.PutUint32(value, b.NVersion)
+	binary.LittleEndian.PutUint32(value, b.NVersion) // 4
 	bin = append(bin, value...)
 
-	bin = append(bin, b.HashPrevBlock...)
-	bin = append(bin, b.HashMerkleRoot...)
+	bin = append(bin, b.HashPrevBlock...) // ?
+	bin = append(bin, b.HashMerkleRoot...) // ?
 
-	binary.LittleEndian.PutUint32(value, b.NTime)
+	binary.LittleEndian.PutUint32(value, b.NTime) // 4
 	bin = append(bin, value...)
 
-	binary.LittleEndian.PutUint32(value, b.NBits)
+	binary.LittleEndian.PutUint32(value, b.NBits) // 4
 	bin = append(bin, value...)
 
-	binary.LittleEndian.PutUint32(value, b.NNonce)
+	binary.LittleEndian.PutUint32(value, b.NNonce) // 4
 	bin = append(bin, value...)
 
 	b.HashBlock = serial.DoubleSha256(bin)
@@ -99,8 +99,7 @@ func DecodeBlock(br parser.Reader) (b *models.Block, err error) {
 	}
 
 	decodeBlockHeader(&b.BlockHeader, br)
-	err = decodeBlockTxs(b, br)
-	if err != nil {
+	if err = decodeBlockTxs(b, br); err != nil {
 		return nil, err
 	}
 
