@@ -113,8 +113,8 @@ func TestTransaction(t *testing.T) {
 			t.Error("Wrong number of output. Should be tx.NVout =", len(test.encoded))
 		}
 		for idx, vout := range tx.Vout {
-			txType, hash := getAddressFromScript(vout.Script)
-			decoded := getPublicAddress(txType, hash)
+			txType, hash := getPkeyFromScript(vout.Script)
+			decoded := DecodeAddr(txType, hash)
 			if test.encoded[idx] != decoded {
 				t.Errorf("%v: String on decoded value does not match expected value: %v != %v",
 				test.name, decoded, test.encoded[idx])

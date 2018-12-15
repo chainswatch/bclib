@@ -140,7 +140,8 @@ func scriptIsWitnessProgram(script []byte, version int32) bool {
   return false
 }
 
-func getPublicAddress(txType uint8, hash []byte) string {
+// DecodeAddr decodes address from hash
+func DecodeAddr(txType uint8, hash []byte) string {
   var address string
   if txType == txP2pkh {
     address = serial.Hash160ToAddress(hash, []byte{0x00})
@@ -180,7 +181,7 @@ func getVersion(op int32) int32 {
 * version:
 * Return hash and hash type (P2PKH,P2SH...) from output script
 */
-func getAddressFromScript(script []byte) (uint8, []byte) {
+func getPkeyFromScript(script []byte) (uint8, []byte) {
   ops, err := getNumOps(script)
   if err != nil {
     log.Info(err)
