@@ -11,15 +11,17 @@ const (
   blockHaveData = 8  //!< full block available in blk*.dat
   blockHaveUndo = 16 //!< undo data available in rev*.dat
 
-	txUnknown = 0x00
   txP2pkh = 0x01
   txP2sh = 0x02
   txP2pk = 0x03
   txMultisig = 0x04
   txP2wpkh = 0x05
-  txP2wsh = 0x06
+  txP2wsh = 0x06 // bench32
 
   txOpreturn = 0x10 // Should contain data and not public key
+	txParseErr = 0xfe
+	txUnknown = 0xff
+
 
   op0 = 0x00
   op1 = 0x51 // 1 is pushed
