@@ -5,7 +5,6 @@ import (
 	"git.posc.in/cw/bclib/models"
 	"git.posc.in/cw/bclib/parser"
 
-	log "github.com/sirupsen/logrus"
 	"encoding/binary"
 	"fmt"
 )
@@ -77,8 +76,6 @@ func decodeBlockTxs(b *models.Block, br parser.Reader) error {
 	for t := uint32(0); t < b.NTx; t++ {
 		tx, err := DecodeTx(br)
 		if err != nil {
-			log.Warn("DecodeBlockTxs(): ", err)
-			log.Warn(fmt.Sprintf("DecodeBlockTxs(): txHash: %x", serial.ReverseHex(tx.Hash)))
 			return err
 		}
 		tx.NVout = uint32(len(tx.Vout))
