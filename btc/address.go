@@ -15,7 +15,6 @@ func getNumOps(script []byte) (ops [][]byte, err error) {
 	}
 	var i, dataLength uint32
 	for i = 0; i < scriptLength - 1; {
-		dataLength = 0
 		opCode := script[i]
 		i++
 
@@ -27,7 +26,7 @@ func getNumOps(script []byte) (ops [][]byte, err error) {
 			dataLength = binary.LittleEndian.Uint32(script[i:(i+2)])
 		} else if opCode == opPushdata4 {
 			dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
-		} else {
+		} else { // if not a length, then it is an operator (replace with i--)
 			ops = append(ops, []byte{opCode})
 			continue
 		}
@@ -116,10 +115,7 @@ func scriptIsOpReturn(ops [][]byte) []byte {
 
 // A witness program is any valid script that consists of a 1-byte push opcode
 // followed by a data push between 2 and 40 bytes
-func scriptIsWitnessProgram(script []byte, version int32) bool {
-	if (version != 0) {
-		return false
-	}
+func scriptIsWitnessProgram(script []byte) bool {
 	lengthScript := len(script)
 	if (lengthScript < 4 || lengthScript > 42) {
 		return false
@@ -162,6 +158,7 @@ func DecodeAddr(txType uint8, hash []byte) (string, error) {
 	return address, nil
 }
 
+// FIXME: WTF is it useful for?
 func getVersion(op int32) int32 {
 	if (op == op0) {
 		return 0;
@@ -184,7 +181,6 @@ func getPkeyFromScript(script []byte) (txType uint8, hash []byte) {
 		return txParseErr, nil
 	}
 	opsLength := len(ops)
-	version := getVersion(int32(ops[0][0]))
 	var outputScript string
 	for i := 0; i < opsLength; i++ {
 		outputScript += fmt.Sprintf("%#x ", ops[i])
@@ -198,7 +194,7 @@ func getPkeyFromScript(script []byte) (txType uint8, hash []byte) {
 		txType = txP2pk
 	} else if hash = scriptIsMultiSig(ops); hash != nil {
 		txType = txMultisig // TODO: MULTISIG
-	} else if scriptIsWitnessProgram(script, version) {
+	} else if scriptIsWitnessProgram(script) {
 		hash = append(ops[0], ops[1]...)
 		if len(hash) == 20 + 1 {
 			txType = txP2wpkh
