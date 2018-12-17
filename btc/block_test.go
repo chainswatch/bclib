@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"strconv"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"bufio"
 )
@@ -24,15 +23,15 @@ func TestBlock(t *testing.T) {
 			fileNum:    1,
 			height:     547066,
 		},
+		{
+			name:       "Block 251718",
+			fileNum:    251718,
+			height:     251718,
+		},
 	}
 
 	for _, test := range tests{
-		hash, err := ioutil.ReadFile("./testdata/hashblock_" + strconv.Itoa(test.fileNum))
-		if err != nil {
-			t.Error(err)
-		}
-		log.Info(fmt.Sprintf("Block Hash: %x", hash))
-		raw, err := ioutil.ReadFile("./testdata/rawblock_" + strconv.Itoa( test.fileNum))
+		raw, err := ioutil.ReadFile("./testdata/rawblock_" + strconv.Itoa(test.fileNum))
 		if err != nil {
 			t.Error(err)
 		}
@@ -52,20 +51,19 @@ func TestBlock(t *testing.T) {
 		}
 
 		// Test each transaction hash
-		file, err := os.Open("./testdata/hash_transactions_1")
+		file, err := os.Open(fmt.Sprintf("./testdata/hash_transactions_%d", test.fileNum))
 		if err != nil {
 			t.Error(err)
 		}
-		defer file.Close()
 		scanner := bufio.NewScanner(file)
 
 		for i := uint32(0); i < b.NTx; i++ {
 			tx := b.Txs[i]
 			scanner.Scan()
 			if fmt.Sprintf("%x", serial.ReverseHex(tx.Hash)) != scanner.Text() {
-				t.Errorf("%x", tx.Vin[0].Script[0])
-				t.Fatalf("%x != %s", serial.ReverseHex(tx.Hash), scanner.Text())
+				t.Fatalf("%s %x != %s", test.name, serial.ReverseHex(tx.Hash), scanner.Text())
 			}
 		}
+		file.Close()
 	}
 }

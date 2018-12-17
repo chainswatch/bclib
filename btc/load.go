@@ -68,7 +68,7 @@ func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader,
 	return nil
 }
 
-func LoadBlockToFile(height uint32) error {
+func LoadBlockToFile(path string, height uint32) error {
 	lookup, err := loadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {
@@ -103,7 +103,7 @@ func LoadBlockToFile(height uint32) error {
 	log.Info("Size: ", nSize) // Only for block files
 	content := file.ReadBytes(uint64(nSize))
 
-	fout, err := os.Create(fmt.Sprintf("block%d.dat", height))
+	fout, err := os.Create(fmt.Sprintf("%s/block%d.dat", path, height))
 	if _, err := fout.Write(content); err != nil {
 			return(err)
 	}

@@ -13,33 +13,32 @@ func getNumOps(script []byte) (ops [][]byte, err error) {
 	if scriptLength == 0 {
 		return nil, fmt.Errorf("Script of length 0")
 	}
-	var i, dataLength uint32
-	for i = 0; i < scriptLength - 1; {
+	for i := uint32(0); i < scriptLength; {
 		opCode := script[i]
 		i++
 
-		if opCode < opPushdata1 && opCode > op0 {
+		dataLength := uint32(0)
+		switch {
+		case opCode < opPushdata1 && opCode > op0:
 			dataLength = uint32(opCode)
-		} else if opCode == opPushdata1 {
+		case opCode == opPushdata1:
 			dataLength = uint32(script[i])
-		} else if opCode == opPushdata2 {
-			dataLength = binary.LittleEndian.Uint32(script[i:(i+2)])
-		} else if opCode == opPushdata4 {
+		case opCode == opPushdata2:
+			dataLength = binary.LittleEndian.Uint32(append([]byte{0,0}, script[i:(i+2)]...))
+		case opCode == opPushdata4:
 			dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
-		} else { // if not a length, then it is an operator (replace with i--)
+		default: // if not a length, then it is an operator (replace with i--)
 			ops = append(ops, []byte{opCode})
-			continue
 		}
 
 		// don't alloc a push buffer if there is no more data available
 		if (i + dataLength > scriptLength) {
 			return nil, fmt.Errorf("[PARSE ERROR] Buffer overflow: %d + %d > %d", i, dataLength, scriptLength)
 		}
-		ops = append(ops, script[i:(i+dataLength)])
+		if dataLength > 0 {
+			ops = append(ops, script[i:(i+dataLength)])
+		}
 		i += dataLength
-	}
-	if i < scriptLength {
-		ops = append(ops, []byte{script[i]})
 	}
 	return ops, nil
 }
@@ -180,11 +179,13 @@ func getPkeyFromScript(script []byte) (txType uint8, hash []byte) {
 	if err != nil {
 		return txParseErr, nil
 	}
+	/*
 	opsLength := len(ops)
 	var outputScript string
 	for i := 0; i < opsLength; i++ {
 		outputScript += fmt.Sprintf("%#x ", ops[i])
 	}
+	*/
 
 	if hash = scriptIsPubkeyHash(ops); hash != nil {
 		txType = txP2pkh

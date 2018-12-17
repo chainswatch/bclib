@@ -15,9 +15,7 @@ func TestExportBlock(t *testing.T) {
 		}
 	}
 
-	//if err := LoadBlockToFile(10); err != nil {
-	if err := LoadBlockToFile(251718); err != nil {
+	if err := LoadBlockToFile("/tmp", 251718); err != nil {
 		t.Error(err)
 	}
-	t.Error()
 }
