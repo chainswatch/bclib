@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"strconv"
+	"os"
 )
 
 // constructs a map of the form map[BlockHeight] = BlockHeader.
@@ -63,6 +64,51 @@ func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader,
 		}
 		oldf.Close()
 		delete(files, k)
+	}
+	return nil
+}
+
+func LoadBlockToFile(height uint32) error {
+	lookup, err := loadHeaderIndex()
+	log.Info("Index is built: ", len(lookup))
+	if err != nil {
+		return err
+	}
+	files := make(map[uint32]parser.Reader) // map[BlockHeight]
+
+	var bh = &models.BlockHeader{}
+	var exist bool
+	bh, exist = lookup[height]
+	if !exist {
+		return fmt.Errorf("File for height %d does not exist", height)
+	}
+	if bh.NHeight != height {
+		return fmt.Errorf("Loaded header has wrong height %d != %d", bh.NHeight, height)
+	}
+	file, exist := files[bh.NFile]
+	if !exist { // file open ?
+		log.Info(fmt.Sprintf("Height: %d File: %d Length(files)= %d", bh.NHeight, bh.NFile, len(files)))
+		buf, err := parser.New(bh.NFile)
+		if err != nil {
+			return err
+		}
+		files[bh.NFile] = buf
+		file = buf
+		if err = closeOldFile(bh, lookup, files); err != nil {
+			return err
+		}
+	}
+	file.Seek(int64(bh.NDataPos) - 4, 0)
+	nSize := file.ReadUint32()
+	log.Info("Size: ", nSize) // Only for block files
+	content := file.ReadBytes(uint64(nSize))
+
+	fout, err := os.Create(fmt.Sprintf("block%d.dat", height))
+	if _, err := fout.Write(content); err != nil {
+			return(err)
+	}
+	if err = fout.Close(); err != nil {
+		return err
 	}
 	return nil
 }
