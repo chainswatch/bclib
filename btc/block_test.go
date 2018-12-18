@@ -28,9 +28,14 @@ func TestBlock(t *testing.T) {
 			fileNum:    251718,
 			height:     251718,
 		},
+		{
+			name:       "Block 265458",
+			fileNum:    265458,
+			height:     265458,
+		},
 	}
 
-	for _, test := range tests{
+	for _, test := range tests {
 		raw, err := ioutil.ReadFile("./testdata/rawblock_" + strconv.Itoa(test.fileNum))
 		if err != nil {
 			t.Error(err)

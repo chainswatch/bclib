@@ -1,47 +1,12 @@
 package btc
 
+// TODO: Rename to script.go
+
 import (
 	"git.posc.in/cw/bclib/serial"
 	"fmt"
-	"encoding/binary"
 	log "github.com/sirupsen/logrus"
 )
-
-// Get Ops from Script
-func getNumOps(script []byte) (ops [][]byte, err error) {
-	scriptLength := uint32(len(script))
-	if scriptLength == 0 {
-		return nil, fmt.Errorf("Script of length 0")
-	}
-	for i := uint32(0); i < scriptLength; {
-		opCode := script[i]
-		i++
-
-		dataLength := uint32(0)
-		switch {
-		case opCode < opPushdata1 && opCode > op0:
-			dataLength = uint32(opCode)
-		case opCode == opPushdata1:
-			dataLength = uint32(script[i])
-		case opCode == opPushdata2:
-			dataLength = binary.LittleEndian.Uint32(append([]byte{0,0}, script[i:(i+2)]...))
-		case opCode == opPushdata4:
-			dataLength = binary.LittleEndian.Uint32(script[i:(i+4)])
-		default: // if not a length, then it is an operator (replace with i--)
-			ops = append(ops, []byte{opCode})
-		}
-
-		// don't alloc a push buffer if there is no more data available
-		if (i + dataLength > scriptLength) {
-			return nil, fmt.Errorf("[PARSE ERROR] Buffer overflow: %d + %d > %d", i, dataLength, scriptLength)
-		}
-		if dataLength > 0 {
-			ops = append(ops, script[i:(i+dataLength)])
-		}
-		i += dataLength
-	}
-	return ops, nil
-}
 
 // Check if OP is a PubkeyHash (length == 20)
 func isOpPubkeyhash(op []byte) bool {
@@ -175,7 +140,7 @@ func getVersion(op int32) int32 {
 * Return hash and hash type (P2PKH,P2SH...) from output script
 */
 func getPkeyFromScript(script []byte) (txType uint8, hash []byte) {
-	ops, err := getNumOps(script)
+	ops, err := getOps(script)
 	if err != nil {
 		return txParseErr, nil
 	}
