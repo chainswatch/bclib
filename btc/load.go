@@ -38,7 +38,7 @@ func loadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
 	return lookup, nil
 }
 
-type apply func(string) (func(b *models.Block) error, error)
+type apply func(interface{}) (func(b *models.Block) error, error)
 
 func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader, files map[uint32]parser.Reader) error {
 	if bh.NHeight < 2048 {
@@ -114,7 +114,7 @@ func LoadBlockToFile(path string, height uint32) error {
 }
 
 // LoadFile allows to traverse the blocks by height order while applying a function argFn
-func LoadFile(fromh, toh uint32, newFn apply, argFn string) error {
+func LoadFile(fromh, toh uint32, newFn apply, argFn interface{}) error {
 	lookup, err := loadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {

@@ -12,13 +12,13 @@ import (
 	"os"
 )
 
-func dummyFunc(_ string) (func(b *models.Block) error, error) {
+func dummyFunc(_ interface{}) (func(b *models.Block) error, error) {
 	return func(b *models.Block) error {
 		return nil
 	}, nil
 }
 
-func jumpFunc(_ string) (func(b *models.Block) error, error) {
+func jumpFunc(_ interface{}) (func(b *models.Block) error, error) {
 	var min uint32 = 201000
 	return func(b *models.Block) error {
 		if b == nil {
