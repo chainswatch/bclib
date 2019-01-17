@@ -1,3 +1,12 @@
-[![Build Status](https://git.posc.in/cw/bclib/badges/master/build.svg)](https://git.posc.in/cw/bclib/commits/master)
-[![Coverage Report](https://git.posc.in/cw/bclib/badges/master/coverage.svg)](https://git.posc.in/cw/bclib/commits/master)
-[![Go Report Card](https://goreportcard.com/badge/git.posc.in/cw/bclib)](https://goreportcard.com/report/git.posc.in/cw/bclib)
+
+bclib
+=======
+
+This package provides a set of blockchain-specific (only bitcoin, for now) functions and types
+
+## Installation and Updating
+
+```bash
+$ go get -u github.com/chainswatch/bclib
+```
+
