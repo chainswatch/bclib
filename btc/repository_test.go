@@ -1,7 +1,7 @@
 package btc
 
 import (
-  "git.posc.in/cw/bclib/serial"
+  "github.com/chainswatch/bclib/serial"
 	"testing"
 	"github.com/joho/godotenv"
 	"os"

@@ -1,8 +1,8 @@
 package btc
 
 import (
-	"git.posc.in/cw/bclib/models"
-	"git.posc.in/cw/bclib/parser"
+	"github.com/chainswatch/bclib/models"
+	"github.com/chainswatch/bclib/parser"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/syndtr/goleveldb/leveldb/util"

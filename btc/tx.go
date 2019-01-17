@@ -1,9 +1,9 @@
 package btc
 
 import (
-  "git.posc.in/cw/bclib/serial"
-  "git.posc.in/cw/bclib/models"
-  "git.posc.in/cw/bclib/parser"
+  "github.com/chainswatch/bclib/serial"
+  "github.com/chainswatch/bclib/models"
+  "github.com/chainswatch/bclib/parser"
 
   log "github.com/sirupsen/logrus"
   "encoding/binary"

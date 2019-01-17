@@ -3,7 +3,7 @@ package btc
 // TODO: Rename to script.go
 
 import (
-	"git.posc.in/cw/bclib/serial"
+	"github.com/chainswatch/bclib/serial"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 )

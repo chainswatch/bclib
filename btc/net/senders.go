@@ -1,8 +1,8 @@
 package net
 
 import (
-	"git.posc.in/cw/bclib/parser"
-	"git.posc.in/cw/bclib/serial"
+	"github.com/chainswatch/bclib/parser"
+	"github.com/chainswatch/bclib/serial"
 
 	"math/rand"
 	"encoding/binary"

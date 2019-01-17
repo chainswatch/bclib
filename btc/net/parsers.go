@@ -1,7 +1,7 @@
 package net
 
 import (
-	"git.posc.in/cw/bclib/parser"
+	"github.com/chainswatch/bclib/parser"
 
 	"net"
 	"fmt"
