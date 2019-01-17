@@ -7,6 +7,6 @@ This package provides a set of blockchain-specific (only bitcoin, for now) funct
 ## Installation and Updating
 
 ```bash
-$ go get -u github.com/chainwatch/bclib
+$ go get -u github.com/chainswatch/bclib
 ```
 
