@@ -2,11 +2,11 @@ package parser
 
 /*
 * Functions needed to read a block from a file
-*/
+ */
 
 import (
-  "bytes"
-  "encoding/binary"
+	"bytes"
+	"encoding/binary"
 )
 
 // Type returns "file"
@@ -21,7 +21,7 @@ func (file *File) Close() {
 
 // Reset sets cursor's position to 0
 func (file *File) Reset() {
-  // TODO: To implement
+	// TODO: To implement
 }
 
 // Seek moves cursor's position to offset

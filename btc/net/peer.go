@@ -1,9 +1,9 @@
 package net
 
 import (
-	"net"
 	"bufio"
 	"fmt"
+	"net"
 
 	log "github.com/sirupsen/logrus"
 )

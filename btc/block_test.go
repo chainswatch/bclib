@@ -1,15 +1,15 @@
 package btc
 
 import (
-	"github.com/chainswatch/bclib/serial"
 	"github.com/chainswatch/bclib/parser"
+	"github.com/chainswatch/bclib/serial"
 
-	"testing"
-	"io/ioutil"
-	"strconv"
-	"fmt"
-	"os"
 	"bufio"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"strconv"
+	"testing"
 )
 
 func TestBlock(t *testing.T) {
@@ -19,19 +19,19 @@ func TestBlock(t *testing.T) {
 		height  uint32
 	}{
 		{
-			name:       "Random block 1",
-			fileNum:    1,
-			height:     547066,
+			name:    "Random block 1",
+			fileNum: 1,
+			height:  547066,
 		},
 		{
-			name:       "Block 251718",
-			fileNum:    251718,
-			height:     251718,
+			name:    "Block 251718",
+			fileNum: 251718,
+			height:  251718,
 		},
 		{
-			name:       "Block 265458",
-			fileNum:    265458,
-			height:     265458,
+			name:    "Block 265458",
+			fileNum: 265458,
+			height:  265458,
 		},
 	}
 

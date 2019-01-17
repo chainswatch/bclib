@@ -1,9 +1,9 @@
 package btc
 
 import (
-	"github.com/chainswatch/bclib/serial"
 	"github.com/chainswatch/bclib/models"
 	"github.com/chainswatch/bclib/parser"
+	"github.com/chainswatch/bclib/serial"
 
 	"encoding/binary"
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 const (
 	blockMagicID = 0xd9b4bef9
-	serGetHash = 1 << 2
+	serGetHash   = 1 << 2
 )
 
 func putBlockHash(b *models.BlockHeader) {
@@ -21,7 +21,7 @@ func putBlockHash(b *models.BlockHeader) {
 	binary.LittleEndian.PutUint32(value, b.NVersion) // 4
 	bin = append(bin, value...)
 
-	bin = append(bin, b.HashPrevBlock...) // ?
+	bin = append(bin, b.HashPrevBlock...)  // ?
 	bin = append(bin, b.HashMerkleRoot...) // ?
 
 	binary.LittleEndian.PutUint32(value, b.NTime) // 4
@@ -48,22 +48,22 @@ func decodeBlockHeader(bh *models.BlockHeader, br parser.Reader) {
 }
 
 func decodeBlockHeaderIdx(br parser.Reader) (bh models.BlockHeader) {
-  // Discard first varint
-  // FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
+	// Discard first varint
+	// FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
 	br.ReadVarint() // SerGetHash = 1 << 2
 
-  bh.NHeight = uint32(br.ReadVarint())
-  bh.NStatus = uint32(br.ReadVarint())
-  bh.NTx = uint32(br.ReadVarint())
-  if bh.NStatus & (blockHaveData|blockHaveUndo) > 0 {
-    bh.NFile = uint32(br.ReadVarint())
-  }
-  if bh.NStatus & blockHaveData > 0 {
-    bh.NDataPos = uint32(br.ReadVarint())
-  }
-  if bh.NStatus & blockHaveUndo > 0 {
-    bh.NUndoPos = uint32(br.ReadVarint())
-  }
+	bh.NHeight = uint32(br.ReadVarint())
+	bh.NStatus = uint32(br.ReadVarint())
+	bh.NTx = uint32(br.ReadVarint())
+	if bh.NStatus&(blockHaveData|blockHaveUndo) > 0 {
+		bh.NFile = uint32(br.ReadVarint())
+	}
+	if bh.NStatus&blockHaveData > 0 {
+		bh.NDataPos = uint32(br.ReadVarint())
+	}
+	if bh.NStatus&blockHaveUndo > 0 {
+		bh.NUndoPos = uint32(br.ReadVarint())
+	}
 	decodeBlockHeader(&bh, br)
 	return
 }

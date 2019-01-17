@@ -4,12 +4,12 @@ import (
 	"github.com/chainswatch/bclib/parser"
 	"github.com/chainswatch/bclib/serial"
 
-	"math/rand"
-	"encoding/binary"
 	"bytes"
+	"encoding/binary"
+	"math/rand"
 
-	"time"
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -92,12 +92,12 @@ func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
 func (p *Peer) sendVersion(version, services uint32, userAgent string) (*Message, error) {
 	b := bytes.NewBuffer([]byte{})
 
-	binary.Write(b, binary.LittleEndian, uint32(version)) // Protocol version, 70015
-	binary.Write(b, binary.LittleEndian, uint64(services)) // Network services
+	binary.Write(b, binary.LittleEndian, uint32(version))           // Protocol version, 70015
+	binary.Write(b, binary.LittleEndian, uint64(services))          // Network services
 	binary.Write(b, binary.LittleEndian, uint64(time.Now().Unix())) // Timestamp
 
 	// Network address of receiver (26)
-	b.Write(p.ip) // Network address of receiver
+	b.Write(p.ip)                              // Network address of receiver
 	b.Write([]byte(fmt.Sprintf("%d", p.port))) // Network port of receiver
 
 	// Network address of emitter (26)
@@ -109,7 +109,7 @@ func (p *Peer) sendVersion(version, services uint32, userAgent string) (*Message
 
 	// Last blockheight received
 	binary.Write(b, binary.LittleEndian, uint32(0))
-	b.WriteByte(1)	// don't notify me about txs (BIP37)
+	b.WriteByte(1) // don't notify me about txs (BIP37)
 
 	err := p.sendMsg("version", b.Bytes())
 	if err != nil {

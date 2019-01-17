@@ -1,7 +1,7 @@
 package net
 
 import (
-  "github.com/chainswatch/bclib/parser"
+	"github.com/chainswatch/bclib/parser"
 	"github.com/chainswatch/bclib/serial"
 
 	"fmt"
@@ -19,11 +19,11 @@ func (p *Peer) HandleObject(object string, payload []byte) error {
 	if _, exist := p.invs[hash]; exist {
 		return fmt.Errorf("handleTx: %s already exists", object)
 	}
-	invObj := &inv {
-		object: object,
-		raw: payload,
+	invObj := &inv{
+		object:    object,
+		raw:       payload,
 		timestamp: 0,
-		fromIP: nil,
+		fromIP:    nil,
 	}
 	p.invs[hash] = invObj
 	return nil

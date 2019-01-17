@@ -3,8 +3,8 @@ package btc
 // TODO: Rename to script.go
 
 import (
-	"github.com/chainswatch/bclib/serial"
 	"fmt"
+	"github.com/chainswatch/bclib/serial"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,7 +20,7 @@ func isOpPubkeyhash(op []byte) bool {
 func isOpPubkey(op []byte) bool {
 	// TODO: OP_PUSHDATA4
 	dataLength := len(op)
-	if (dataLength != btcEckeyCompressedLength && dataLength != btcEckeyUncompressedLength) {
+	if dataLength != btcEckeyCompressedLength && dataLength != btcEckeyUncompressedLength {
 		return false
 	}
 	return true
@@ -30,10 +30,10 @@ func isOpPubkey(op []byte) bool {
 func scriptIsPubkeyHash(ops [][]byte) []byte {
 	if len(ops) == 5 {
 		if ops[0][0] == opDup &&
-		ops[1][0] == opHash160 &&
-		isOpPubkeyhash(ops[2]) &&
-		ops[3][0] == opEqualverify &&
-		ops[4][0] == opChecksig {
+			ops[1][0] == opHash160 &&
+			isOpPubkeyhash(ops[2]) &&
+			ops[3][0] == opEqualverify &&
+			ops[4][0] == opChecksig {
 			return ops[2]
 		}
 	}
@@ -44,8 +44,8 @@ func scriptIsPubkeyHash(ops [][]byte) []byte {
 func scriptIsScriptHash(ops [][]byte) []byte {
 	if len(ops) == 3 {
 		if ops[0][0] == opHash160 &&
-		isOpPubkeyhash(ops[1]) &&
-		ops[2][0] == opEqual {
+			isOpPubkeyhash(ops[1]) &&
+			ops[2][0] == opEqual {
 			return ops[1]
 		}
 	}
@@ -64,7 +64,7 @@ func scriptIsPubkey(ops [][]byte) []byte {
 
 func scriptIsMultiSig(ops [][]byte) []byte {
 	opLength := len(ops)
-	if opLength < 3 || opLength > (16 + 3) {
+	if opLength < 3 || opLength > (16+3) {
 		return nil
 	}
 	return nil
@@ -81,13 +81,13 @@ func scriptIsOpReturn(ops [][]byte) []byte {
 // followed by a data push between 2 and 40 bytes
 func scriptIsWitnessProgram(script []byte) bool {
 	lengthScript := len(script)
-	if (lengthScript < 4 || lengthScript > 42) {
+	if lengthScript < 4 || lengthScript > 42 {
 		return false
 	}
-	if (script[0] != op0 && (script[0] < op1 || script[0] > op16)) {
+	if script[0] != op0 && (script[0] < op1 || script[0] > op16) {
 		return false
 	}
-	if (int(script[1] + 2) == lengthScript) {
+	if int(script[1]+2) == lengthScript {
 		return true
 	}
 	return false
@@ -124,32 +124,31 @@ func DecodeAddr(txType uint8, hash []byte) (string, error) {
 
 // FIXME: WTF is it useful for?
 func getVersion(op int32) int32 {
-	if (op == op0) {
-		return 0;
+	if op == op0 {
+		return 0
 	}
-	if (op >= op1 && op <= op16) {
+	if op >= op1 && op <= op16 {
 		log.Info("Error in getVersion ", op)
 	}
 	return op - (op1 - 1)
 }
 
-
 /*
 * script:
 * version:
 * Return hash and hash type (P2PKH,P2SH...) from output script
-*/
+ */
 func getPkeyFromScript(script []byte) (txType uint8, hash []byte) {
 	ops, err := getOps(script)
 	if err != nil {
 		return txParseErr, nil
 	}
 	/*
-	opsLength := len(ops)
-	var outputScript string
-	for i := 0; i < opsLength; i++ {
-		outputScript += fmt.Sprintf("%#x ", ops[i])
-	}
+		opsLength := len(ops)
+		var outputScript string
+		for i := 0; i < opsLength; i++ {
+			outputScript += fmt.Sprintf("%#x ", ops[i])
+		}
 	*/
 
 	if hash = scriptIsPubkeyHash(ops); hash != nil {
@@ -162,9 +161,9 @@ func getPkeyFromScript(script []byte) (txType uint8, hash []byte) {
 		txType = txMultisig // TODO: MULTISIG
 	} else if scriptIsWitnessProgram(script) {
 		hash = append(ops[0], ops[1]...)
-		if len(hash) == 20 + 1 {
+		if len(hash) == 20+1 {
 			txType = txP2wpkh
-		} else if len(hash) == 32 + 1 {
+		} else if len(hash) == 32+1 {
 			txType = txP2wsh
 		} else {
 			txType = txUnknown

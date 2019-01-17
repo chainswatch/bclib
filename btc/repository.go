@@ -4,22 +4,22 @@ import (
 	"github.com/chainswatch/bclib/models"
 	"github.com/chainswatch/bclib/parser"
 
-  "github.com/syndtr/goleveldb/leveldb"
-  "github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 
 	"encoding/binary"
 	"os"
 )
 
 type blockFile struct {
-	fileNum				uint32
-	NBlocks				uint32
-	NSize					uint32	
-	NUndoSize			uint32	
-	NHeightFirst	uint32	
-	NHeightLast		uint32	
-	NTimeFirst		uint32	
-	NTimeLast			uint32	
+	fileNum      uint32
+	NBlocks      uint32
+	NSize        uint32
+	NUndoSize    uint32
+	NHeightFirst uint32
+	NHeightLast  uint32
+	NTimeFirst   uint32
+	NTimeLast    uint32
 }
 
 func decodeBlockFileIdx(br parser.Reader) *blockFile {
@@ -29,8 +29,8 @@ func decodeBlockFileIdx(br parser.Reader) *blockFile {
 	f.NUndoSize = uint32(br.ReadVarint())
 	f.NHeightFirst = uint32(br.ReadVarint())
 	f.NHeightLast = uint32(br.ReadVarint())
-	f.NTimeFirst =  uint32(br.ReadVarint())
-	f.NTimeLast =  uint32(br.ReadVarint())
+	f.NTimeFirst = uint32(br.ReadVarint())
+	f.NTimeLast = uint32(br.ReadVarint())
 	return f
 }
 
@@ -82,10 +82,10 @@ func GetFlag(db *leveldb.DB, name []byte) (bool, error) {
 // OpenIndexDb gets transaction index record
 func OpenIndexDb() (*leveldb.DB, error) {
 	dataDir := os.Getenv("DATADIR")
-  db, err := leveldb.OpenFile(dataDir + "/blocks/index", &opt.Options{
-    ReadOnly: true,
-  })
-  return db, err
+	db, err := leveldb.OpenFile(dataDir+"/blocks/index", &opt.Options{
+		ReadOnly: true,
+	})
+	return db, err
 }
 
 /*
@@ -118,7 +118,6 @@ func GetBlockHeaders() {
   }
 }
 */
-
 
 /*
 func getTransaction() {

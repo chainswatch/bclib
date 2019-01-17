@@ -13,7 +13,7 @@ func getNextOp(script []byte) ([]byte, []byte) {
 	case script[0] == opPushdata1 && len(script) > 1:
 		dataLength = uint32(script[1])
 	case script[0] == opPushdata2 && len(script) > 2:
-		dataLength = binary.LittleEndian.Uint32(append([]byte{0,0}, script[1:3]...))
+		dataLength = binary.LittleEndian.Uint32(append([]byte{0, 0}, script[1:3]...))
 	case script[0] == opPushdata4 && len(script) > 4:
 		dataLength = binary.LittleEndian.Uint32(script[1:5])
 	default:
@@ -22,7 +22,7 @@ func getNextOp(script []byte) ([]byte, []byte) {
 	if dataLength >= uint32(len(script)) {
 		return script[1:], nil
 	}
-	return script[1:1+dataLength], script[1+dataLength:]
+	return script[1 : 1+dataLength], script[1+dataLength:]
 }
 
 // Get Ops from Script

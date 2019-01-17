@@ -3,8 +3,8 @@ package btc
 import (
 	"github.com/joho/godotenv"
 
-	"testing"
 	"os"
+	"testing"
 )
 
 func TestExportBlock(t *testing.T) {

@@ -85,7 +85,7 @@ func encodeBase32(hrp string, data []byte) (string, error) {
 	// The resulting bech32 string is the concatenation of the hrp, the
 	// separator 1, data and checksum. Everything after the separator is
 	// represented using the specified charset.
-  dataChars, err := toChars(combined)
+	dataChars, err := toChars(combined)
 	if err != nil {
 		return "", fmt.Errorf("unable to convert data bytes to chars: "+
 			"%v", err)
@@ -93,14 +93,14 @@ func encodeBase32(hrp string, data []byte) (string, error) {
 	return hrp + "1" + dataChars, nil
 }
 
-// EncodeBench32 encodes a binary address into a bech32 string. 
+// EncodeBench32 encodes a binary address into a bech32 string.
 func EncodeBench32(hrp string, src []byte) (string, error) {
-  witness, err := convertBits(src[1:], 8, 5, true)
-  if err != nil {
-    return "", err
-  }
-  data := append(src[:1], witness...)
-  return encodeBase32(hrp, data)
+	witness, err := convertBits(src[1:], 8, 5, true)
+	if err != nil {
+		return "", err
+	}
+	data := append(src[:1], witness...)
+	return encodeBase32(hrp, data)
 }
 
 // toBytes converts each character in the string 'chars' to the value of the

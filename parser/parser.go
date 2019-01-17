@@ -1,62 +1,62 @@
 package parser
 
 import (
-  "encoding/binary"
-  "os"
-  "fmt"
+	"encoding/binary"
+	"fmt"
+	"os"
 )
 
 // Reader is an interface used to decode blocks and transactions
 // it allows to apply the same functions to files and buffers
 type Reader interface {
 	Type() string
-  Peek(int) ([]byte, error)
+	Peek(int) ([]byte, error)
 	Seek(int64, int) (int64, error)
 	Reset()
-  ReadByte() byte
-  ReadBytes(uint64) []byte
-  ReadUint32() uint32
-  ReadUint64() uint64
-  ReadInt32() int32
+	ReadByte() byte
+	ReadBytes(uint64) []byte
+	ReadUint32() uint32
+	ReadUint64() uint64
+	ReadInt32() int32
 	ReadVarint() uint64
 	ReadCompactSize() uint64
 
-  ReadUint16() uint16
+	ReadUint16() uint16
 	Close()
 }
 
 // File allows to use the Reader interface when reading a file
 type File struct {
-  f      		*os.File
-	pos				uint64			// position inside file
-  NFile   	uint32			// file number
+	f     *os.File
+	pos   uint64 // position inside file
+	NFile uint32 // file number
 }
 
 // Buffer allows to use the Reader interface when storing data in memory
 type Buffer struct {
-  b       []byte
-  pos     uint64
+	b   []byte
+	pos uint64
 }
 
 // New allows to declare a new Reader interface from a file or from raw data
 func New(x interface{}) (Reader, error) {
-  switch x.(type) {
-  case []byte:
-    return &Buffer{x.([]byte), 0}, nil
-  case uint32:
+	switch x.(type) {
+	case []byte:
+		return &Buffer{x.([]byte), 0}, nil
+	case uint32:
 		dataDir := os.Getenv("DATADIR")
 		if dataDir == "" {
 			return nil, fmt.Errorf("parser: DATADIR missing")
 		}
-    filepath := fmt.Sprintf("%s/blocks/blk%05d.dat", dataDir, x.(uint32))
-    file, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
-    if err != nil {
-      return nil, err
-    }
-    return &File{f: file, NFile: x.(uint32)}, nil
-  default:
+		filepath := fmt.Sprintf("%s/blocks/blk%05d.dat", dataDir, x.(uint32))
+		file, err := os.OpenFile(filepath, os.O_RDONLY, 0666)
+		if err != nil {
+			return nil, err
+		}
+		return &File{f: file, NFile: x.(uint32)}, nil
+	default:
 		return nil, fmt.Errorf("parser.New(): Unrecognized input type")
-  }
+	}
 }
 
 // CompactSize convert an int to a series of 1 to 8 bytes

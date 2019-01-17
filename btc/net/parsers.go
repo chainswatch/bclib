@@ -3,10 +3,10 @@ package net
 import (
 	"github.com/chainswatch/bclib/parser"
 
-	"net"
-	"fmt"
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"net"
 
 	log "github.com/sirupsen/logrus"
 )

@@ -4,12 +4,12 @@ import (
 	"github.com/chainswatch/bclib/models"
 	"github.com/chainswatch/bclib/parser"
 
+	"fmt"
+	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/joho/godotenv"
-	"testing"
-	"fmt"
 	"os"
+	"testing"
 )
 
 func dummyFunc(_ interface{}) (func(b *models.Block) error, error) {
@@ -69,7 +69,6 @@ func TestBlockFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	buf.Reset()
-
 
 	i := 0
 	for { // TODO: Test EOF

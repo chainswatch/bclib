@@ -4,14 +4,14 @@ import (
 	"github.com/chainswatch/bclib/models"
 	"github.com/chainswatch/bclib/parser"
 
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"fmt"
 
-	"sort"
-	"strings"
-	"strconv"
 	"os"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 // constructs a map of the form map[BlockHeight] = BlockHeader.
@@ -53,14 +53,14 @@ func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader,
 	for k := range files {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, func(i, j int) bool {return keys[i] < keys[j]})
+	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
 	for _, k := range keys {
-		if k > oldb.NFile || k + 1 >= bh.NFile {
+		if k > oldb.NFile || k+1 >= bh.NFile {
 			break
 		}
 		oldf, exist := files[k]
 		if !exist {
-			return fmt.Errorf("closeOldFile: Could not find old file reader. Height %d File %d", oldh, k) 
+			return fmt.Errorf("closeOldFile: Could not find old file reader. Height %d File %d", oldh, k)
 		}
 		oldf.Close()
 		delete(files, k)
@@ -98,14 +98,14 @@ func LoadBlockToFile(path string, height uint32) error {
 			return err
 		}
 	}
-	file.Seek(int64(bh.NDataPos) - 4, 0)
+	file.Seek(int64(bh.NDataPos)-4, 0)
 	nSize := file.ReadUint32()
 	log.Info("Size: ", nSize) // Only for block files
 	content := file.ReadBytes(uint64(nSize))
 
 	fout, err := os.Create(fmt.Sprintf("%s/block%d.dat", path, height))
 	if _, err := fout.Write(content); err != nil {
-			return(err)
+		return (err)
 	}
 	if err = fout.Close(); err != nil {
 		return err
@@ -150,7 +150,7 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn interface{}) error {
 				return err
 			}
 		}
-		file.Seek(int64(bh.NDataPos - 8), 0)
+		file.Seek(int64(bh.NDataPos-8), 0)
 		b, err := DecodeBlock(file)
 		if err != nil {
 			return fmt.Errorf("LoadFile(): Height %d: %s", h, err.Error())
