@@ -2,18 +2,15 @@ package zmq
 
 import (
 	zmq "github.com/pebbe/zmq4"
-	log "github.com/sirupsen/logrus"
 )
 
 // OpenSub opens a ZMQ subscription socket
 func OpenSub(zmqURL string, topics ...string) func(stop bool) ([]string, error) {
 	subscriber, _ := zmq.NewSocket(zmq.SUB) // TODO: Error handling
 	subscriber.Connect("tcp://" + zmqURL)
-	log.Info("Listening to tcp://", zmqURL)
 
 	for _, topic := range topics {
 		subscriber.SetSubscribe(topic)
-		log.Info("Subscribed to ", topic)
 	}
 
 	return func(stop bool) ([]string, error) {
@@ -30,7 +27,6 @@ func OpenSub(zmqURL string, topics ...string) func(stop bool) ([]string, error) 
 func OpenPub(zmqURL string) func(msg []string) error {
 	publisher, _ := zmq.NewSocket(zmq.PUB) // TODO: Error handling
 	publisher.Bind("tcp://" + zmqURL)
-	log.Info("Publishing on tcp://", zmqURL)
 
 	return func(msg []string) error {
 		if msg == nil {

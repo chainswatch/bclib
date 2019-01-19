@@ -5,7 +5,6 @@ package btc
 import (
 	"fmt"
 	"github.com/chainswatch/bclib/serial"
-	log "github.com/sirupsen/logrus"
 )
 
 // Check if OP is a PubkeyHash (length == 20)
@@ -104,8 +103,7 @@ func DecodeAddr(txType uint8, hash []byte) (string, error) {
 	case txP2pk:
 		address = serial.SecToAddress(hash)
 	case txMultisig:
-		log.Info("Script: Multisig, ", len(hash))
-		return "", nil
+		return "", fmt.Errorf("Script: Multisig, %d", len(hash))
 	case txP2wpkh:
 		address, _ = serial.EncodeBench32("bc", hash)
 	case txP2wsh:
@@ -120,17 +118,6 @@ func DecodeAddr(txType uint8, hash []byte) (string, error) {
 		return "", fmt.Errorf("DecodeAddr: Unable to decode addr from script")
 	}
 	return address, nil
-}
-
-// FIXME: WTF is it useful for?
-func getVersion(op int32) int32 {
-	if op == op0 {
-		return 0
-	}
-	if op >= op1 && op <= op16 {
-		log.Info("Error in getVersion ", op)
-	}
-	return op - (op1 - 1)
 }
 
 /*

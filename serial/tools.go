@@ -2,7 +2,6 @@ package serial
 
 import (
 	"encoding/hex"
-	log "github.com/sirupsen/logrus"
 )
 
 // ReverseHex reverses the order of bytes input
@@ -19,11 +18,11 @@ func ReverseHex(b []byte) []byte {
 }
 
 // HexToBinary transforms human readable address into binary address
-func HexToBinary(src []byte) []byte {
+func HexToBinary(src []byte) ([]byte, error) {
 	b := make([]byte, hex.DecodedLen(len(src)))
 	n, err := hex.Decode(b, src)
 	if err != nil {
-		log.Warn(err)
+		return nil, err
 	}
-	return b[:n]
+	return b[:n], nil
 }

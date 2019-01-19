@@ -5,16 +5,16 @@ import (
 	"github.com/chainswatch/bclib/parser"
 	"github.com/chainswatch/bclib/serial"
 
+	"fmt"
 	"bytes"
 	"encoding/binary"
-	log "github.com/sirupsen/logrus"
 )
 
 // Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h
 // const serializeTransactionNoWitness = 0x40000000;
 
 // DecodeTx decodes a transaction
-func DecodeTx(br parser.Reader) *models.Tx {
+func DecodeTx(br parser.Reader) (*models.Tx, error) {
 	var txFlag byte // Check for extended transaction serialization format
 	emptyByte := make([]byte, 32)
 	allowWitness := true // TODO: Port code - !(s.GetVersion() & SERIALIZE_TRANSACTION_NO_WITNESS);
@@ -25,7 +25,7 @@ func DecodeTx(br parser.Reader) *models.Tx {
 	if tx.NVin == 0 { // We are dealing with extended transaction (witness format)
 		txFlag = br.ReadByte()
 		if txFlag != 0x01 { // Must be 1, other flags may be supported in the future
-			log.Warn("Witness tx but flag is ", txFlag, " != 0x01")
+			return nil, fmt.Errorf("Witness tx but flag is %x != 0x01", txFlag)
 		}
 		tx.NVin = uint32(br.ReadCompactSize())
 	}
@@ -36,9 +36,7 @@ func DecodeTx(br parser.Reader) *models.Tx {
 		input.Hash = br.ReadBytes(32)                                         // Transaction hash in a prev transaction
 		input.Index = br.ReadUint32()                                         // Transaction index in a prev tx TODO: Not sure if correctly read
 		if input.Index == 0xFFFFFFFF && !bytes.Equal(input.Hash, emptyByte) { // block-reward case
-			log.Fatal("If Index is 0xFFFFFFFF, then Hash should be nil. ",
-				" Input: ", input.Index,
-				" Hash: ", input.Hash)
+			return nil, fmt.Errorf("If Index is 0xFFFFFFFF, then Hash should be nil. Input: %d, Hash: %x", input.Index, input.Hash)
 		}
 		scriptLength := br.ReadCompactSize()
 		input.Script = br.ReadBytes(scriptLength)
@@ -72,7 +70,7 @@ func DecodeTx(br parser.Reader) *models.Tx {
 
 	tx.Locktime = br.ReadUint32()
 	putTxHash(tx)
-	return tx
+	return tx, nil
 }
 
 func getInputBinary(in models.TxInput) []byte {
@@ -134,6 +132,5 @@ func putTxHash(tx *models.Tx) {
 	binary.LittleEndian.PutUint32(locktime, tx.Locktime)
 	bin = append(bin, locktime...)
 
-	// log.Info(fmt.Sprintf("Appended: %x", bin))
 	tx.Hash = serial.DoubleSha256(bin)
 }

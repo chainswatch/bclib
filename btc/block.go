@@ -68,16 +68,20 @@ func decodeBlockHeaderIdx(br parser.Reader) (bh models.BlockHeader) {
 	return
 }
 
-func decodeBlockTxs(b *models.Block, br parser.Reader) {
+func decodeBlockTxs(b *models.Block, br parser.Reader) error {
 	b.Txs = nil
 
 	b.NTx = uint32(br.ReadCompactSize()) // TODO: Move outside of blockHeader?
 	b.Txs = make([]models.Tx, b.NTx)
 	for t := uint32(0); t < b.NTx; t++ {
-		tx := DecodeTx(br)
+		tx, err := DecodeTx(br)
+		if err != nil {
+			return err
+		}
 		tx.NVout = uint32(len(tx.Vout))
 		b.Txs[t] = *tx
 	}
+	return nil
 }
 
 // DecodeBlock decodes a block

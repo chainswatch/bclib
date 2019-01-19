@@ -188,12 +188,18 @@ func TestTransaction(t *testing.T) {
 
 	for _, test := range tests {
 		// log.Info(test.name)
-		rawtx := serial.HexToBinary(test.rawtx)
+		rawtx, err := serial.HexToBinary(test.rawtx)
+		if err != nil {
+			t.Fatal(err)
+		}
 		rawTx, err := parser.New(rawtx)
 		if err != nil {
 			t.Fatal(err)
 		}
-		tx := DecodeTx(rawTx)
+		tx, err := DecodeTx(rawTx)
+		if err != nil {
+			t.Fatal(err)
+		}
 		txHash := fmt.Sprintf("%x", serial.ReverseHex(tx.Hash))
 		if txHash != test.txhash {
 			t.Errorf("%v: Transaction hash does not match: %v != %v",

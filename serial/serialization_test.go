@@ -52,7 +52,11 @@ func TestSerialization(t *testing.T) {
 	for _, test := range tests {
 		// if strings.Compare(test.hashtype, "SEC") == 0 {
 		if test.hashtype == "SEC" {
-			decoded = SecToAddress(HexToBinary(test.addr))
+			data, err := HexToBinary(test.addr)
+			if err != nil {
+				t.Fatal(err)
+			}
+			decoded = SecToAddress(data)
 		} else {
 			t.Error("Hash type not found")
 		}

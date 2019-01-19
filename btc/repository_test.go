@@ -37,7 +37,10 @@ func TestRepository(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, test := range tests {
-		hash := serial.HexToBinary(test.hash)
+		hash, err := serial.HexToBinary(test.hash)
+		if err != nil {
+			t.Fatal(err)
+		}
 		b, err := blockIndexRecord(db, serial.ReverseHex(hash))
 		if err != nil {
 			t.Fatal(err)
