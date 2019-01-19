@@ -1,1 +1,1 @@
-module git.posc.in/cw/bclib
+module github.com/chainswatch/bclib
