@@ -8,18 +8,23 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var nAddr, nInv, nTx, nPing int
+
 func handlePeers(p *Peer, m *Message, ch *chan bool) error {
 	log.Info(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
 	switch m.Cmd() {
 	case "addr":
-		p.HandleAddr(m.Payload())
+		nAddr++
+		return p.HandleAddr(m.Payload())
 	case "ping":
-		p.HandlePing(m.Payload())
+		nPing++
+		return p.HandlePing(m.Payload())
 	case "inv":
-		p.HandleInv(m.Payload())
+		nInv++
+		return p.HandleInv(m.Payload())
 	case "tx":
-		p.HandleObject("tx", m.Payload())
-		return fmt.Errorf("OK")
+		nTx++
+		return p.HandleTx(m.Payload())
 	case "reject":
 		return fmt.Errorf("Reject error")
 	default:
@@ -47,10 +52,24 @@ func TestNetwork(t *testing.T) {
 	go func() {
 		err = net.Watch(handlePeers, nil)
 	}()
-	time.Sleep(10 * time.Second)
-	if err != nil && err.Error() != "OK" {
+	time.Sleep(20 * time.Second)
+	if err != nil {
 		t.Fatal(err)
 	}
+
+	if nAddr == 0 {
+		t.Error("nAddr = 0")
+	}
+	if nPing == 0 {
+		t.Error("nPing = 0")
+	}
+	if nInv == 0 {
+		t.Error("nInv = 0")
+	}
+	if nTx == 0 {
+		t.Error("nTx = 0")
+	}
+	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
 
 	/*
 		net = Network{}

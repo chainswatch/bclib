@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// HandleObject manages tx and block messages
+// HandleObject manages and saves tx and block messages
 func (p *Peer) HandleObject(object string, payload []byte) error {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
@@ -19,6 +19,7 @@ func (p *Peer) HandleObject(object string, payload []byte) error {
 	if _, exist := p.invs[hash]; exist {
 		return fmt.Errorf("handleTx: %s already exists", object)
 	}
+	// TODO: Do not keep all the txs/blocks in memory. Choose a buffer size.
 	invObj := &inv{
 		object:    object,
 		raw:       payload,
@@ -26,6 +27,16 @@ func (p *Peer) HandleObject(object string, payload []byte) error {
 		fromIP:    nil,
 	}
 	p.invs[hash] = invObj
+	return nil
+}
+
+// HandleObject 
+func (p *Peer) HandleTx(payload []byte) error {
+	var hash [32]byte
+	copy(hash[:], serial.DoubleSha256(payload))
+	if _, asked := p.nextInvs[hash]; !asked {
+		return fmt.Errorf("handleTx: Hash not found: %x", hash)
+	}
 	return nil
 }
 
