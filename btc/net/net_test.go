@@ -10,7 +10,7 @@ import (
 
 var nAddr, nInv, nTx, nPing int
 
-func handlePeers(p *Peer, m *Message, ch *chan bool) error {
+func handlePeers(p *Peer, m *Message, _ interface{}) error {
 	log.Info(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
 	switch m.Cmd() {
 	case "addr":

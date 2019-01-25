@@ -77,10 +77,10 @@ func (n *Network) New() {
 }
 
 // apply is passed as an argument to Watch
-type apply func(*Peer, *Message, *chan bool) error
+type apply func(*Peer, *Message, interface{}) error
 
 // Watch connected peers and apply fn when a message is received
-func (n *Network) Watch(fn apply, ch *chan bool) error {
+func (n *Network) Watch(fn apply, argFn interface{}) error {
 	// TODO: process peers in parallel (or one by one with select?)
 	peer := n.peers[0]
 	for {
@@ -88,7 +88,7 @@ func (n *Network) Watch(fn apply, ch *chan bool) error {
 		if err != nil {
 			return err
 		}
-		if err = fn(&peer, msg, ch); err != nil {
+		if err = fn(&peer, msg, argFn); err != nil {
 			return err
 		}
 	}
