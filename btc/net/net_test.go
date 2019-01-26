@@ -72,16 +72,13 @@ func TestNetwork(t *testing.T) {
 	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
 
 	/*
-		net = Network{}
-		net.New()
-		if err := net.AddPeer("72.65.246.83", 8333); err != nil {
-			t.Fatal(err)
-		}
+	time.Sleep(10 * time.Second)
+	if err := net.AddPeer("72.65.246.83", 8333); err != nil {
+		t.Fatal(err)
+	}
 
-		if err := net.Watch(testPeer, nil); err != nil {
-			t.Fatal(err)
-		}
-
+	if err := net.Watch(testPeer, nil); err != nil {
+		t.Fatal(err)
+	}
 	*/
-
 }

@@ -10,8 +10,6 @@ import (
 
 	"fmt"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func checkType(received string, expected string) error {
@@ -76,7 +74,7 @@ func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
 			p.nextInvs[hash] = true
 			b.Write(inventory[i])
 			newCount++
-			log.Debug(fmt.Sprintf("Debug inv: %x", inventory[i][:4]))
+			// log.Debug(fmt.Sprintf("Debug inv: %x", inventory[i][:4]))
 		}
 	}
 	buf := b.Bytes()
