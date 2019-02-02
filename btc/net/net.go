@@ -56,17 +56,6 @@ type Message struct {
 	payload []byte
 }
 
-// AddPeer adds a new peer
-func (n *Network) AddPeer(ip string, port uint16) error {
-	peer := Peer{}
-	if err := peer.newConnection(ip, port); err != nil {
-		return err
-	}
-	n.peers = append(n.peers, peer)
-	n.nPeers++
-	return peer.handshake(n.version, n.services, n.userAgent)
-}
-
 // New initializes network structure
 func (n *Network) New() {
 	n.version = 70015

@@ -32,6 +32,21 @@ func handlePeers(p *Peer, m *Message, _ interface{}) error {
 	return nil
 }
 
+func TestNetworkOne(t *testing.T) {
+	net := Network{}
+	net.New()
+	if err := net.AddPeer("0.0.0.0", 8333); err == nil {
+		t.Fatal(err)
+	}
+
+	con := []string{"37.59.38.74","112.119.69.152","121.217.15.68","121.217.15.68"}
+	for _, c := range con { 
+		if err := net.AddPeer(c, 8333); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
 func TestNetwork(t *testing.T) {
 	/*
 		tests := []msg {
@@ -42,9 +57,6 @@ func TestNetwork(t *testing.T) {
 	*/
 	log.SetLevel(log.DebugLevel)
 
-
-
-
 	net := Network{}
 	net.New()
 	if err := net.AddPeer("37.59.38.74", 8333); err != nil {
@@ -53,7 +65,7 @@ func TestNetwork(t *testing.T) {
 
 	var err error
 	go func() {
-		err = net.Watch(handlePeers, nil)
+		net.Watch(handlePeers, nil)
 	}()
 	time.Sleep(20 * time.Second)
 	if err != nil {
@@ -81,7 +93,7 @@ func TestNetwork(t *testing.T) {
 	}
 
 	go func() {
-		err = net.Watch(handlePeers, nil)
+		net.Watch(handlePeers, nil)
 	}()
 
 
