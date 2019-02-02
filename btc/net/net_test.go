@@ -42,6 +42,9 @@ func TestNetwork(t *testing.T) {
 	*/
 	log.SetLevel(log.DebugLevel)
 
+
+
+
 	net := Network{}
 	net.New()
 	if err := net.AddPeer("37.59.38.74", 8333); err != nil {
@@ -70,6 +73,17 @@ func TestNetwork(t *testing.T) {
 		t.Error("nTx = 0")
 	}
 	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
+
+	net = Network{}
+	net.New()
+	if err := net.AddPeer("96.30.100.27", 8333); err != nil {
+		t.Error(err)
+	}
+
+	go func() {
+		err = net.Watch(handlePeers, nil)
+	}()
+
 
 	/*
 	time.Sleep(10 * time.Second)

@@ -80,17 +80,8 @@ func (n *Network) New() {
 type apply func(*Peer, *Message, interface{}) error
 
 // Watch connected peers and apply fn when a message is received
-func (n *Network) Watch(fn apply, argFn interface{}) error {
-	// TODO: process peers in parallel (or one by one with select?)
-	peer := n.peers[0]
-	for {
-		msg, err := peer.waitMsg()
-		if err != nil {
-			return err
-		}
-		if err = fn(&peer, msg, argFn); err != nil {
-			return err
-		}
+func (n *Network) Watch(fn apply, argFn interface{}) {
+	for _, peer := range n.peers {
+		go peer.handleConnection(fn, argFn)
 	}
-	return nil
 }
