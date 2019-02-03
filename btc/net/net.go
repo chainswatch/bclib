@@ -58,7 +58,7 @@ type Message struct {
 	payload []byte
 }
 
-//
+// ConnectedPeers returns the number of connected peers
 func (n *Network) ConnectedPeers() uint32 {
 	return n.nPeers
 }

@@ -30,7 +30,7 @@ func (p *Peer) HandleObject(object string, payload []byte) error {
 	return nil
 }
 
-// HandleObject 
+// HandleTx manages tx messages
 func (p *Peer) HandleTx(payload []byte) error {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
@@ -60,7 +60,7 @@ func (p *Peer) HandleAddr(payload []byte) error {
 	return nil
 }
 
-// HandleVersion
+// HandleVersion handles version message
 func (p *Peer) HandleVersion(payload []byte) error {
 	buf, err := parser.New(payload)
 	if err != nil {
@@ -69,7 +69,6 @@ func (p *Peer) HandleVersion(payload []byte) error {
 	version := buf.ReadUint32()
 	services := buf.ReadUint64()
 	ts := buf.ReadUint64()
-	log.Info("Peer version: ", p.ip, version, services, ts)
 	return nil
 }
 
