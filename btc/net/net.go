@@ -45,8 +45,10 @@ type Network struct {
 	services  uint32
 	userAgent string
 	port      uint32
+
 	peers     []Peer
 	nPeers    uint32
+	maxPeers	uint32
 }
 
 // Message holds components of a network message
@@ -56,6 +58,11 @@ type Message struct {
 	payload []byte
 }
 
+//
+func (n *Network) ConnectedPeers() uint32 {
+	return n.nPeers
+}
+
 // New initializes network structure
 func (n *Network) New() {
 	n.version = 70015
@@ -63,6 +70,7 @@ func (n *Network) New() {
 	n.userAgent = "/CW:01/"
 	n.port = 8333
 	n.nPeers = 0
+	n.maxPeers = 10
 }
 
 // apply is passed as an argument to Watch
@@ -70,7 +78,9 @@ type apply func(*Peer, *Message, interface{}) error
 
 // Watch connected peers and apply fn when a message is received
 func (n *Network) Watch(fn apply, argFn interface{}) {
-	for _, peer := range n.peers {
-		go peer.handleConnection(fn, argFn)
+	for _,p := range n.peers {
+		p := p
+		go p.handleConnection(fn, argFn)
 	}
 }
+

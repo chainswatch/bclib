@@ -11,7 +11,7 @@ import (
 var nAddr, nInv, nTx, nPing int
 
 func handlePeers(p *Peer, m *Message, _ interface{}) error {
-	log.Info(fmt.Sprintf("Received: %s %d %x", m.Cmd(), m.Length(), m.Payload()))
+	log.Info(fmt.Sprintf("%s Received: %s %d %x", p.ip, m.Cmd(), m.Length(), m.Payload()))
 	switch m.Cmd() {
 	case "addr":
 		nAddr++
@@ -39,12 +39,73 @@ func TestNetworkOne(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	con := []string{"37.59.38.74","112.119.69.152","121.217.15.68","121.217.15.68"}
+	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
 	for _, c := range con { 
-		if err := net.AddPeer(c, 8333); err != nil {
-			t.Error(err)
+		if err := net.AddPeer(c, 8333); err == nil {
+			break
 		}
 	}
+
+	if net.ConnectedPeers() == 0 {
+		t.Fatal("Could not connect to a single peer")
+	}
+
+	net.Watch(handlePeers, nil)
+
+	time.Sleep(20 * time.Second)
+
+	if nAddr == 0 {
+		t.Error("nAddr = 0")
+	}
+	if nPing == 0 {
+		t.Error("nPing = 0")
+	}
+	if nInv == 0 {
+		t.Error("nInv = 0")
+	}
+	if nTx == 0 {
+		t.Error("nTx = 0")
+	}
+	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
+	t.Error()
+}
+
+func TestNetworkMultiple(t *testing.T) {
+	net := Network{}
+	net.New()
+
+	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
+	count := 0
+	for _, c := range con { 
+		if err := net.AddPeer(c, 8333); err == nil {
+			count++
+		}
+		if count == 2 {
+			break
+		}
+	}
+	if count < 2 {
+		t.Fatal("Failed to connect to enough peers")
+	}
+
+	net.Watch(handlePeers, nil)
+
+	time.Sleep(20 * time.Second)
+
+	if nAddr == 0 {
+		t.Error("nAddr = 0")
+	}
+	if nPing == 0 {
+		t.Error("nPing = 0")
+	}
+	if nInv == 0 {
+		t.Error("nInv = 0")
+	}
+	if nTx == 0 {
+		t.Error("nTx = 0")
+	}
+	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
+	t.Error()
 }
 
 func TestNetwork(t *testing.T) {
@@ -63,14 +124,10 @@ func TestNetwork(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var err error
 	go func() {
 		net.Watch(handlePeers, nil)
 	}()
 	time.Sleep(20 * time.Second)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	if nAddr == 0 {
 		t.Error("nAddr = 0")

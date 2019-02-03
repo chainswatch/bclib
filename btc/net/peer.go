@@ -37,9 +37,11 @@ func (p *Peer) waitMsg() (*Message, error) {
 		}
 		data = append(data, r...)
 	}
-	return parseMsg(data), nil
+	log.Info(fmt.Sprintf("%s parseMsg", p.ip))
+	return parseMsg(data)
 }
 
+// TODO: remove log
 func (p *Peer) handleConnection(fn apply, argFn interface{}) {
 	for {
 		msg, err := p.waitMsg()
@@ -56,14 +58,16 @@ func (p *Peer) handleConnection(fn apply, argFn interface{}) {
 
 // Open a new connection with peer
 func openConnection(addr string) (*bufio.ReadWriter, error) {
-	conn, err := net.DialTimeout("tcp", addr, time.Second)
+	dialer := &net.Dialer{
+		Timeout:   1 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}
+	conn, err := dialer.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("openConnection: ", conn.RemoteAddr())
 	return bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)), nil
 }
-
 
 // newConnection initializes peer structure
 func (p *Peer) newConnection(ip string, port uint16) error {

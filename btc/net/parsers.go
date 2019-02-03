@@ -44,14 +44,15 @@ func parseInv(payload []byte) ([][]byte, uint64, error) {
 	return inventory, count, nil
 }
 
-func parseMsg(data []byte) *Message {
+func parseMsg(data []byte) (*Message, error) {
 	message := Message{}
+	log.Info("Msg Length ", len(data))
 	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
 	message.length = binary.LittleEndian.Uint32(data[12:16])
-	// 16-20 = checksum
+	// TODO: 16-20 = checksum
 	message.payload = data[20:len(data)]
 	if int(message.length) != len(message.payload) {
-		log.Warn(fmt.Sprintf("parseMsg: length and len(payload) differ: %d != %d", message.length, len(message.payload)))
+		return nil, fmt.Errorf("parseMsg: length and len(payload) differ: %d != %d", message.length, len(message.payload))
 	}
-	return &message
+	return &message, nil
 }
