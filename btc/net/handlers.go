@@ -66,9 +66,9 @@ func (p *Peer) HandleVersion(payload []byte) error {
 	if err != nil {
 		return err
 	}
-	version := buf.ReadUint32()
-	services := buf.ReadUint64()
-	ts := buf.ReadUint64()
+	p.version = buf.ReadUint32()
+	p.services = buf.ReadUint64()
+	p.timestamp = buf.ReadUint64()
 	return nil
 }
 
