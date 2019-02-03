@@ -44,46 +44,15 @@ func parseInv(payload []byte) ([][]byte, uint64, error) {
 	return inventory, count, nil
 }
 
-func parseMsg(data []byte) *Message {
+func parseMsg(data []byte) (*Message, error) {
 	message := Message{}
+	log.Info("Msg Length ", len(data))
 	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
 	message.length = binary.LittleEndian.Uint32(data[12:16])
-	// 16-20 = checksum
+	// TODO: 16-20 = checksum
 	message.payload = data[20:len(data)]
 	if int(message.length) != len(message.payload) {
-		log.Warn(fmt.Sprintf("parseMsg: length and len(payload) differ: %d != %d", message.length, len(message.payload)))
+		return nil, fmt.Errorf("parseMsg: length and len(payload) differ: %d != %d", message.length, len(message.payload))
 	}
-	return &message
-}
-
-// waitMsg waits next message from peer
-func (p *Peer) waitMsg() (*Message, error) {
-	data := make([]byte, 0)
-	var flag bool
-	for {
-		r, err := p.rw.ReadBytes(byte(0xD9)) // TODO: Timeout
-		if err != nil {
-			if err.Error() != "EOF" {
-				return nil, err
-			}
-			flag = true
-		}
-		if bytes.Contains(r, []byte{0xF9, 0xBE, 0xB4, 0xD9}) { // TODO: Improve
-			r = r[:len(r)-4]
-			flag = true
-		}
-		if flag {
-			if len(r) != 0 {
-				data = append(data, r...)
-			}
-			if len(data) != 0 {
-				break
-			}
-			flag = false
-			continue
-		}
-		data = append(data, r...)
-	}
-	message := parseMsg(data)
-	return message, nil
+	return &message, nil
 }

@@ -45,8 +45,10 @@ type Network struct {
 	services  uint32
 	userAgent string
 	port      uint32
+
 	peers     []Peer
 	nPeers    uint32
+	maxPeers	uint32
 }
 
 // Message holds components of a network message
@@ -56,15 +58,9 @@ type Message struct {
 	payload []byte
 }
 
-// AddPeer adds a new peer
-func (n *Network) AddPeer(ip string, port uint16) error {
-	peer := Peer{}
-	if err := peer.newConnection(ip, port); err != nil {
-		return err
-	}
-	n.peers = append(n.peers, peer)
-	n.nPeers++
-	return peer.handshake(n.version, n.services, n.userAgent)
+// ConnectedPeers returns the number of connected peers
+func (n *Network) ConnectedPeers() uint32 {
+	return n.nPeers
 }
 
 // New initializes network structure
@@ -74,23 +70,17 @@ func (n *Network) New() {
 	n.userAgent = "/CW:01/"
 	n.port = 8333
 	n.nPeers = 0
+	n.maxPeers = 10
 }
 
 // apply is passed as an argument to Watch
 type apply func(*Peer, *Message, interface{}) error
 
 // Watch connected peers and apply fn when a message is received
-func (n *Network) Watch(fn apply, argFn interface{}) error {
-	// TODO: process peers in parallel (or one by one with select?)
-	peer := n.peers[0]
-	for {
-		msg, err := peer.waitMsg()
-		if err != nil {
-			return err
-		}
-		if err = fn(&peer, msg, argFn); err != nil {
-			return err
-		}
+func (n *Network) Watch(fn apply, argFn interface{}) {
+	for _,p := range n.peers {
+		p := p
+		go p.handleConnection(fn, argFn)
 	}
-	return nil
 }
+
