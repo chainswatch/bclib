@@ -8,8 +8,8 @@ import (
 func NewQueue(size int) *Queue {
 	return &Queue{
 		hashes: make([][32]byte, size),
-		invs: make(map[[32]byte]*inv),
-		size:  size,
+		invs: 	make(map[[32]byte]*inv),
+		size:  	size,
 	}
 }
 
@@ -21,6 +21,11 @@ type Queue struct {
 	head  	int
 	tail  	int
 	count 	int
+}
+
+func (q *Queue) Exists(hash [32]byte) bool {
+	_, exists := q.invs[hash]
+	return exists
 }
 
 // Push adds a node to the queue.

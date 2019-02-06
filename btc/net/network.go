@@ -29,7 +29,7 @@ func (n *Network) Watch(fn apply, argFn interface{}) {
 // AddPeer adds a new peer
 func (n *Network) AddPeer(ip string, port uint16) error {
 	peer := Peer{}
-	if err := peer.newConnection(ip, port); err != nil {
+	if err := peer.new(ip, port); err != nil {
 		return err
 	}
 	n.peers = append(n.peers, peer)

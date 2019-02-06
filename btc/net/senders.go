@@ -70,8 +70,7 @@ func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
 	newCount := uint64(0)
 	for i := uint64(0); i < count; i++ {
 		copy(hash[:], inventory[i][4:])
-		if _, found := p.invs[hash]; !found { // if not exist
-			p.nextInvs[hash] = true
+		if !p.queue.Exists(hash) {
 			b.Write(inventory[i])
 			newCount++
 			// log.Debug(fmt.Sprintf("Debug inv: %x", inventory[i][:4]))

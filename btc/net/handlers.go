@@ -13,31 +13,13 @@ import (
 func (p *Peer) HandleObject(object string, payload []byte) error {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
-	if _, asked := p.nextInvs[hash]; !asked {
-		return fmt.Errorf("handleTx: Hash not found: %x", hash)
-	}
-	if _, exist := p.invs[hash]; exist {
-		return fmt.Errorf("handleTx: %s already exists", object)
-	}
-	// TODO: Do not keep all the txs/blocks in memory. Choose a buffer size.
-	invObj := &inv{
+	inventory := &inv{
 		object:    object,
 		raw:       payload,
 		timestamp: 0,
 		fromIP:    nil,
 	}
-	p.invs[hash] = invObj
-	return nil
-}
-
-// HandleTx manages tx messages
-func (p *Peer) HandleTx(payload []byte) error {
-	var hash [32]byte
-	copy(hash[:], serial.DoubleSha256(payload))
-	if _, asked := p.nextInvs[hash]; !asked {
-		return fmt.Errorf("handleTx: Hash not found: %x", hash)
-	}
-	return nil
+	return p.queue.Push(hash, inventory);
 }
 
 //sendheaders

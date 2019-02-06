@@ -36,8 +36,7 @@ type Peer struct {
 	services  uint64
 
 	rw       *bufio.ReadWriter
-	invs     map[[32]byte]*inv // Stores raw txs and blocks
-	nextInvs map[[32]byte]bool // Buffer waiting for data
+	queue    *Queue // Stores raw txs and blocks
 }
 
 // Network holds information about the network status
