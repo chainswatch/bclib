@@ -14,8 +14,11 @@ git:
 
 before_script:
   - go install github.com/mgechev/revive
+  - curl http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/xUbuntu_14.04/Release.key | sudo apt-key add -
+  - echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/xUbuntu_14.04/ ./" | sudo tee -a /etc/apt/sources.list > /dev/null
+  - sudo apt-get update -qq -y
+  - sudo apt-get install -y libczmq-dev
 
 script:
   - make lint
-  - make test
   - make coverage
