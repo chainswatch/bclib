@@ -9,9 +9,11 @@ env:
 go:
   - 1.11
 
-# Only clone the most recent commit.
 git:
   depth: 1
+
+before_script:
+  - go install -mod vendor github.com/mgechev/revive
 
 script:
   - make lint
