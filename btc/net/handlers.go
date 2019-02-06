@@ -10,34 +10,19 @@ import (
 )
 
 // HandleObject manages and saves tx and block messages
-func (p *Peer) HandleObject(object string, payload []byte) error {
+func (p *Peer) HandleObject(object string, payload []byte) (*Inv, error) {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
-	if _, asked := p.nextInvs[hash]; !asked {
-		return fmt.Errorf("handleTx: Hash not found: %x", hash)
-	}
-	if _, exist := p.invs[hash]; exist {
-		return fmt.Errorf("handleTx: %s already exists", object)
-	}
-	// TODO: Do not keep all the txs/blocks in memory. Choose a buffer size.
-	invObj := &inv{
+	inventory := &Inv{
 		object:    object,
 		raw:       payload,
 		timestamp: 0,
 		fromIP:    nil,
 	}
-	p.invs[hash] = invObj
-	return nil
-}
-
-// HandleTx manages tx messages
-func (p *Peer) HandleTx(payload []byte) error {
-	var hash [32]byte
-	copy(hash[:], serial.DoubleSha256(payload))
-	if _, asked := p.nextInvs[hash]; !asked {
-		return fmt.Errorf("handleTx: Hash not found: %x", hash)
+	if err := p.queue.Push(hash, inventory); err != nil {
+		return nil, err
 	}
-	return nil
+	return inventory, nil
 }
 
 //sendheaders
@@ -66,9 +51,9 @@ func (p *Peer) HandleVersion(payload []byte) error {
 	if err != nil {
 		return err
 	}
-	version := buf.ReadUint32()
-	services := buf.ReadUint64()
-	ts := buf.ReadUint64()
+	p.version = buf.ReadUint32()
+	p.services = buf.ReadUint64()
+	p.timestamp = buf.ReadUint64()
 	return nil
 }
 

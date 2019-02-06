@@ -24,7 +24,8 @@ func handlePeers(p *Peer, m *Message, _ interface{}) error {
 		return p.HandleInv(m.Payload())
 	case "tx":
 		nTx++
-		return p.HandleTx(m.Payload())
+		_, err := p.HandleObject("tx", m.Payload())
+		return err
 	case "reject":
 		return fmt.Errorf("Reject error")
 	default:

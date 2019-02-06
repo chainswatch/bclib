@@ -28,3 +28,5 @@ warningCode = 0
 [rule.unused-parameter]
 [rule.unreachable-code]
 [rule.redefines-builtin-id]
+
+[range-val-in-closure]

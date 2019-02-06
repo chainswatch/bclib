@@ -42,7 +42,7 @@ func (p *Peer) waitMsg() (*Message, error) {
 }
 
 // TODO: remove log
-func (p *Peer) handleConnection(fn apply, argFn interface{}) {
+func (p *Peer) handle(fn apply, argFn interface{}) {
 	for {
 		msg, err := p.waitMsg()
 		if err != nil {
@@ -70,7 +70,7 @@ func openConnection(addr string) (*bufio.ReadWriter, error) {
 }
 
 // newConnection initializes peer structure
-func (p *Peer) newConnection(ip string, port uint16) error {
+func (p *Peer) new(ip string, port uint16) error {
 	p.ip = net.ParseIP(ip)
 	p.port = port
 
@@ -80,18 +80,6 @@ func (p *Peer) newConnection(ip string, port uint16) error {
 	}
 	p.rw = rw
 
-	p.invs = make(map[[32]byte]*inv)
-	p.nextInvs = make(map[[32]byte]bool)
+	p.queue = NewQueue(10000)
 	return nil
-}
-
-// AddPeer adds a new peer
-func (n *Network) AddPeer(ip string, port uint16) error {
-	peer := Peer{}
-	if err := peer.newConnection(ip, port); err != nil {
-		return err
-	}
-	n.peers = append(n.peers, peer)
-	n.nPeers++
-	return peer.handshake(n.version, n.services, n.userAgent)
 }
