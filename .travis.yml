@@ -1,0 +1,27 @@
+sudo: false
+
+language: go
+
+# Force-enable Go modules. This will be unnecessary when Go 1.12 lands.
+env:
+  - GO111MODULE=on
+
+go:
+  - 1.11
+
+git:
+  depth: 1
+
+before_script:
+  - go install github.com/mgechev/revive
+  - curl http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/xUbuntu_14.04/Release.key | sudo apt-key add -
+  - echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/xUbuntu_14.04/ ./" | sudo tee -a /etc/apt/sources.list > /dev/null
+  - sudo apt-get update -qq -y
+  - sudo apt-get install -y libczmq-dev
+
+script:
+  - make lint
+  - make coverage
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

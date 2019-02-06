@@ -11,7 +11,7 @@ import (
 var nAddr, nInv, nTx, nPing int
 
 func handlePeers(p *Peer, m *Message, _ interface{}) error {
-	log.Info(fmt.Sprintf("%s Received: %s %d %x", p.ip, m.Cmd(), m.Length(), m.Payload()))
+	// log.Info(fmt.Sprintf("%s Received: %s %d %x", p.ip, m.Cmd(), m.Length(), m.Payload()))
 	switch m.Cmd() {
 	case "addr":
 		nAddr++
@@ -68,7 +68,6 @@ func TestNetworkOne(t *testing.T) {
 		t.Error("nTx = 0")
 	}
 	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
-	t.Error()
 }
 
 func TestNetworkMultiple(t *testing.T) {
@@ -106,7 +105,6 @@ func TestNetworkMultiple(t *testing.T) {
 		t.Error("nTx = 0")
 	}
 	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
-	t.Error()
 }
 
 func TestNetwork(t *testing.T) {
@@ -153,16 +151,4 @@ func TestNetwork(t *testing.T) {
 	go func() {
 		net.Watch(handlePeers, nil)
 	}()
-
-
-	/*
-	time.Sleep(10 * time.Second)
-	if err := net.AddPeer("72.65.246.83", 8333); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := net.Watch(testPeer, nil); err != nil {
-		t.Fatal(err)
-	}
-	*/
 }
