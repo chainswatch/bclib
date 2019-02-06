@@ -13,7 +13,7 @@ git:
   depth: 1
 
 before_script:
-  - go install -mod vendor github.com/mgechev/revive
+  - go install github.com/mgechev/revive
 
 script:
   - make lint
