@@ -66,6 +66,7 @@ func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader,
 	return nil
 }
 
+// LoadBlockToFile prints block content in a file
 func LoadBlockToFile(path string, height uint32) error {
 	lookup, err := loadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
@@ -103,12 +104,9 @@ func LoadBlockToFile(path string, height uint32) error {
 
 	fout, err := os.Create(fmt.Sprintf("%s/block%d.dat", path, height))
 	if _, err := fout.Write(content); err != nil {
-		return (err)
-	}
-	if err = fout.Close(); err != nil {
 		return err
 	}
-	return nil
+	return fout.Close()
 }
 
 type apply func(interface{}) (func(b *models.Block) error, error)
