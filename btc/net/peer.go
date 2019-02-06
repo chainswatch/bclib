@@ -37,7 +37,6 @@ func (p *Peer) waitMsg() (*Message, error) {
 		}
 		data = append(data, r...)
 	}
-	log.Info(fmt.Sprintf("%s parseMsg", p.ip))
 	return parseMsg(data)
 }
 

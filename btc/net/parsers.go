@@ -45,7 +45,6 @@ func parseInv(payload []byte) ([][]byte, uint64, error) {
 
 func parseMsg(data []byte) (*Message, error) {
 	message := Message{}
-	log.Info("Msg Length ", len(data))
 	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
 	message.length = binary.LittleEndian.Uint32(data[12:16])
 	// TODO: 16-20 = checksum
