@@ -19,8 +19,8 @@ const (
 	networkMagic = 0xD9B4BEF9
 )
 
-// Inventory structure
-type inv struct {
+// Inv structure
+type Inv struct {
 	object    string
 	timestamp uint32
 	fromIP    net.IP

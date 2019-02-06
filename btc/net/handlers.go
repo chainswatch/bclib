@@ -10,16 +10,19 @@ import (
 )
 
 // HandleObject manages and saves tx and block messages
-func (p *Peer) HandleObject(object string, payload []byte) error {
+func (p *Peer) HandleObject(object string, payload []byte) (*Inv, error) {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
-	inventory := &inv{
+	inventory := &Inv{
 		object:    object,
 		raw:       payload,
 		timestamp: 0,
 		fromIP:    nil,
 	}
-	return p.queue.Push(hash, inventory);
+	if err := p.queue.Push(hash, inventory); err != nil {
+		return nil, err
+	}
+	return inventory, nil
 }
 
 //sendheaders

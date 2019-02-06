@@ -8,7 +8,7 @@ import (
 func NewQueue(size int) *Queue {
 	return &Queue{
 		hashes: make([][32]byte, size),
-		invs: 	make(map[[32]byte]*inv),
+		invs: 	make(map[[32]byte]*Inv),
 		size:  	size,
 	}
 }
@@ -16,20 +16,21 @@ func NewQueue(size int) *Queue {
 // Queue is a basic FIFO queue based on a circular list that resizes as needed.
 type Queue struct {
 	hashes 	[][32]byte
-	invs		map[[32]byte]*inv
+	invs		map[[32]byte]*Inv
 	size  	int
 	head  	int
 	tail  	int
 	count 	int
 }
 
+// Exists test if element already exists in queue or not
 func (q *Queue) Exists(hash [32]byte) bool {
 	_, exists := q.invs[hash]
 	return exists
 }
 
 // Push adds a node to the queue.
-func (q *Queue) Push(hash [32]byte, inventory *inv) error {
+func (q *Queue) Push(hash [32]byte, inventory *Inv) error {
 	// TODO: Check if already exists
 	if _, exists := q.invs[hash]; exists {
 		return fmt.Errorf("Hash already exists")
