@@ -36,13 +36,12 @@ func (p *Peer) HandlePing(nonce []byte) error {
 //feefilter
 
 // HandleAddr parse peer addresses (version >= 31402)
-func (p *Peer) HandleAddr(payload []byte) error {
+func (p *Peer) HandleAddr(payload []byte) ([]Peer, error) {
 	peers, err := parseAddr(payload)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	log.Debug("Addr: Number of peers received: ", len(peers))
-	return nil
+	return peers, nil
 }
 
 // HandleVersion handles version message
