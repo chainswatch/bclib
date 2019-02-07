@@ -7,8 +7,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // ParseAddr returns peer slice from payload

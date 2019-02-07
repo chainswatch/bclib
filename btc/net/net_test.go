@@ -15,7 +15,8 @@ func handlePeers(p *Peer, m *Message, _ interface{}) error {
 	switch m.Cmd() {
 	case "addr":
 		nAddr++
-		return p.HandleAddr(m.Payload())
+		_, err := p.HandleAddr(m.Payload())
+		return err
 	case "ping":
 		nPing++
 		return p.HandlePing(m.Payload())

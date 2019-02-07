@@ -5,7 +5,6 @@ import (
 	"github.com/chainswatch/bclib/serial"
 
 	"fmt"
-
 	log "github.com/sirupsen/logrus"
 )
 
