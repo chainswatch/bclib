@@ -46,8 +46,7 @@ type Network struct {
 	userAgent string
 	port      uint32
 
-	peers     []Peer
-	nPeers    uint32
+	peers     map[string]*Peer
 	maxPeers	uint32
 }
 

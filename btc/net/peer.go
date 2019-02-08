@@ -40,8 +40,7 @@ func (p *Peer) waitMsg() (*Message, error) {
 	return parseMsg(data)
 }
 
-// TODO: remove log
-func (p *Peer) handle(fn apply, argFn interface{}) {
+func (p *Peer) action(c chan bool, fn apply, argFn interface{}) {
 	for {
 		msg, err := p.waitMsg()
 		if err != nil {
@@ -52,6 +51,7 @@ func (p *Peer) handle(fn apply, argFn interface{}) {
 			log.Warn(err)
 			break
 		}
+		c <- true
 	}
 }
 
