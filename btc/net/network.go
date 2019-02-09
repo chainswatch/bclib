@@ -31,6 +31,7 @@ func (n *Network) handle(p *Peer, fn apply, argFn interface{}) {
 		case <-chAction:
 		case <-time.After(60 * time.Second):
 			log.Warn("60 seconds passed without receiving any message from ", p.ip)
+			delete(n.peers, p.ip.String())
 			break
 		}
 	}
@@ -39,20 +40,16 @@ func (n *Network) handle(p *Peer, fn apply, argFn interface{}) {
 // apply is passed as an argument to Watch
 type apply func(*Peer, *Message, interface{}) error
 
-// Watch connected peers and apply fn when a message is received
-func (n *Network) Watch(fn apply, argFn interface{}) {
-	for _,p := range n.peers {
-		p := p
-		go n.handle(p, fn, argFn)
-	}
-}
-
 // AddPeer adds a new peer
-func (n *Network) AddPeer(ip string, port uint16) error {
-	peer := Peer{}
-	if err := peer.new(ip, port); err != nil {
+func (n *Network) AddPeer(ip string, port uint16, fn apply, argFn interface{}) error {
+	p:= Peer{}
+	if err := p.new(ip, port); err != nil {
 		return err
 	}
-	n.peers[ip] = &peer
-	return peer.handshake(n.version, n.services, n.userAgent)
+	n.peers[p.ip.String()] = &p
+	if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
+		return err
+	}
+	go n.handle(&p, fn, argFn)
+	return nil
 }
