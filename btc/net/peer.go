@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// GetIP returns IP of connected peer
 func (p *Peer) GetIP() string {
 	return p.ip.String()
 }

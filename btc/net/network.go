@@ -12,44 +12,64 @@ func (n *Network) ConnectedPeers() int {
 }
 
 // New initializes network structure
-func (n *Network) New() {
+func (n *Network) New(fn apply, argFn interface{}) {
 	n.version = 70015
 	n.services = 0
 	n.userAgent = "/CW:01/"
 	n.port = 8333
 
 	n.peers = make(map[string]*Peer)
+	n.newAddr = make(map[string]*Peer)
+	n.banned = make(map[string]bool)
 	n.maxPeers = 10
+
+	n.fn = fn
+	n.argFn = argFn
 }
 
 // TODO: remove log
-func (n *Network) handle(p *Peer, fn apply, argFn interface{}) {
+func (n *Network) handle(p *Peer) {
 	chAction := make(chan bool, 1)
-	go p.action(chAction, fn, argFn)
+	go p.action(chAction, n.fn, n.argFn)
 	for {
 		select {
 		case <-chAction:
 		case <-time.After(60 * time.Second):
 			log.Warn("60 seconds passed without receiving any message from ", p.ip)
+			n.banned[p.ip.String()] = true
 			delete(n.peers, p.ip.String())
 			break
 		}
 	}
 }
 
-// apply is passed as an argument to Watch
-type apply func(*Peer, *Message, interface{}) error
-
 // AddPeer adds a new peer
-func (n *Network) AddPeer(ip string, port uint16, fn apply, argFn interface{}) error {
+func (n *Network) AddPeer(ip string, port uint16) error {
 	p:= Peer{}
 	if err := p.new(ip, port); err != nil {
 		return err
 	}
-	n.peers[p.ip.String()] = &p
-	if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
-		return err
-	}
-	go n.handle(&p, fn, argFn)
+	n.newAddr[p.ip.String()] = &p
 	return nil
+}
+
+
+// Watch network and adds new peers
+func (n *Network) Watch() {
+	// TODO: Use a channel
+	for {
+		log.Info(len(n.newAddr))
+		for k,p := range n.newAddr {
+			if len(n.peers) < int(n.maxPeers) {
+				if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
+					log.Warn(err)
+					continue
+				}
+				delete(n.newAddr,k)
+				n.peers[k] = p
+				go n.handle(p)
+			}
+		}
+		time.Sleep(10 * time.Second)
+	}
 }

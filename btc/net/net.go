@@ -39,6 +39,9 @@ type Peer struct {
 	queue    *Queue // Stores raw txs and blocks
 }
 
+// apply is passed as an argument to Watch
+type apply func(*Peer, *Message, interface{}) error
+
 // Network holds information about the network status
 type Network struct {
 	version   uint32
@@ -47,7 +50,12 @@ type Network struct {
 	port      uint32
 
 	peers     map[string]*Peer
+	newAddr   map[string]*Peer
+	banned    map[string]bool
 	maxPeers	uint32
+
+	fn				apply
+	argFn			interface{}
 }
 
 // Message holds components of a network message

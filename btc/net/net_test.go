@@ -36,17 +36,20 @@ func handlePeers(p *Peer, m *Message, _ interface{}) error {
 
 func TestNetworkOne(t *testing.T) {
 	net := Network{}
-	net.New()
-	if err := net.AddPeer("0.0.0.0", 8333, handlePeers, nil); err == nil {
+	net.New(handlePeers, nil)
+	if err := net.AddPeer("0.0.0.0", 8333); err == nil {
 		t.Fatal(err)
 	}
 
 	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
 	for _, c := range con { 
-		if err := net.AddPeer(c, 8333, handlePeers, nil); err == nil {
+		if err := net.AddPeer(c, 8333); err == nil {
 			break
 		}
 	}
+
+	go net.Watch()
+	time.Sleep(1 * time.Second)
 
 	if net.ConnectedPeers() == 0 {
 		t.Fatal("Could not connect to a single peer")
@@ -70,13 +73,13 @@ func TestNetworkOne(t *testing.T) {
 }
 
 func TestNetworkMultiple(t *testing.T) {
-	net := Network{}
-	net.New()
+	n := Network{}
+	n.New(handlePeers, nil)
 
 	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
 	count := 0
 	for _, c := range con { 
-		if err := net.AddPeer(c, 8333, handlePeers, nil); err == nil {
+		if err := n.AddPeer(c, 8333); err == nil {
 			count++
 		}
 		if count == 2 {
@@ -86,6 +89,13 @@ func TestNetworkMultiple(t *testing.T) {
 	if count < 2 {
 		t.Fatal("Failed to connect to enough peers")
 	}
+
+	go n.Watch()
+	time.Sleep(1 * time.Second)
+	if n.ConnectedPeers() < 2 {
+		t.Fatal("Could not connect to enough peers")
+	}
+
 
 	time.Sleep(20 * time.Second)
 
@@ -101,7 +111,8 @@ func TestNetworkMultiple(t *testing.T) {
 	if nTx == 0 {
 		t.Error("nTx = 0")
 	}
-	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
+	log.Info(fmt.Sprintf("Connected peers: %d (%d %d %d %d)", n.ConnectedPeers(), nAddr, nPing, nInv, nTx))
+	t.Error()
 }
 
 func TestNetwork(t *testing.T) {
@@ -115,8 +126,8 @@ func TestNetwork(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 
 	net := Network{}
-	net.New()
-	if err := net.AddPeer("37.59.38.74", 8333, handlePeers, nil); err != nil {
+	net.New(handlePeers, nil)
+	if err := net.AddPeer("37.59.38.74", 8333); err != nil {
 		t.Fatal(err)
 	}
 
@@ -137,8 +148,8 @@ func TestNetwork(t *testing.T) {
 	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
 
 	net = Network{}
-	net.New()
-	if err := net.AddPeer("96.30.100.27", 8333, handlePeers, nil); err != nil {
+	net.New(handlePeers, nil)
+	if err := net.AddPeer("96.30.100.27", 8333); err != nil {
 		t.Error(err)
 	}
 
