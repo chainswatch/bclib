@@ -2,6 +2,7 @@ package net
 
 import (
 	"time"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -27,10 +28,40 @@ func (n *Network) New(fn apply, argFn interface{}) {
 	n.argFn = argFn
 }
 
+func (n *Network) action(p *Peer, c chan bool) {
+	for {
+		m, err := p.waitMsg()
+		if err != nil {
+			log.Warn(err)
+			break
+		}
+		switch m.Cmd() {
+		case "addr":
+			peers, err := p.handleAddr(m.Payload())
+			if err != nil {
+				log.Warn(err)
+			}
+			for _,peer := range peers {
+				log.Info("New Addr: ", peer.ip.String())
+				if err := n.AddPeer(peer.ip.String(), peer.port); err != nil {
+					log.Warn(err)
+				}
+			}
+		case "ping":
+			p.handlePing(m.Payload())
+		}
+		if err = n.fn(p, m, n.argFn); err != nil {
+			log.Warn(err)
+			break
+		}
+		c <- true
+	}
+}
+
 // TODO: remove log
 func (n *Network) handle(p *Peer) {
 	chAction := make(chan bool, 1)
-	go p.action(chAction, n.fn, n.argFn)
+	go n.action(p, chAction)
 	for {
 		select {
 		case <-chAction:
@@ -48,6 +79,12 @@ func (n *Network) AddPeer(ip string, port uint16) error {
 	p:= Peer{}
 	if err := p.new(ip, port); err != nil {
 		return err
+	}
+	if _, exists := n.peers[p.ip.String()]; exists {
+		return fmt.Errorf("Already connected to that peer (%s)", ip)
+	}
+	if _, exists := n.banned[p.ip.String()]; exists {
+		return fmt.Errorf("Peer banned (%s)", ip)
 	}
 	n.newAddr[p.ip.String()] = &p
 	return nil

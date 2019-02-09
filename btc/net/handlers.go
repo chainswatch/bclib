@@ -28,19 +28,15 @@ func (p *Peer) HandleObject(object string, payload []byte) (*Inv, error) {
 //sendcmpct
 
 // HandlePing replies pong to ping
-func (p *Peer) HandlePing(nonce []byte) error {
+func (p *Peer) handlePing(nonce []byte) error {
 	return p.SendPong(nonce)
 }
 
 //feefilter
 
 // HandleAddr parse peer addresses (version >= 31402)
-func (p *Peer) HandleAddr(payload []byte) ([]Peer, error) {
-	peers, err := parseAddr(payload)
-	if err != nil {
-		return nil, err
-	}
-	return peers, nil
+func (p *Peer) handleAddr(payload []byte) ([]Peer, error) {
+	return parseAddr(payload)
 }
 
 // HandleVersion handles version message

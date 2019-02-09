@@ -17,12 +17,14 @@ func parseAddr(payload []byte) ([]Peer, error) {
 		return nil, err
 	}
 	count := buf.ReadVarint()
-	peers := make([]Peer, count)
-	for _, peer := range peers {
+	peers := make([]Peer, 0, count)
+	for i := uint64(0); i < count; i++ {
 		buf.ReadUint32() // time (!= timestamp)
+		peer := Peer{}
 		peer.services = buf.ReadUint64()
 		peer.ip = net.IP(buf.ReadBytes(16))
 		peer.port = buf.ReadUint16()
+		peers = append(peers, peer)
 	}
 	return peers, nil
 }

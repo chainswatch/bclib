@@ -8,18 +8,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var nAddr, nInv, nTx, nPing int
+var nInv, nTx int
 
 func handlePeers(p *Peer, m *Message, _ interface{}) error {
 	// log.Info(fmt.Sprintf("%s Received: %s %d %x", p.ip, m.Cmd(), m.Length(), m.Payload()))
 	switch m.Cmd() {
-	case "addr":
-		nAddr++
-		_, err := p.HandleAddr(m.Payload())
-		return err
-	case "ping":
-		nPing++
-		return p.HandlePing(m.Payload())
 	case "inv":
 		nInv++
 		return p.HandleInv(m.Payload())
@@ -57,19 +50,13 @@ func TestNetworkOne(t *testing.T) {
 
 	time.Sleep(20 * time.Second)
 
-	if nAddr == 0 {
-		t.Error("nAddr = 0")
-	}
-	if nPing == 0 {
-		t.Error("nPing = 0")
-	}
 	if nInv == 0 {
 		t.Error("nInv = 0")
 	}
 	if nTx == 0 {
 		t.Error("nTx = 0")
 	}
-	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
+	log.Info(fmt.Sprintf("%d %d", nInv, nTx))
 }
 
 func TestNetworkMultiple(t *testing.T) {
@@ -97,21 +84,15 @@ func TestNetworkMultiple(t *testing.T) {
 	}
 
 
-	time.Sleep(20 * time.Second)
+	time.Sleep(60 * time.Second)
 
-	if nAddr == 0 {
-		t.Error("nAddr = 0")
-	}
-	if nPing == 0 {
-		t.Error("nPing = 0")
-	}
 	if nInv == 0 {
 		t.Error("nInv = 0")
 	}
 	if nTx == 0 {
 		t.Error("nTx = 0")
 	}
-	log.Info(fmt.Sprintf("Connected peers: %d (%d %d %d %d)", n.ConnectedPeers(), nAddr, nPing, nInv, nTx))
+	log.Info(fmt.Sprintf("Connected peers: %d (%d %d)", n.ConnectedPeers(), nInv, nTx))
 	t.Error()
 }
 
@@ -133,19 +114,13 @@ func TestNetwork(t *testing.T) {
 
 	time.Sleep(20 * time.Second)
 
-	if nAddr == 0 {
-		t.Error("nAddr = 0")
-	}
-	if nPing == 0 {
-		t.Error("nPing = 0")
-	}
 	if nInv == 0 {
 		t.Error("nInv = 0")
 	}
 	if nTx == 0 {
 		t.Error("nTx = 0")
 	}
-	log.Info(fmt.Sprintf("%d %d %d %d", nAddr, nPing, nInv, nTx))
+	log.Info(fmt.Sprintf("%d %d", nInv, nTx))
 
 	net = Network{}
 	net.New(handlePeers, nil)

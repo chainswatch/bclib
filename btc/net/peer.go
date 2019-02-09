@@ -6,8 +6,6 @@ import (
 	"time"
 	"fmt"
 	"net"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // GetIP returns IP of connected peer
@@ -43,21 +41,6 @@ func (p *Peer) waitMsg() (*Message, error) {
 		data = append(data, r...)
 	}
 	return parseMsg(data)
-}
-
-func (p *Peer) action(c chan bool, fn apply, argFn interface{}) {
-	for {
-		msg, err := p.waitMsg()
-		if err != nil {
-			log.Warn(err)
-			break
-		}
-		if err = fn(p, msg, argFn); err != nil {
-			log.Warn(err)
-			break
-		}
-		c <- true
-	}
 }
 
 // Open a new connection with peer
