@@ -10,6 +10,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func (p *Peer) GetIP() string {
+	return p.ip.String()
+}
+
 func (p *Peer) waitMsg() (*Message, error) {
 	data := make([]byte, 0)
 	var flag bool
