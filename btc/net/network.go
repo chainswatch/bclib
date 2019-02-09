@@ -1,8 +1,14 @@
 package net
 
+import (
+	"time"
+
+	log "github.com/sirupsen/logrus"
+)
+
 // ConnectedPeers returns the number of connected peers
-func (n *Network) ConnectedPeers() uint32 {
-	return n.nPeers
+func (n *Network) ConnectedPeers() int {
+	return len(n.peers)
 }
 
 // New initializes network structure
@@ -11,28 +17,39 @@ func (n *Network) New() {
 	n.services = 0
 	n.userAgent = "/CW:01/"
 	n.port = 8333
-	n.nPeers = 0
+
+	n.peers = make(map[string]*Peer)
 	n.maxPeers = 10
+}
+
+// TODO: remove log
+func (n *Network) handle(p *Peer, fn apply, argFn interface{}) {
+	chAction := make(chan bool, 1)
+	go p.action(chAction, fn, argFn)
+	for {
+		select {
+		case <-chAction:
+		case <-time.After(60 * time.Second):
+			log.Warn("60 seconds passed without receiving any message from ", p.ip)
+			delete(n.peers, p.ip.String())
+			break
+		}
+	}
 }
 
 // apply is passed as an argument to Watch
 type apply func(*Peer, *Message, interface{}) error
 
-// Watch connected peers and apply fn when a message is received
-func (n *Network) Watch(fn apply, argFn interface{}) {
-	for _,p := range n.peers {
-		p := p
-		go p.handle(fn, argFn)
-	}
-}
-
 // AddPeer adds a new peer
-func (n *Network) AddPeer(ip string, port uint16) error {
-	peer := Peer{}
-	if err := peer.new(ip, port); err != nil {
+func (n *Network) AddPeer(ip string, port uint16, fn apply, argFn interface{}) error {
+	p:= Peer{}
+	if err := p.new(ip, port); err != nil {
 		return err
 	}
-	n.peers = append(n.peers, peer)
-	n.nPeers++
-	return peer.handshake(n.version, n.services, n.userAgent)
+	n.peers[p.ip.String()] = &p
+	if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
+		return err
+	}
+	go n.handle(&p, fn, argFn)
+	return nil
 }
