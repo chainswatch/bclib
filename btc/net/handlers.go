@@ -35,7 +35,7 @@ func (p *Peer) handlePing(nonce []byte) error {
 //feefilter
 
 // HandleAddr parse peer addresses (version >= 31402)
-func (p *Peer) handleAddr(payload []byte) ([]Peer, error) {
+func (p *Peer) handleAddr(payload []byte) ([]*Peer, error) {
 	return parseAddr(payload)
 }
 

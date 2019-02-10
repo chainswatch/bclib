@@ -2,9 +2,6 @@ package net
 
 import (
 	"bytes"
-	"bufio"
-	"time"
-	"fmt"
 	"net"
 )
 
@@ -43,30 +40,11 @@ func (p *Peer) waitMsg() (*Message, error) {
 	return parseMsg(data)
 }
 
-// Open a new connection with peer
-func openConnection(addr string) (*bufio.ReadWriter, error) {
-	dialer := &net.Dialer{
-		Timeout:   1 * time.Second,
-		KeepAlive: 30 * time.Second,
-	}
-	conn, err := dialer.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	return bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)), nil
-}
-
-// newConnection initializes peer structure
-func (p *Peer) new(ip string, port uint16) error {
+// NewPeer initializes peer structure
+func NewPeer(ip string, port uint16) *Peer {
+	p := &Peer{}
 	p.ip = net.ParseIP(ip)
 	p.port = port
 
-	rw, err := openConnection(fmt.Sprintf("%s:%d", p.ip.String(), p.port))
-	if err != nil {
-		return err
-	}
-	p.rw = rw
-
-	p.queue = NewQueue(10000)
-	return nil
+	return p
 }

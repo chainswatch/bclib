@@ -1,8 +1,11 @@
 package net
 
 import (
+	"strings"
+	"bufio"
 	"time"
 	"fmt"
+	"net"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -42,8 +45,7 @@ func (n *Network) action(p *Peer, c chan bool) {
 				log.Warn(err)
 			}
 			for _,peer := range peers {
-				log.Info("New Addr: ", peer.ip.String())
-				if err := n.AddPeer(peer.ip.String(), peer.port); err != nil {
+				if err := n.AddPeer(peer); err != nil {
 					log.Warn(err)
 				}
 			}
@@ -74,19 +76,40 @@ func (n *Network) handle(p *Peer) {
 	}
 }
 
+// Open a new connection with peer
+func openConnection(addr string) (*bufio.ReadWriter, error) {
+	dialer := &net.Dialer{
+		Timeout:   1 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}
+	conn, err := dialer.Dial("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	return bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)), nil
+}
+
 // AddPeer adds a new peer
-func (n *Network) AddPeer(ip string, port uint16) error {
-	p:= Peer{}
-	if err := p.new(ip, port); err != nil {
+func (n *Network) AddPeer(p *Peer) error {
+	ip := p.ip.String()
+	if strings.Contains(ip, ":") {
+		ip = fmt.Sprintf("[%s]", ip)
+	}
+	rw, err := openConnection(fmt.Sprintf("%s:%d", ip, p.port))
+	if err != nil {
 		return err
 	}
+
+	p.rw = rw
+	p.queue = NewQueue(10000)
+
 	if _, exists := n.peers[p.ip.String()]; exists {
-		return fmt.Errorf("Already connected to that peer (%s)", ip)
+		return fmt.Errorf("Already connected to that peer (%s:%d)", p.ip, p.port)
 	}
 	if _, exists := n.banned[p.ip.String()]; exists {
-		return fmt.Errorf("Peer banned (%s)", ip)
+		return fmt.Errorf("Peer banned (%s:%d)", p.ip, p.port)
 	}
-	n.newAddr[p.ip.String()] = &p
+	n.newAddr[p.ip.String()] = p
 	return nil
 }
 
@@ -95,7 +118,6 @@ func (n *Network) AddPeer(ip string, port uint16) error {
 func (n *Network) Watch() {
 	// TODO: Use a channel
 	for {
-		log.Info(len(n.newAddr))
 		for k,p := range n.newAddr {
 			if len(n.peers) < int(n.maxPeers) {
 				if err := p.handshake(n.version, n.services, n.userAgent); err != nil {

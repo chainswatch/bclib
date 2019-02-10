@@ -28,23 +28,23 @@ func handlePeers(p *Peer, m *Message, _ interface{}) error {
 }
 
 func TestNetworkOne(t *testing.T) {
-	net := Network{}
-	net.New(handlePeers, nil)
-	if err := net.AddPeer("0.0.0.0", 8333); err == nil {
+	n := Network{}
+	n.New(handlePeers, nil)
+	if err := n.AddPeer(NewPeer("0.0.0.0", 8333)); err == nil {
 		t.Fatal(err)
 	}
 
 	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
 	for _, c := range con { 
-		if err := net.AddPeer(c, 8333); err == nil {
+		if err := n.AddPeer(NewPeer(c, 8333)); err == nil {
 			break
 		}
 	}
 
-	go net.Watch()
+	go n.Watch()
 	time.Sleep(1 * time.Second)
 
-	if net.ConnectedPeers() == 0 {
+	if n.ConnectedPeers() == 0 {
 		t.Fatal("Could not connect to a single peer")
 	}
 
@@ -66,7 +66,7 @@ func TestNetworkMultiple(t *testing.T) {
 	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
 	count := 0
 	for _, c := range con { 
-		if err := n.AddPeer(c, 8333); err == nil {
+		if err := n.AddPeer(NewPeer(c, 8333)); err == nil {
 			count++
 		}
 		if count == 2 {
@@ -84,7 +84,7 @@ func TestNetworkMultiple(t *testing.T) {
 	}
 
 
-	time.Sleep(60 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	if nInv == 0 {
 		t.Error("nInv = 0")
@@ -92,40 +92,19 @@ func TestNetworkMultiple(t *testing.T) {
 	if nTx == 0 {
 		t.Error("nTx = 0")
 	}
+	time.Sleep(60 * time.Second)
 	log.Info(fmt.Sprintf("Connected peers: %d (%d %d)", n.ConnectedPeers(), nInv, nTx))
-	t.Error()
+	if n.ConnectedPeers() < 3 {
+		t.Error("Unable to auto-connect to more peers")
+	}
 }
 
-func TestNetwork(t *testing.T) {
-	/*
-		tests := []msg {
-			cmd:			"tx",
-			length:		225,
-			payload:	[]byte("01000000011d49446502dc107340eeeae9178f69d110b3fdfe9039239d5a34f222304bf9e6000000006a4730440220305aea2186628ec719a02451e170d5075dc3ad2da1fa5d9cb955b410a7637878022022c97a8d90df2ac74b764703bb8c7d5880eaaff25b9bfc173ff5be1241b6cda50121036fad7846f2cf0c76e1a75c2eb8c199bf0a6b97d32b677f593c642e886b2eb074ffffffff02d0121300000000001976a914b5d02aa30212786eff0a66391720a21678a72e9688acbfe40900000000001976a9141d021c472071e893285d2a9548754aacdf102b1f88ac00000000")
-		}
-	*/
-	log.SetLevel(log.DebugLevel)
-
-	net := Network{}
-	net.New(handlePeers, nil)
-	if err := net.AddPeer("37.59.38.74", 8333); err != nil {
-		t.Fatal(err)
-	}
-
-	time.Sleep(20 * time.Second)
-
-	if nInv == 0 {
-		t.Error("nInv = 0")
-	}
-	if nTx == 0 {
-		t.Error("nTx = 0")
-	}
-	log.Info(fmt.Sprintf("%d %d", nInv, nTx))
-
-	net = Network{}
-	net.New(handlePeers, nil)
-	if err := net.AddPeer("96.30.100.27", 8333); err != nil {
+/*
+func TestNetworkIPv6(t *testing.T) {
+	ip := "0:ffff:253b:264a:3833:3333::"
+	port := 8333
+	if _, err := openConnection(fmt.Sprintf("[%s]:%d", ip, port)); err != nil {
 		t.Error(err)
 	}
-
 }
+*/
