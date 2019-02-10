@@ -11,18 +11,21 @@ import (
 
 // ParseAddr returns peer slice from payload
 // TODO: Return an Addr struct?
-func parseAddr(payload []byte) ([]Peer, error) {
+func parseAddr(payload []byte) ([]*Peer, error) {
 	buf, err := parser.New(payload)
 	if err != nil {
 		return nil, err
 	}
 	count := buf.ReadVarint()
-	peers := make([]Peer, count)
-	for _, peer := range peers {
+	peers := make([]*Peer, 0, count)
+	for i := uint64(0); i < count; i++ {
 		buf.ReadUint32() // time (!= timestamp)
-		peer.services = buf.ReadUint64()
-		peer.ip = net.IP(buf.ReadBytes(16))
-		peer.port = buf.ReadUint16()
+		services := buf.ReadUint64()
+		ip := net.IP(buf.ReadBytes(16))
+		port := binary.BigEndian.Uint16(buf.ReadBytes(2))
+		peer := NewPeer(ip.String(), port)
+		peer.services = services
+		peers = append(peers, peer)
 	}
 	return peers, nil
 }
