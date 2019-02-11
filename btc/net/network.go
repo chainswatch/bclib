@@ -51,10 +51,11 @@ func (n *Network) action(p *Peer, c chan bool) {
 			}
 		case "ping":
 			p.handlePing(m.Payload())
-		}
-		if err = n.fn(p, m, n.argFn); err != nil {
-			log.Warn(err)
-			break
+		default:
+			if err = n.fn(p, m, n.argFn); err != nil {
+				log.Warn(err)
+				break
+			}
 		}
 		c <- true
 	}
