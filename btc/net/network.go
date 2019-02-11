@@ -31,47 +31,54 @@ func (n *Network) New(fn apply, argFn interface{}) {
 	n.argFn = argFn
 }
 
-func (n *Network) action(p *Peer, c chan bool) {
+func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 	for {
-		m, err := p.waitMsg()
-		if err != nil {
-			log.Warn(err)
-			break
-		}
-		switch m.Cmd() {
-		case "addr":
-			peers, err := p.handleAddr(m.Payload())
-			if err != nil {
-				log.Warn(err)
-			}
-			for _,peer := range peers {
-				if err := n.AddPeer(peer); err != nil {
-					log.Warn(err)
-				}
-			}
-		case "ping":
-			p.handlePing(m.Payload())
+		select {
+		case <- kill:
+			return
 		default:
-			if err = n.fn(p, m, n.argFn); err != nil {
+			m, err := p.waitMsg()
+			if err != nil {
 				log.Warn(err)
 				break
 			}
+			switch m.Cmd() {
+			case "addr":
+				peers, err := p.handleAddr(m.Payload())
+				if err != nil {
+					log.Warn(err)
+				}
+				for _,peer := range peers {
+					if err := n.AddPeer(peer); err != nil {
+						log.Warn(err)
+					}
+				}
+			case "ping":
+				p.handlePing(m.Payload())
+			default:
+				if err = n.fn(p, m, n.argFn); err != nil {
+					log.Warn(err)
+					break
+				}
+			}
+			alive <- true
 		}
-		c <- true
 	}
 }
 
 // TODO: remove log
 func (n *Network) handle(p *Peer) {
-	chAction := make(chan bool, 1)
-	go n.action(p, chAction)
+	alive := make(chan bool, 1)
+	kill := make(chan bool, 1)
+	go n.action(p, alive, kill)
 	for {
 		select {
-		case <-chAction:
-		case <-time.After(60 * time.Second):
-			log.Warn("60 seconds passed without receiving any message from ", p.ip)
+		case <-alive:
+		case <-time.After(3 * time.Minute):
+			log.Warn("3 minutes passed without receiving any message from ", p.ip)
 			n.banned[p.ip.String()] = true
 			delete(n.peers, p.ip.String())
+			kill <- true
 			break
 		}
 	}
