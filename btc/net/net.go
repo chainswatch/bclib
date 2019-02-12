@@ -49,8 +49,8 @@ type Network struct {
 	userAgent string
 	port      uint32
 
-	peers     map[string]*Peer
-	newAddr   map[string]*Peer
+	peers     map[string]*Peer	// Connected peers
+	newAddr   map[string]*Peer	// New peers to connect to
 	banned    map[string]bool
 	maxPeers	uint32
 

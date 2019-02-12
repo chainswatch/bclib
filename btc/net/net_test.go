@@ -77,6 +77,7 @@ func TestNetworkMultiple(t *testing.T) {
 		t.Fatal("Failed to connect to enough peers")
 	}
 
+	time.Sleep(10 * time.Second)
 	go n.Watch()
 	time.Sleep(1 * time.Second)
 	if n.ConnectedPeers() < 2 {
@@ -100,11 +101,33 @@ func TestNetworkMultiple(t *testing.T) {
 }
 
 /*
+func TestIPv4v6(t *testing.T) {
+	n := Network{}
+	n.New(handlePeers, nil)
+	n.AddPeer(NewPeer("37.59.38.74", 8333))
+	n.AddPeer(NewPeer("2a0a:a545:252c:0:8cd2:921d:f532:5e42", 8333))
+	t.Error()
+}
+
 func TestNetworkIPv6(t *testing.T) {
-	ip := "0:ffff:253b:264a:3833:3333::"
+	ips := []string{"0:ffff:253b:264a:3833:3333::%lo0",
+	"2a0a:a545:252c:0:8cd2:921d:f532:5e42%eth0",
+	"2001:0:9d38:6abd:249e:2650:bc43:666f%wlan0",
+	"2601:641:480:6340:a492:630e:bc99:7061",
+	"fd87:d87e:eb43:d8cf:4827:47ac:2da6:ff74"}
 	port := 8333
-	if _, err := openConnection(fmt.Sprintf("[%s]:%d", ip, port)); err != nil {
-		t.Error(err)
+	for _,ip := range ips {
+		if _, err := openConnection(fmt.Sprintf("[%s]:%d", ip, port)); err != nil {
+			t.Error(err)
+		}
 	}
+}
+
+func TestNetworkZero(t *testing.T) {
+	n := Network{}
+	n.New(handlePeers, nil)
+	go n.Watch()
+	time.Sleep(5 * time.Second)
+	t.Error()
 }
 */

@@ -1,7 +1,6 @@
 package net
 
 import (
-	"strings"
 	"bufio"
 	"time"
 	"fmt"
@@ -35,6 +34,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 	for {
 		select {
 		case <- kill:
+			log.Info("Child process killed properly")
 			return
 		default:
 			m, err := p.waitMsg()
@@ -87,7 +87,7 @@ func (n *Network) handle(p *Peer) {
 // Open a new connection with peer
 func openConnection(addr string) (*bufio.ReadWriter, error) {
 	dialer := &net.Dialer{
-		Timeout:   1 * time.Second,
+		Timeout:   3 * time.Second,
 		KeepAlive: 30 * time.Second,
 	}
 	conn, err := dialer.Dial("tcp", addr)
@@ -100,7 +100,7 @@ func openConnection(addr string) (*bufio.ReadWriter, error) {
 // AddPeer adds a new peer
 func (n *Network) AddPeer(p *Peer) error {
 	ip := p.ip.String()
-	if strings.Contains(ip, ":") {
+	if p.ip.To4() == nil {
 		ip = fmt.Sprintf("[%s]", ip)
 	}
 	rw, err := openConnection(fmt.Sprintf("%s:%d", ip, p.port))
@@ -125,7 +125,7 @@ func (n *Network) AddPeer(p *Peer) error {
 // Watch network and adds new peers
 func (n *Network) Watch() {
 	// TODO: Use a channel
-	for {
+	for len(n.peers) > 0 || len(n.newAddr) > 0 {
 		for k,p := range n.newAddr {
 			if len(n.peers) < int(n.maxPeers) {
 				if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
@@ -139,4 +139,5 @@ func (n *Network) Watch() {
 		}
 		time.Sleep(10 * time.Second)
 	}
+	log.Warn("All peers disconnected. Exiting")
 }
