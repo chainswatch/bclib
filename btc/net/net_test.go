@@ -44,7 +44,7 @@ func TestNetworkOne(t *testing.T) {
 	go n.Watch()
 	time.Sleep(1 * time.Second)
 
-	if n.ConnectedPeers() == 0 {
+	if len(n.ConnectedPeers()) == 0 {
 		t.Fatal("Could not connect to a single peer")
 	}
 
@@ -80,7 +80,7 @@ func TestNetworkMultiple(t *testing.T) {
 	time.Sleep(10 * time.Second)
 	go n.Watch()
 	time.Sleep(1 * time.Second)
-	if n.ConnectedPeers() < 2 {
+	if len(n.ConnectedPeers()) < 2 {
 		t.Fatal("Could not connect to enough peers")
 	}
 
@@ -93,9 +93,9 @@ func TestNetworkMultiple(t *testing.T) {
 	if nTx == 0 {
 		t.Error("nTx = 0")
 	}
-	time.Sleep(60 * time.Second)
-	log.Info(fmt.Sprintf("Connected peers: %d (%d %d)", n.ConnectedPeers(), nInv, nTx))
-	if n.ConnectedPeers() < 3 {
+	time.Sleep(2 * time.Minute)
+	log.Info(fmt.Sprintf("Connected peers: %d (%d %d)", len(n.ConnectedPeers()), nInv, nTx))
+	if len(n.ConnectedPeers()) < 3 {
 		t.Error("Unable to auto-connect to more peers")
 	}
 }

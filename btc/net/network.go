@@ -10,8 +10,14 @@ import (
 )
 
 // ConnectedPeers returns the number of connected peers
-func (n *Network) ConnectedPeers() int {
-	return len(n.peers)
+func (n *Network) ConnectedPeers() []string {
+	peers := make([]string, len(n.peers))
+	i := 0
+	for _,v := range n.peers {
+		peers[i] = fmt.Sprintf("%s:%d", v.ip, v.port)
+		i++
+	}
+	return peers
 }
 
 // New initializes network structure
@@ -62,6 +68,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 				}
 			}
 			alive <- true
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
@@ -127,15 +134,16 @@ func (n *Network) Watch() {
 	// TODO: Use a channel
 	for len(n.peers) > 0 || len(n.newAddr) > 0 {
 		for k,p := range n.newAddr {
-			if len(n.peers) < int(n.maxPeers) {
-				if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
-					log.Warn(err)
-					continue
-				}
-				delete(n.newAddr,k)
-				n.peers[k] = p
-				go n.handle(p)
+			if len(n.peers) >= int(n.maxPeers) {
+				break
 			}
+			if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
+				log.Warn(err)
+				continue
+			}
+			delete(n.newAddr,k)
+			n.peers[k] = p
+			go n.handle(p)
 		}
 		time.Sleep(10 * time.Second)
 	}
