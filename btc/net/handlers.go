@@ -62,5 +62,5 @@ func (p *Peer) HandleInv(payload []byte) error {
 
 // HandleReject prints reject error message
 func (p *Peer) HandleReject(payload []byte) {
-	log.Warn(fmt.Sprintf("Rejected: %s", payload))
+	log.Warn(fmt.Sprintf("reject (%s): %s", p.ip, payload))
 }
