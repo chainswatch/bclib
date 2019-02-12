@@ -68,7 +68,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 				}
 			}
 			alive <- true
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
