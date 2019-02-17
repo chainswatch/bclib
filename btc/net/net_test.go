@@ -10,7 +10,7 @@ import (
 
 var nInv, nTx int
 
-func handlePeers(p *Peer, m *Message, _ interface{}) error {
+func handlePeers(p *Peer, m *Message) error {
 	// log.Info(fmt.Sprintf("%s Received: %s %d %x", p.ip, m.Cmd(), m.Length(), m.Payload()))
 	switch m.Cmd() {
 	case "inv":
@@ -29,7 +29,7 @@ func handlePeers(p *Peer, m *Message, _ interface{}) error {
 
 func TestNetworkOne(t *testing.T) {
 	n := Network{}
-	n.New(handlePeers, nil)
+	n.New(handlePeers)
 	if err := n.AddPeer(NewPeer("0.0.0.0", 8333)); err == nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestNetworkOne(t *testing.T) {
 		}
 	}
 
-	go n.Watch()
+	go n.Watch("")
 	time.Sleep(1 * time.Second)
 
 	if len(n.ConnectedPeers()) == 0 {
@@ -61,7 +61,7 @@ func TestNetworkOne(t *testing.T) {
 
 func TestNetworkMultiple(t *testing.T) {
 	n := Network{}
-	n.New(handlePeers, nil)
+	n.New(handlePeers)
 
 	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
 	count := 0
@@ -78,7 +78,7 @@ func TestNetworkMultiple(t *testing.T) {
 	}
 
 	time.Sleep(10 * time.Second)
-	go n.Watch()
+	go n.Watch("")
 	time.Sleep(1 * time.Second)
 	if len(n.ConnectedPeers()) < 2 {
 		t.Fatal("Could not connect to enough peers")
@@ -103,7 +103,7 @@ func TestNetworkMultiple(t *testing.T) {
 /*
 func TestIPv4v6(t *testing.T) {
 	n := Network{}
-	n.New(handlePeers, nil)
+	n.New(handlePeers)
 	n.AddPeer(NewPeer("37.59.38.74", 8333))
 	n.AddPeer(NewPeer("2a0a:a545:252c:0:8cd2:921d:f532:5e42", 8333))
 	t.Error()

@@ -35,12 +35,13 @@ type Peer struct {
 	version		uint32
 	services  uint64
 
-	rw       *bufio.ReadWriter
-	queue    *Queue // Stores raw txs and blocks
+	rw       	*bufio.ReadWriter
+	publish		func([]string) error
+	queue    	*Queue // Stores raw txs and blocks
 }
 
 // apply is passed as an argument to Watch
-type apply func(*Peer, *Message, interface{}) error
+type apply func(*Peer, *Message) error
 
 // Network holds information about the network status
 type Network struct {
@@ -55,7 +56,6 @@ type Network struct {
 	maxPeers	uint32
 
 	fn				apply
-	argFn			interface{}
 }
 
 // Message holds components of a network message

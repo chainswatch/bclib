@@ -3,6 +3,9 @@ package zmq
 import (
 	"testing"
 	"time"
+	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func TestZMQ(t *testing.T) {

@@ -1,6 +1,8 @@
 package net
 
 import (
+	"github.com/chainswatch/bclib/zmq"
+
 	"bufio"
 	"time"
 	"fmt"
@@ -21,7 +23,7 @@ func (n *Network) ConnectedPeers() []string {
 }
 
 // New initializes network structure
-func (n *Network) New(fn apply, argFn interface{}) {
+func (n *Network) New(fn apply) {
 	n.version = 70015
 	n.services = 0
 	n.userAgent = "/CW:01/"
@@ -33,7 +35,6 @@ func (n *Network) New(fn apply, argFn interface{}) {
 	n.maxPeers = 10
 
 	n.fn = fn
-	n.argFn = argFn
 }
 
 func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
@@ -62,7 +63,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 			case "ping":
 				p.handlePing(m.Payload())
 			default:
-				if err = n.fn(p, m, n.argFn); err != nil {
+				if err = n.fn(p, m); err != nil {
 					log.Warn(err)
 					break
 				}
@@ -130,7 +131,7 @@ func (n *Network) AddPeer(p *Peer) error {
 
 
 // Watch network and adds new peers
-func (n *Network) Watch() {
+func (n *Network) Watch(url string) {
 	// TODO: Use a channel
 	for len(n.peers) > 0 || len(n.newAddr) > 0 {
 		for k,p := range n.newAddr {
@@ -142,6 +143,9 @@ func (n *Network) Watch() {
 				continue
 			}
 			delete(n.newAddr,k)
+			if len(url) > 0 {
+				p.publish = zmq.OpenPub(url)
+			}
 			n.peers[k] = p
 			go n.handle(p)
 		}

@@ -4,10 +4,12 @@ import (
 	zmq "github.com/pebbe/zmq4"
 )
 
+// TODO: Thread safe
+
 // OpenSub opens a ZMQ subscription socket
 func OpenSub(zmqURL string, topics ...string) func(stop bool) ([]string, error) {
 	subscriber, _ := zmq.NewSocket(zmq.SUB) // TODO: Error handling
-	subscriber.Connect("tcp://" + zmqURL)
+	subscriber.Bind(zmqURL)
 
 	for _, topic := range topics {
 		subscriber.SetSubscribe(topic)
@@ -26,7 +28,7 @@ func OpenSub(zmqURL string, topics ...string) func(stop bool) ([]string, error) 
 // OpenPub opens a ZMQ publication socket
 func OpenPub(zmqURL string) func(msg []string) error {
 	publisher, _ := zmq.NewSocket(zmq.PUB) // TODO: Error handling
-	publisher.Bind("tcp://" + zmqURL)
+	publisher.Connect(zmqURL)
 
 	return func(msg []string) error {
 		if msg == nil {
