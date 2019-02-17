@@ -36,7 +36,7 @@ type Peer struct {
 	services  uint64
 
 	rw       	*bufio.ReadWriter
-	publish		func([]string) error
+	Pub				func([]string) error
 	queue    	*Queue // Stores raw txs and blocks
 }
 

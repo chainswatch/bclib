@@ -144,7 +144,7 @@ func (n *Network) Watch(url string) {
 			}
 			delete(n.newAddr,k)
 			if len(url) > 0 {
-				p.publish = zmq.OpenPub(url)
+				p.Pub = zmq.OpenPub(url)
 			}
 			n.peers[k] = p
 			go n.handle(p)
