@@ -3,6 +3,8 @@ package net
 import (
 	"bufio"
 	"net"
+
+	zmq "github.com/pebbe/zmq4"
 )
 
 /*
@@ -36,7 +38,7 @@ type Peer struct {
 	services  uint64
 
 	rw       	*bufio.ReadWriter
-	Pub				func([]string) error
+	Pub				*zmq.Socket
 	queue    	*Queue // Stores raw txs and blocks
 }
 

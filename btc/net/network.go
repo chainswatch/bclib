@@ -1,14 +1,13 @@
 package net
 
 import (
-	"github.com/chainswatch/bclib/zmq"
-
 	"bufio"
 	"time"
 	"fmt"
 	"net"
 
 	log "github.com/sirupsen/logrus"
+	zmq "github.com/pebbe/zmq4"
 )
 
 // ConnectedPeers returns the number of connected peers
@@ -144,7 +143,9 @@ func (n *Network) Watch(url string) {
 			}
 			delete(n.newAddr,k)
 			if len(url) > 0 {
-				p.Pub = zmq.OpenPub(url)
+				pub, _ := zmq.NewSocket(zmq.PUB) // TODO: Error handling
+				pub.Connect(url)
+				p.Pub = pub
 			}
 			n.peers[k] = p
 			go n.handle(p)
