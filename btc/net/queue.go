@@ -29,7 +29,16 @@ func (q *Queue) Exists(hash [32]byte) bool {
 	return exists
 }
 
-// Push adds a node to the queue.
+// Update inventory of corresponding hash
+func (q *Queue) Update(hash [32]byte, inventory *Inv) error {
+	if _, exists := q.invs[hash]; !exists {
+		return fmt.Errorf("Hash does not exist")
+	}
+	q.invs[hash] = inventory
+	return nil
+}
+
+// Push adds a node to the queue
 func (q *Queue) Push(hash [32]byte, inventory *Inv) error {
 	// TODO: Check if already exists
 	if _, exists := q.invs[hash]; exists {
@@ -47,7 +56,7 @@ func (q *Queue) Push(hash [32]byte, inventory *Inv) error {
 	return nil
 }
 
-// Pop removes and returns a node from the queue in first to last order.
+// Pop removes and returns a node from the queue in first to last order
 func (q *Queue) Pop() error {
 	if q.count == 0 {
 		return fmt.Errorf("Queue is empty")

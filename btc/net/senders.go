@@ -4,12 +4,11 @@ import (
 	"github.com/chainswatch/bclib/parser"
 	"github.com/chainswatch/bclib/serial"
 
-	"bytes"
 	"encoding/binary"
 	"math/rand"
-
-	"fmt"
+	"bytes"
 	"time"
+	"fmt"
 )
 
 func checkType(received string, expected string) error {
@@ -70,7 +69,7 @@ func (p *Peer) sendGetData(inventory [][]byte, count uint64) error {
 	newCount := uint64(0)
 	for i := uint64(0); i < count; i++ {
 		copy(hash[:], inventory[i][4:])
-		if !p.queue.Exists(hash) {
+		if err := p.queue.Push(hash, nil); err == nil {
 			b.Write(inventory[i])
 			newCount++
 			// log.Debug(fmt.Sprintf("Debug inv: %x", inventory[i][:4]))

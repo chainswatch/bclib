@@ -34,4 +34,7 @@ func TestQueue(t *testing.T) {
 	if len(q.invs) != 3 {
 		t.Fatal("Length should still be 3")
 	}
+	if err := q.Update(hash, nil); err != nil {
+		t.Fatal(err)
+	}
 }

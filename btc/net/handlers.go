@@ -18,7 +18,7 @@ func (p *Peer) HandleObject(object string, payload []byte) (*Inv, error) {
 		timestamp: 0,
 		fromIP:    nil,
 	}
-	if err := p.queue.Push(hash, inventory); err != nil {
+	if err := p.queue.Update(hash, inventory); err != nil {
 		return nil, err
 	}
 	return inventory, nil
