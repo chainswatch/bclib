@@ -26,7 +26,8 @@ type Inv struct {
 	object    string
 	timestamp uint32
 	fromIP    net.IP
-	raw       []byte
+	payload   []byte
+	hash		  [32]byte
 }
 
 // Peer holds information about connected peer

@@ -13,10 +13,11 @@ func (p *Peer) HandleObject(object string, payload []byte) (*Inv, error) {
 	var hash [32]byte
 	copy(hash[:], serial.DoubleSha256(payload))
 	inventory := &Inv{
-		object:    object,
-		raw:       payload,
-		timestamp: 0,
-		fromIP:    nil,
+		object:    	object,
+		payload:   	payload,
+		hash:				hash,
+		timestamp: 	0,
+		fromIP:    	nil,
 	}
 	if err := p.queue.Update(hash, inventory); err != nil {
 		return nil, err
