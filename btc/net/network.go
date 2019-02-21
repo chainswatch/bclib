@@ -46,7 +46,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 			m, err := p.waitMsg()
 			if err != nil {
 				log.Warn(err)
-				break
+				continue
 			}
 			switch m.Cmd() {
 			case "addr":
@@ -56,7 +56,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 				}
 				for _,peer := range peers {
 					if err := n.AddPeer(peer); err != nil {
-						log.Warn(err)
+						log.Debug(err)
 					}
 				}
 			case "ping":
@@ -91,33 +91,26 @@ func (n *Network) handle(p *Peer) {
 	}
 }
 
-// Open a new connection with peer
-func openConnection(addr string) (*bufio.ReadWriter, error) {
-	dialer := &net.Dialer{
-		Timeout:   3 * time.Second,
-		KeepAlive: 30 * time.Second,
-	}
-	conn, err := dialer.Dial("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-	return bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn)), nil
-}
-
 // AddPeer adds a new peer
 func (n *Network) AddPeer(p *Peer) error {
+	var err error
+
 	ip := p.ip.String()
 	if p.ip.To4() == nil {
 		ip = fmt.Sprintf("[%s]", ip)
 	}
-	rw, err := openConnection(fmt.Sprintf("%s:%d", ip, p.port))
+	dialer := &net.Dialer{
+		Timeout:   3 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}
+
+	p.conn, err = dialer.Dial("tcp", fmt.Sprintf("%s:%d", ip, p.port))
 	if err != nil {
 		return err
 	}
+	p.rw = bufio.NewReadWriter(bufio.NewReader(p.conn), bufio.NewWriter(p.conn))
 
-	p.rw = rw
 	p.queue = NewQueue(10000)
-
 	if _, exists := n.peers[p.ip.String()]; exists {
 		return fmt.Errorf("Already connected to that peer (%s:%d)", p.ip, p.port)
 	}

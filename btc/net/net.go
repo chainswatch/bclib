@@ -39,6 +39,7 @@ type Peer struct {
 	services  uint64
 
 	rw       	*bufio.ReadWriter
+	conn			net.Conn
 	Pub				*zmq.Socket
 	queue    	*Queue // Stores raw txs and blocks
 }

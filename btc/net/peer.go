@@ -2,6 +2,7 @@ package net
 
 import (
 	"bytes"
+	"time"
 	"net"
 )
 
@@ -13,7 +14,9 @@ func (p *Peer) GetIP() string {
 func (p *Peer) waitMsg() (*Message, error) {
 	data := make([]byte, 0)
 	var flag bool
+
 	for {
+		p.conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		r, err := p.rw.ReadBytes(byte(0xD9)) // TODO: Timeout
 		if err != nil {
 			if err.Error() != "EOF" {
