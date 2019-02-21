@@ -95,6 +95,13 @@ func (n *Network) handle(p *Peer) {
 func (n *Network) AddPeer(p *Peer) error {
 	var err error
 
+	if _, exists := n.peers[p.ip.String()]; exists {
+		return fmt.Errorf("Already connected to that peer (%s:%d)", p.ip, p.port)
+	}
+	if _, exists := n.banned[p.ip.String()]; exists {
+		return fmt.Errorf("Peer banned (%s:%d)", p.ip, p.port)
+	}
+
 	ip := p.ip.String()
 	if p.ip.To4() == nil {
 		ip = fmt.Sprintf("[%s]", ip)
@@ -111,12 +118,6 @@ func (n *Network) AddPeer(p *Peer) error {
 	p.rw = bufio.NewReadWriter(bufio.NewReader(p.conn), bufio.NewWriter(p.conn))
 
 	p.queue = NewQueue(10000)
-	if _, exists := n.peers[p.ip.String()]; exists {
-		return fmt.Errorf("Already connected to that peer (%s:%d)", p.ip, p.port)
-	}
-	if _, exists := n.banned[p.ip.String()]; exists {
-		return fmt.Errorf("Peer banned (%s:%d)", p.ip, p.port)
-	}
 	n.newAddr[p.ip.String()] = p
 	return nil
 }
