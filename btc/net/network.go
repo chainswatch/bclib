@@ -45,13 +45,16 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 		default:
 			m, err := p.waitMsg()
 			if err != nil {
-				log.Warn(err)
 				p.errors++
-				if p.errors > 10 {
+				log.Warn(fmt.Sprintf("waitMsg: error no %d. %s", p.errors, err))
+				if p.errors > 3 {
 					log.Warn("Too many errors: disconnecting from peer")
 					return
 				}
 				continue
+			}
+			if p.errors > 0 {
+				p.errors--
 			}
 			switch m.Cmd() {
 			case "addr":
@@ -135,12 +138,12 @@ func (n *Network) Watch(url string) {
 				break
 			}
 			if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
-				log.Warn(err)
+				log.Warn("Handshake: ", err)
 				continue
 			}
 			delete(n.newAddr,k)
 			if len(url) > 0 {
-				pub, _ := zmq.NewSocket(zmq.PUB) // TODO: Error handling
+				pub, _ := zmq.NewSocket(zmq.PUB)
 				pub.Connect(url)
 				p.Pub = pub
 			}

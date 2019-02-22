@@ -1,3 +1,4 @@
 .env
 tmp/
 data/
+main.go
