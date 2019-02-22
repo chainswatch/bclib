@@ -63,12 +63,10 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 				p.handlePing(m.Payload())
 			default:
 				if err = n.fn(p, m); err != nil {
-					log.Warn(err)
-					break
+					break // TODO: Relay error msg?
 				}
 			}
 			alive <- true
-			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }

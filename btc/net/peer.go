@@ -15,8 +15,8 @@ func (p *Peer) waitMsg() (*Message, error) {
 	data := make([]byte, 0)
 	var flag bool
 
+	p.conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 	for {
-		p.conn.SetReadDeadline(time.Now().Add(30 * time.Second))
 		r, err := p.rw.ReadBytes(byte(0xD9)) // TODO: Timeout
 		if err != nil {
 			if err.Error() != "EOF" {
