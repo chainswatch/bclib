@@ -46,6 +46,11 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 			m, err := p.waitMsg()
 			if err != nil {
 				log.Warn(err)
+				p.errors++
+				if p.errors > 10 {
+					log.Warn("Too many errors: disconnecting from peer")
+					return
+				}
 				continue
 			}
 			switch m.Cmd() {
@@ -63,7 +68,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 				p.handlePing(m.Payload())
 			default:
 				if err = n.fn(p, m); err != nil {
-					break // TODO: Relay error msg?
+					return // TODO: Relay error msg?
 				}
 			}
 			alive <- true

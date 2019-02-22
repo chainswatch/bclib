@@ -37,6 +37,7 @@ type Peer struct {
 	timestamp uint64
 	version		uint32
 	services  uint64
+	errors		uint16
 
 	rw       	*bufio.ReadWriter
 	conn			net.Conn
