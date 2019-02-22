@@ -31,7 +31,7 @@ func (n *Network) New(fn apply) {
 	n.peers = make(map[string]*Peer)
 	n.newAddr = make(map[string]*Peer)
 	n.banned = make(map[string]bool)
-	n.maxPeers = 10
+	n.maxPeers = 5
 
 	n.fn = fn
 }
@@ -47,7 +47,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 			if err != nil {
 				p.errors++
 				log.Warn(fmt.Sprintf("waitMsg: error no %d. %s", p.errors, err))
-				if p.errors > 3 {
+				if p.errors > 2 {
 					log.Warn("Too many errors: disconnecting from peer")
 					return
 				}
@@ -137,11 +137,11 @@ func (n *Network) Watch(url string) {
 			if len(n.peers) >= int(n.maxPeers) {
 				break
 			}
+			delete(n.newAddr, k)
 			if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
 				log.Warn("Handshake: ", err)
 				continue
 			}
-			delete(n.newAddr,k)
 			if len(url) > 0 {
 				pub, _ := zmq.NewSocket(zmq.PUB)
 				pub.Connect(url)
