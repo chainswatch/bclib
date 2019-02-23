@@ -49,7 +49,7 @@ func parseMsg(data []byte) (*Message, error) {
 	message.cmd = fmt.Sprintf("%s", bytes.Trim(data[:12], "\x00"))
 	message.length = binary.LittleEndian.Uint32(data[12:16])
 	// TODO: 16-20 = checksum
-	message.payload = data[20:len(data)]
+	message.payload = data[20:]
 	if int(message.length) != len(message.payload) {
 		return nil, fmt.Errorf("parseMsg: length and len(payload) differ: %d != %d", message.length, len(message.payload))
 	}

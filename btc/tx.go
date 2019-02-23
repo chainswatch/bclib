@@ -5,9 +5,9 @@ import (
 	"github.com/chainswatch/bclib/parser"
 	"github.com/chainswatch/bclib/serial"
 
-	"fmt"
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 // Witness : https://github.com/bitcoin/bitcoin/blob/master/src/primitives/transaction.h

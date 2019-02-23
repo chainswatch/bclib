@@ -8,19 +8,19 @@ import (
 func NewQueue(size int) *Queue {
 	return &Queue{
 		hashes: make([][32]byte, size),
-		invs: 	make(map[[32]byte]*Inv),
-		size:  	size,
+		invs:   make(map[[32]byte]*Inv),
+		size:   size,
 	}
 }
 
 // Queue is a basic FIFO queue based on a circular list that resizes as needed.
 type Queue struct {
-	hashes 	[][32]byte
-	invs		map[[32]byte]*Inv
-	size  	int
-	head  	int
-	tail  	int
-	count 	int
+	hashes [][32]byte
+	invs   map[[32]byte]*Inv
+	size   int
+	head   int
+	tail   int
+	count  int
 }
 
 // Exists test if element already exists in queue or not

@@ -2,19 +2,19 @@ package net
 
 import (
 	"bufio"
-	"time"
 	"fmt"
 	"net"
+	"time"
 
-	log "github.com/sirupsen/logrus"
 	zmq "github.com/pebbe/zmq4"
+	log "github.com/sirupsen/logrus"
 )
 
 // ConnectedPeers returns the number of connected peers
 func (n *Network) ConnectedPeers() []string {
 	peers := make([]string, len(n.peers))
 	i := 0
-	for _,v := range n.peers {
+	for _, v := range n.peers {
 		peers[i] = fmt.Sprintf("%s:%d", v.ip, v.port)
 		i++
 	}
@@ -39,7 +39,7 @@ func (n *Network) New(fn apply) {
 func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 	for {
 		select {
-		case <- kill:
+		case <-kill:
 			log.Info("Child process killed properly")
 			return
 		default:
@@ -62,7 +62,7 @@ func (n *Network) action(p *Peer, alive chan bool, kill chan bool) {
 				if err != nil {
 					log.Warn(err)
 				}
-				for _,peer := range peers {
+				for _, peer := range peers {
 					if err := n.AddPeer(peer); err != nil {
 						log.Debug(err)
 					}
@@ -128,12 +128,11 @@ func (n *Network) AddPeer(p *Peer) error {
 	return nil
 }
 
-
 // Watch network and adds new peers
 func (n *Network) Watch(url string) {
 	// TODO: Use a channel
 	for len(n.peers) > 0 || len(n.newAddr) > 0 {
-		for k,p := range n.newAddr {
+		for k, p := range n.newAddr {
 			if len(n.peers) >= int(n.maxPeers) {
 				break
 			}
@@ -144,7 +143,7 @@ func (n *Network) Watch(url string) {
 			}
 			if len(url) > 0 {
 				pub, _ := zmq.NewSocket(zmq.PUB)
-				pub.Connect(url)
+				pub.Connect(url) // TODO: Disconnect properly
 				p.Pub = pub
 			}
 			n.peers[k] = p

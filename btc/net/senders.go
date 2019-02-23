@@ -4,11 +4,11 @@ import (
 	"github.com/chainswatch/bclib/parser"
 	"github.com/chainswatch/bclib/serial"
 
-	"encoding/binary"
-	"math/rand"
 	"bytes"
-	"time"
+	"encoding/binary"
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 func checkType(received string, expected string) error {

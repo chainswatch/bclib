@@ -27,7 +27,7 @@ type Inv struct {
 	timestamp uint32
 	fromIP    net.IP
 	payload   []byte
-	hash		  [32]byte
+	hash      [32]byte
 }
 
 // Peer holds information about connected peer
@@ -35,14 +35,14 @@ type Peer struct {
 	ip        net.IP
 	port      uint16
 	timestamp uint64
-	version		uint32
+	version   uint32
 	services  uint64
-	errors		uint16
+	errors    uint16
 
-	rw       	*bufio.ReadWriter
-	conn			net.Conn
-	Pub				*zmq.Socket
-	queue    	*Queue // Stores raw txs and blocks
+	rw    *bufio.ReadWriter
+	conn  net.Conn
+	Pub   *zmq.Socket
+	queue *Queue // Stores raw txs and blocks
 }
 
 // apply is passed as an argument to Watch
@@ -55,12 +55,12 @@ type Network struct {
 	userAgent string
 	port      uint32
 
-	peers     map[string]*Peer	// Connected peers
-	newAddr   map[string]*Peer	// New peers to connect to
-	banned    map[string]bool
-	maxPeers	uint32
+	peers    map[string]*Peer // Connected peers
+	newAddr  map[string]*Peer // New peers to connect to
+	banned   map[string]bool
+	maxPeers uint32
 
-	fn				apply
+	fn apply
 }
 
 // Message holds components of a network message

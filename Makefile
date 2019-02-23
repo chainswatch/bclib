@@ -6,6 +6,7 @@ GO_FILES := $(shell find . -name '*.go' | grep -v /vendor/ | grep -v _test.go)
 .PHONY: dep build clean test coverage coverhtml lint
 
 lint: ## Lint the files
+	@gofmt -s -w .
 	@revive -config lint.toml ${PKG_LIST}
 
 test: ## Run unittests

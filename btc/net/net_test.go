@@ -34,8 +34,8 @@ func TestNetworkOne(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
-	for _, c := range con { 
+	con := []string{"37.59.38.74", "112.119.69.152", "72.5.72.15", "86.97.172.251", "47.225.21.79"}
+	for _, c := range con {
 		if err := n.AddPeer(NewPeer(c, 8333)); err == nil {
 			break
 		}
@@ -63,9 +63,9 @@ func TestNetworkMultiple(t *testing.T) {
 	n := Network{}
 	n.New(handlePeers)
 
-	con := []string{"37.59.38.74","112.119.69.152","72.5.72.15", "86.97.172.251", "47.225.21.79"}
+	con := []string{"37.59.38.74", "112.119.69.152", "72.5.72.15", "86.97.172.251", "47.225.21.79"}
 	count := 0
-	for _, c := range con { 
+	for _, c := range con {
 		if err := n.AddPeer(NewPeer(c, 8333)); err == nil {
 			count++
 		}
@@ -83,7 +83,6 @@ func TestNetworkMultiple(t *testing.T) {
 	if len(n.ConnectedPeers()) < 2 {
 		t.Fatal("Could not connect to enough peers")
 	}
-
 
 	time.Sleep(30 * time.Second)
 
