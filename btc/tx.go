@@ -24,7 +24,7 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
 	tx.NVin = uint32(br.ReadCompactSize())
 	if tx.NVin == 0 { // We are dealing with extended transaction (witness format)
 		txFlag, _ = br.ReadByte() // TODO: Error handling
-		if txFlag != 0x01 { // Must be 1, other flags may be supported in the future
+		if txFlag != 0x01 {       // Must be 1, other flags may be supported in the future
 			return nil, fmt.Errorf("Witness tx but flag is %x != 0x01", txFlag)
 		}
 		tx.NVin = uint32(br.ReadCompactSize())

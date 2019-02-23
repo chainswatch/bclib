@@ -10,7 +10,6 @@ lint: ## Lint the files
 	@revive -config lint.toml ${PKG_LIST}
 
 test: ## Run unittests
-	# gofmt -l . # TODO: Returns error
 	@go test -short ${PKG_LIST}
 
 race: dep ## Run data race detector
