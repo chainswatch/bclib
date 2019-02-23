@@ -50,6 +50,8 @@ type apply func(*Peer, *Message) error
 
 // Network holds information about the network status
 type Network struct {
+	ctx				*zmq.Context
+
 	version   uint32
 	services  uint32
 	userAgent string

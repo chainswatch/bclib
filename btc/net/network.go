@@ -10,6 +10,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func (n *Network) SetContext(ctx *zmq.Context) {
+	n.ctx = ctx
+}
+
 // ConnectedPeers returns the number of connected peers
 func (n *Network) ConnectedPeers() []string {
 	peers := make([]string, len(n.peers))
@@ -144,7 +148,7 @@ func (n *Network) Watch(url string) {
 			}
 			if len(url) > 0 {
 				log.Info("Connect ", p.ip)
-				if p.Pub, err = zmq.NewSocket(zmq.PUB); err != nil {
+				if p.Pub, err = n.ctx.NewSocket(zmq.PUB); err != nil {
 					log.Warn("NewSocket: ", err)
 				}
 				if err = p.Pub.Connect(url); err != nil { // TODO: Disconnect properly
