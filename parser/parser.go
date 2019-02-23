@@ -13,7 +13,7 @@ type Reader interface {
 	Peek(int) ([]byte, error)
 	Seek(int64, int) (int64, error)
 	Reset()
-	ReadByte() byte
+	ReadByte() (byte, error)
 	ReadBytes(uint64) []byte
 	ReadUint32() uint32
 	ReadUint64() uint64
@@ -74,7 +74,6 @@ func CompactSize(n uint64) []byte {
 		val := make([]byte, 2)
 		binary.LittleEndian.PutUint16(val, uint16(n))
 		return append([]byte{0xFD}, val...)
-	} else {
-		return []byte{byte(n)}
 	}
+	return []byte{byte(n)}
 }

@@ -37,10 +37,10 @@ func (buf *Buffer) Seek(pos int64, whence int) (int64, error) {
 }
 
 // ReadByte reads next one byte of data
-func (buf *Buffer) ReadByte() byte {
+func (buf *Buffer) ReadByte() (byte, error) {
 	val := buf.b[buf.pos : buf.pos+1]
 	buf.pos++
-	return val[0]
+	return val[0], nil
 }
 
 // ReadBytes reads next length bytes of data
@@ -88,7 +88,7 @@ func (buf *Buffer) ReadUint64() uint64 {
 // ReadCompactSize reads N byte of data as uint64, LE.
 // N depends on the first byte
 func (buf *Buffer) ReadCompactSize() uint64 {
-	intType := buf.ReadByte()
+	intType, _ := buf.ReadByte() // TODO: Error handling
 	if intType == 0xFF {
 		return buf.ReadUint64()
 	} else if intType == 0xFE {

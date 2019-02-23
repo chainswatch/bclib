@@ -29,7 +29,7 @@ const (
 	opDup       = 0x76
 	opHash160   = 0xA9
 	opChecksig  = 0xAC
-	opPushdata1 = 0x4C // Next byte containes the number of bytes to be pushed onto the stack
+	opPushdata1 = 0x4C // Next byte contains the number of bytes to be pushed onto the stack
 	opPushdata2 = 0x4D // Next 2 bytes contain the number of bytes to be pushed (little endian)
 	opPushdata4 = 0x4E // Next 4 bytes contain the number of bytes to be pushed (little endian)
 

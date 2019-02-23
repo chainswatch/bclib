@@ -54,10 +54,10 @@ func (file *File) Peek(length int) ([]byte, error) {
 }
 
 // ReadByte reads next one byte of data
-func (file *File) ReadByte() byte {
+func (file *File) ReadByte() (byte, error) {
 	val := make([]byte, 1)
 	file.f.Read(val)
-	return val[0]
+	return val[0], nil
 }
 
 // ReadBytes reads next length bytes of data
@@ -109,7 +109,7 @@ func (file *File) ReadUint64() uint64 {
 // ReadCompactSize reads N byte of data as uint64, LE.
 // N depends on the first byte
 func (file *File) ReadCompactSize() uint64 {
-	intType := file.ReadByte()
+	intType, _ := file.ReadByte() // TODO: Error handling
 	if intType == 0xFF {
 		return file.ReadUint64()
 	} else if intType == 0xFE {

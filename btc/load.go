@@ -103,6 +103,9 @@ func LoadBlockToFile(path string, height uint32) error {
 	content := file.ReadBytes(uint64(nSize))
 
 	fout, err := os.Create(fmt.Sprintf("%s/block%d.dat", path, height))
+	if err != nil {
+		return err
+	}
 	if _, err := fout.Write(content); err != nil {
 		return err
 	}

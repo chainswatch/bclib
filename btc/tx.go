@@ -23,7 +23,7 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
 	tx.NVersion = br.ReadInt32()
 	tx.NVin = uint32(br.ReadCompactSize())
 	if tx.NVin == 0 { // We are dealing with extended transaction (witness format)
-		txFlag = br.ReadByte()
+		txFlag, _ = br.ReadByte() // TODO: Error handling
 		if txFlag != 0x01 { // Must be 1, other flags may be supported in the future
 			return nil, fmt.Errorf("Witness tx but flag is %x != 0x01", txFlag)
 		}
@@ -57,7 +57,7 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
 	}
 
 	if (txFlag&1) == 1 && allowWitness {
-		txFlag ^= 1 // Not sure what this is for
+		// txFlag ^= 1 // Not sure what this is for
 		for i := uint32(0); i < tx.NVin; i++ {
 			witnessCount := br.ReadCompactSize()
 			tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
