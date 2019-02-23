@@ -151,6 +151,7 @@ func (n *Network) Watch(url string) {
 				}
 			}
 			n.peers[k] = p
+			log.Info("Connect")
 			go n.handle(p)
 		}
 		time.Sleep(10 * time.Second)
