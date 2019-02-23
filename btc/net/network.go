@@ -130,6 +130,7 @@ func (n *Network) AddPeer(p *Peer) error {
 
 // Watch network and adds new peers
 func (n *Network) Watch(url string) {
+	var err error
 	// TODO: Use a channel
 	for len(n.peers) > 0 || len(n.newAddr) > 0 {
 		for k, p := range n.newAddr {
@@ -137,14 +138,16 @@ func (n *Network) Watch(url string) {
 				break
 			}
 			delete(n.newAddr, k)
-			if err := p.handshake(n.version, n.services, n.userAgent); err != nil {
+			if err = p.handshake(n.version, n.services, n.userAgent); err != nil {
 				log.Warn("Handshake: ", err)
 				continue
 			}
 			if len(url) > 0 {
-				p.Pub, _ = zmq.NewSocket(zmq.PUB)
-				if err := p.Pub.Connect(url); err != nil { // TODO: Disconnect properly
+				if p.Pub, err = zmq.NewSocket(zmq.PUB); err != nil {
 					log.Warn("NewSocket: ", err)
+				}
+				if err = p.Pub.Connect(url); err != nil { // TODO: Disconnect properly
+					log.Warn("Connect: ", err)
 				}
 			}
 			n.peers[k] = p
