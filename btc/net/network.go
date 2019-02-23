@@ -143,6 +143,7 @@ func (n *Network) Watch(url string) {
 				continue
 			}
 			if len(url) > 0 {
+				log.Info("Connect ", p.ip)
 				if p.Pub, err = zmq.NewSocket(zmq.PUB); err != nil {
 					log.Warn("NewSocket: ", err)
 				}
@@ -151,7 +152,6 @@ func (n *Network) Watch(url string) {
 				}
 			}
 			n.peers[k] = p
-			log.Info("Connect ", url)
 			go n.handle(p)
 		}
 		time.Sleep(10 * time.Second)
