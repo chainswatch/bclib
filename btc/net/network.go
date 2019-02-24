@@ -10,8 +10,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SetContext sets network context
 func (n *Network) SetContext(ctx *zmq.Context) {
 	n.ctx = ctx
+}
+
+// SetMaxPeers sets the maximum number of peers
+func (n *Network) SetMaxPeers(m uint32) {
+	n.maxPeers = m
 }
 
 // ConnectedPeers returns the number of connected peers
@@ -35,7 +41,7 @@ func (n *Network) New(fn apply) {
 	n.peers = make(map[string]*Peer)
 	n.newAddr = make(map[string]*Peer)
 	n.banned = make(map[string]bool)
-	n.maxPeers = 5
+	n.maxPeers = 1
 
 	n.fn = fn
 }
