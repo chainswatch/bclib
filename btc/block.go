@@ -21,7 +21,7 @@ func putBlockHash(b *models.BlockHeader) {
 	binary.LittleEndian.PutUint32(value, b.NVersion) // 4
 	bin = append(bin, value...)
 
-	bin = append(bin, b.HashPrevBlock...)  // ?
+	bin = append(bin, b.HashPrev...)       // ?
 	bin = append(bin, b.HashMerkleRoot...) // ?
 
 	binary.LittleEndian.PutUint32(value, b.NTime) // 4
@@ -33,13 +33,13 @@ func putBlockHash(b *models.BlockHeader) {
 	binary.LittleEndian.PutUint32(value, b.NNonce) // 4
 	bin = append(bin, value...)
 
-	b.HashBlock = serial.DoubleSha256(bin)
+	b.Hash = serial.DoubleSha256(bin)
 }
 
 // TODO: Currently won't return any error
 func decodeBlockHeader(bh *models.BlockHeader, br parser.Reader) {
 	bh.NVersion = br.ReadUint32()
-	bh.HashPrevBlock = br.ReadBytes(32) // FIXME: Slice out of bound (in production)
+	bh.HashPrev = br.ReadBytes(32) // FIXME: Slice out of bound (in production)
 	bh.HashMerkleRoot = br.ReadBytes(32)
 	bh.NTime = br.ReadUint32()
 	bh.NBits = br.ReadUint32() // TODO: Parse this as mantissa?
