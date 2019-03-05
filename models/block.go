@@ -28,6 +28,7 @@ type Tx struct {
 	Vin      []TxInput
 	Vout     []TxOutput
 	Locktime uint32 `db:"locktime"`
+	Segwit		bool
 }
 
 // BlockHeader contains general index records parameters

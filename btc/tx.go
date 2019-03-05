@@ -58,6 +58,7 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
 
 	if (txFlag&1) == 1 && allowWitness {
 		// txFlag ^= 1 // Not sure what this is for
+		tx.Segwit = true
 		for i := uint32(0); i < tx.NVin; i++ {
 			witnessCount := br.ReadCompactSize()
 			tx.Vin[i].ScriptWitness = make([][]byte, witnessCount)
