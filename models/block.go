@@ -28,6 +28,7 @@ type Tx struct {
 	Vin      []TxInput
 	Vout     []TxOutput
 	Locktime uint32 `db:"locktime"`
+	Segwit		bool
 }
 
 // BlockHeader contains general index records parameters
@@ -40,8 +41,8 @@ type BlockHeader struct {
 	NFile            uint32 `db:"n_file"`            // File number
 	NDataPos         uint32 `db:"n_data_pos"`        // (Index)
 	NUndoPos         uint32 `db:"n_undo_pos"`        // (Index)
-	HashBlock        []byte `db:"hash_block"`        // current block hash (Added)
-	HashPrevBlock    []byte `db:"hash_prev_block"`   // previous block hash (Index)
+	Hash             []byte `db:"hash_block"`        // current block hash (Added)
+	HashPrev         []byte `db:"hash_prev_block"`   // previous block hash (Index)
 	HashMerkleRoot   []byte `db:"hash_merkle_root"`  //
 	NTime            uint32 `db:"n_time"`            // (Index)
 	NBits            uint32 `db:"n_bits"`            // (Index)

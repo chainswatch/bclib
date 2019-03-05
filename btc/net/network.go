@@ -10,6 +10,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SetContext sets network context
+func (n *Network) SetContext(ctx *zmq.Context) {
+	n.ctx = ctx
+}
+
+// SetMaxPeers sets the maximum number of peers
+func (n *Network) SetMaxPeers(m uint32) {
+	n.maxPeers = m
+}
+
 // ConnectedPeers returns the number of connected peers
 func (n *Network) ConnectedPeers() []string {
 	peers := make([]string, len(n.peers))
@@ -31,7 +41,7 @@ func (n *Network) New(fn apply) {
 	n.peers = make(map[string]*Peer)
 	n.newAddr = make(map[string]*Peer)
 	n.banned = make(map[string]bool)
-	n.maxPeers = 5
+	n.maxPeers = 1
 
 	n.fn = fn
 }
@@ -143,7 +153,8 @@ func (n *Network) Watch(url string) {
 				continue
 			}
 			if len(url) > 0 {
-				if p.Pub, err = zmq.NewSocket(zmq.PUB); err != nil {
+				log.Info("Connect ", p.ip)
+				if p.Pub, err = n.ctx.NewSocket(zmq.PUB); err != nil {
 					log.Warn("NewSocket: ", err)
 				}
 				if err = p.Pub.Connect(url); err != nil { // TODO: Disconnect properly
