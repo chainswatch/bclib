@@ -9,7 +9,7 @@ const charset = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
 var gen = []int{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
 
-// DecodeBech32 decodes a bech32 encoded string, returning the human-readable
+// Decode decodes a bech32 encoded string, returning the human-readable
 // part and the data part excluding the checksum.
 func Decode(bech string) (string, []byte, error) {
 	// The maximum allowed length for a bech32 string is 90. It must also

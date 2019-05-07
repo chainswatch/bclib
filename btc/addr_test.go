@@ -11,52 +11,52 @@ import (
 func TestAddr(t *testing.T) {
 	// TODO: txP2wpkh, txMultisig
 	tests := []struct {
-		name					string
-		addr					string
-		pkey					[]byte
-		scriptPkey		[]byte
-		txtype				uint8
-		isWitness			bool
+		name       string
+		addr       string
+		pkey       []byte
+		scriptPkey []byte
+		txtype     uint8
+		isWitness  bool
 	}{
 		{
-			name:     			"DUP HASH160 P20 <pkey> EQVERIFY CHECKSIG",
-			addr: 					"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX",
-			pkey:     			[]byte("119b098e2e980a229e139a9ed01a469e518e6f26"),
-			scriptPkey:     []byte("76a914119b098e2e980a229e139a9ed01a469e518e6f2688ac"),
-			txtype:					txP2pkh,
-			isWitness:			false,
+			name:       "DUP HASH160 P20 <pkey> EQVERIFY CHECKSIG",
+			addr:       "12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX",
+			pkey:       []byte("119b098e2e980a229e139a9ed01a469e518e6f26"),
+			scriptPkey: []byte("76a914119b098e2e980a229e139a9ed01a469e518e6f2688ac"),
+			txtype:     txP2pkh,
+			isWitness:  false,
 		},
 		{
-			name:     			"HASH160 P20 <pkey> EQUAL",
-			addr: 					"37xLqiZQYD4WXg2BaVgYfBS2NeTdHwtcuY",
-			pkey:     			[]byte("44b6c8fa2b9d3e646c70887651f2861e2cb4ff7f"),
-			scriptPkey:    	[]byte("a91444b6c8fa2b9d3e646c70887651f2861e2cb4ff7f87"),
-			txtype:					txP2sh,
-			isWitness:			false,
+			name:       "HASH160 P20 <pkey> EQUAL",
+			addr:       "37xLqiZQYD4WXg2BaVgYfBS2NeTdHwtcuY",
+			pkey:       []byte("44b6c8fa2b9d3e646c70887651f2861e2cb4ff7f"),
+			scriptPkey: []byte("a91444b6c8fa2b9d3e646c70887651f2861e2cb4ff7f87"),
+			txtype:     txP2sh,
+			isWitness:  false,
 		},
 		{
-			name:     			"P65 <pkey> CHECKSIG",
-			addr: 					"12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX",
-			pkey:     			[]byte("119b098e2e980a229e139a9ed01a469e518e6f26"),
-			scriptPkey:    	[]byte("410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac"),
-			txtype:					txP2pk,
-			isWitness:			false,
+			name:       "P65 <pkey> CHECKSIG",
+			addr:       "12c6DSiU4Rq3P4ZxziKxzrL5LmMBrzjrJX",
+			pkey:       []byte("119b098e2e980a229e139a9ed01a469e518e6f26"),
+			scriptPkey: []byte("410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac"),
+			txtype:     txP2pk,
+			isWitness:  false,
 		},
 		{
-			name:     			"0 P32 <pkey>",
-			addr: 					"bc1qwqdg6squsna38e46795at95yu9atm8azzmyvckulcc7kytlcckxswvvzej",
-			pkey:     			[]byte("701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d"),
-			scriptPkey:    	[]byte("0020701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d"),
-			txtype:					txP2wsh, // V0_P2WSH
-			isWitness:			false,
+			name:       "0 P32 <pkey>",
+			addr:       "bc1qwqdg6squsna38e46795at95yu9atm8azzmyvckulcc7kytlcckxswvvzej",
+			pkey:       []byte("701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d"),
+			scriptPkey: []byte("0020701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d"),
+			txtype:     txP2wsh, // V0_P2WSH
+			isWitness:  true,
 		},
 		{
-			name:     			"0 P20 <pkey>",
-			addr: 					"bc1qj7qmp2h92ls935e4wcnt3zj89uu2sdjwq6hpag",
-			pkey:     			[]byte("9781b0aae557e058d3357626b88a472f38a8364e"),
-			scriptPkey:    	[]byte("00149781b0aae557e058d3357626b88a472f38a8364e"),
-			txtype:					txP2wpkh, // V0_P2WSH
-			isWitness:			false,
+			name:       "0 P20 <pkey>",
+			addr:       "bc1qj7qmp2h92ls935e4wcnt3zj89uu2sdjwq6hpag",
+			pkey:       []byte("9781b0aae557e058d3357626b88a472f38a8364e"),
+			scriptPkey: []byte("00149781b0aae557e058d3357626b88a472f38a8364e"),
+			txtype:     txP2wpkh, // V0_P2WSH
+			isWitness:  true,
 		},
 	}
 
@@ -75,7 +75,7 @@ func TestAddr(t *testing.T) {
 		}
 
 		// Encoding
-		addr, err := EncodeAddr(test.txtype, tpkey)
+		addr, err := AddrEncode(test.txtype, tpkey)
 		if err != nil {
 			t.Errorf("%s: %s", test.name, err)
 		}
@@ -84,7 +84,7 @@ func TestAddr(t *testing.T) {
 		}
 
 		// Decoding
-		pkey, err = DecodeAddr(test.addr)
+		pkey, err = AddrDecode(test.addr)
 		if err != nil {
 			t.Errorf("%s: %s", test.name, err)
 		}
@@ -96,32 +96,32 @@ func TestAddr(t *testing.T) {
 
 func TestSegwit(t *testing.T) {
 	tests := []struct {
-		encoded					string
-		decoded					[]byte
+		encoded string
+		decoded []byte
 	}{
 		{
-			encoded: 					"bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
-			decoded:     			[]byte("0014751e76e8199196d454941c45d1b3a323f1433bd6"),
+			encoded: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+			decoded: []byte("0014751e76e8199196d454941c45d1b3a323f1433bd6"),
 		},
 		{
-			encoded: 					"tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
-			decoded:     			[]byte("00201863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262"),
+			encoded: "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sl5k7",
+			decoded: []byte("00201863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262"),
 		},
 		{
-			encoded: 					"bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx",
-			decoded:     			[]byte("5128751e76e8199196d454941c45d1b3a323f1433bd6751e76e8199196d454941c45d1b3a323f1433bd6"),
+			encoded: "bc1pw508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7k7grplx",
+			decoded: []byte("5128751e76e8199196d454941c45d1b3a323f1433bd6751e76e8199196d454941c45d1b3a323f1433bd6"),
 		},
 		{
-			encoded: 					"bc1sw50qa3jx3s",
-			decoded:     			[]byte("6002751e"),
+			encoded: "bc1sw50qa3jx3s",
+			decoded: []byte("6002751e"),
 		},
 		{
-			encoded: 					"bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj",
-			decoded:     			[]byte("5210751e76e8199196d454941c45d1b3a323"),
+			encoded: "bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj",
+			decoded: []byte("5210751e76e8199196d454941c45d1b3a323"),
 		},
 		{
-			encoded: 					"tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy",
-			decoded:     			[]byte("0020000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433"),
+			encoded: "tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy",
+			decoded: []byte("0020000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433"),
 		},
 	}
 
