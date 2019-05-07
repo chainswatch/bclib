@@ -251,7 +251,7 @@ func TestTransaction(t *testing.T) {
 			if vout.AddrType != test.addrtype[i] {
 				t.Errorf("%s: Wrong TxType: %x != %x", test.name, vout.AddrType, test.addrtype[i])
 			}
-			decoded, err := DecodeAddr(vout.AddrType, vout.Addr)
+			decoded, err := EncodeAddr(vout.AddrType, vout.Addr)
 			if err != nil {
 				t.Error("DecodeAddr: ", err)
 			}

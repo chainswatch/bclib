@@ -22,24 +22,10 @@ func Hash160(buf []byte) []byte {
 	return calcHash(calcHash(buf, sha256.New()), ripemd160.New())
 }
 
-// SecToAddress encodes SEC format as a human-readable payment address.
-// Input: SEC format (compressed or uncompressed)
-// Returns a human-readable payment address.
-// Used in P2PKH and P2SH (Tested)
-func SecToAddress(sec []byte) string {
-	prefix := []byte{0x00}
-	hash160 := Hash160(sec) // SEC to hash160: ripemd160(sha256(SEC))
-	b := append(prefix, hash160...)
-	chksum := DoubleSha256(b)[:4] //
-	b = append(b, chksum...)
-
-	return EncodeBase58(b)
-}
-
 // Hash160ToAddress p2pkh
 func Hash160ToAddress(hash160 []byte, prefix []byte) string {
 	b := append(prefix, hash160...)
-	chksum := DoubleSha256(b)[:4] //
+	chksum := DoubleSha256(b)[:4]
 	b = append(b, chksum...)
 
 	return EncodeBase58(b)
