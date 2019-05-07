@@ -113,43 +113,43 @@ func segwitAddrDecode(hrp, addr string) (byte, []byte, error) {
 	if data[0] > 16 {
 		return 0, nil, fmt.Errorf("invalid witness version : %d", data[0])
 	}
-	res, err := bech32.ConvertBits(data[1:], 5, 8, false)
+	pkey, err := bech32.ConvertBits(data[1:], 5, 8, false)
 	if err != nil {
 		return 0, nil, err
 	}
-	if len(res) < 2 || len(res) > 40 {
-		return 0, nil, fmt.Errorf("invalid convertbits length : %d", len(res))
+	if len(pkey) < 2 || len(pkey) > 40 {
+		return 0, nil, fmt.Errorf("invalid convertbits length : %d", len(pkey))
 	}
-	if data[0] == 0 && len(res) != 20 && len(res) != 32 {
-		return 0, nil, fmt.Errorf("invalid program length for witness version 0 (per BIP141) : %d", len(res))
+	if data[0] == 0 && len(pkey) != 20 && len(pkey) != 32 {
+		return 0, nil, fmt.Errorf("invalid program length for witness version 0 (per BIP141) : %d", len(pkey))
 	}
-	return data[0], res, nil
+	return data[0], pkey, nil
 }
 
 // segwitAddrEncode encodes hrp(human-readable part), version and data(bytes array), returns Segwit Address / or error
-func segwitAddrEncode(hrp string, version byte, program []byte) (string, error) {
+func segwitAddrEncode(hrp string, version byte, pkey []byte) (string, error) {
 	if version > 16 {
 		return "", fmt.Errorf("invalid witness version : %d", version)
 	}
-	if len(program) < 2 || len(program) > 40 {
-		return "", fmt.Errorf("invalid program length : %d", len(program))
+	if len(pkey) < 2 || len(pkey) > 40 {
+		return "", fmt.Errorf("invalid pkey length : %d", len(pkey))
 	}
-	if version == 0 && len(program) != 20 && len(program) != 32 {
-		return "", fmt.Errorf("invalid program length for witness version 0 (per BIP141) : %d", len(program))
+	if version == 0 && len(pkey) != 20 && len(pkey) != 32 {
+		return "", fmt.Errorf("invalid pkey length for witness version 0 (per BIP141) : %d", len(pkey))
 	}
-	data, err := bech32.ConvertBits(program, 8, 5, true)
+	data, err := bech32.ConvertBits(pkey, 8, 5, true)
 	if err != nil {
 		return "", err
 	}
-	ret, err := bech32.Encode(hrp, append([]byte{version}, data...))
+	addr, err := bech32.Encode(hrp, append([]byte{version}, data...))
 	if err != nil {
 		return "", err
 	}
-	return ret, nil
+	return addr, nil
 }
 
-// EncodeAddr decodes address from pkey
-func EncodeAddr(txType uint8, pkey []byte) (string, error) {
+// AddrEncode encodes address from pkey
+func AddrEncode(txType uint8, pkey []byte) (string, error) {
 	var addr string
 	switch txType {
 	case txP2pkh:
@@ -176,9 +176,9 @@ func EncodeAddr(txType uint8, pkey []byte) (string, error) {
 	return addr, nil
 }
 
-// DecodeAddr accepts an encoded address (P2PKH or P2SH, human readable)
+// AddrDecode accepts an encoded address (P2PKH or P2SH, human readable)
 // returns its public key
-func DecodeAddr(addr string) ([]byte, error) {
+func AddrDecode(addr string) ([]byte, error) {
 	switch {
 	case addr[0] == '1':
 		data := serial.DecodeBase58(addr)

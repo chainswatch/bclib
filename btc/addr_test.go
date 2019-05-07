@@ -48,7 +48,7 @@ func TestAddr(t *testing.T) {
 			pkey:       []byte("701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d"),
 			scriptPkey: []byte("0020701a8d401c84fb13e6baf169d59684e17abd9fa216c8cc5b9fc63d622ff8c58d"),
 			txtype:     txP2wsh, // V0_P2WSH
-			isWitness:  false,
+			isWitness:  true,
 		},
 		{
 			name:       "0 P20 <pkey>",
@@ -56,7 +56,7 @@ func TestAddr(t *testing.T) {
 			pkey:       []byte("9781b0aae557e058d3357626b88a472f38a8364e"),
 			scriptPkey: []byte("00149781b0aae557e058d3357626b88a472f38a8364e"),
 			txtype:     txP2wpkh, // V0_P2WSH
-			isWitness:  false,
+			isWitness:  true,
 		},
 	}
 
@@ -75,7 +75,7 @@ func TestAddr(t *testing.T) {
 		}
 
 		// Encoding
-		addr, err := EncodeAddr(test.txtype, tpkey)
+		addr, err := AddrEncode(test.txtype, tpkey)
 		if err != nil {
 			t.Errorf("%s: %s", test.name, err)
 		}
@@ -84,7 +84,7 @@ func TestAddr(t *testing.T) {
 		}
 
 		// Decoding
-		pkey, err = DecodeAddr(test.addr)
+		pkey, err = AddrDecode(test.addr)
 		if err != nil {
 			t.Errorf("%s: %s", test.name, err)
 		}

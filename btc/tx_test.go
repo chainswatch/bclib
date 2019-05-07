@@ -248,10 +248,10 @@ func TestTransaction(t *testing.T) {
 			t.Errorf("Wrong Version %d != %d", tx.NVersion, test.version)
 		}
 		for i, vout := range tx.Vout {
-			if vout.AddrType != test.addrtype[i] {
-				t.Errorf("%s: Wrong TxType: %x != %x", test.name, vout.AddrType, test.addrtype[i])
+			if vout.Type != test.addrtype[i] {
+				t.Errorf("%s: Wrong Type: %x != %x", test.name, vout.Type, test.addrtype[i])
 			}
-			decoded, err := EncodeAddr(vout.AddrType, vout.Addr)
+			decoded, err := AddrEncode(vout.Type, vout.Pkey)
 			if err != nil {
 				t.Error("DecodeAddr: ", err)
 			}
