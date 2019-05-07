@@ -1,4 +1,4 @@
-package serial
+package bech32
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ var gen = []int{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
 
 // DecodeBech32 decodes a bech32 encoded string, returning the human-readable
 // part and the data part excluding the checksum.
-func DecodeBech32(bech string) (string, []byte, error) {
+func Decode(bech string) (string, []byte, error) {
 	// The maximum allowed length for a bech32 string is 90. It must also
 	// be at least 8 characters, since it needs a non-empty HRP, a
 	// separator, and a 6 character checksum.
@@ -22,8 +22,7 @@ func DecodeBech32(bech string) (string, []byte, error) {
 	// Only	ASCII characters between 33 and 126 are allowed.
 	for i := 0; i < len(bech); i++ {
 		if bech[i] < 33 || bech[i] > 126 {
-			return "", nil, fmt.Errorf("invalid character in "+
-				"string: '%c'", bech[i])
+			return "", nil, fmt.Errorf("invalid character in string: '%c'", bech[i])
 		}
 	}
 
@@ -31,8 +30,7 @@ func DecodeBech32(bech string) (string, []byte, error) {
 	lower := strings.ToLower(bech)
 	upper := strings.ToUpper(bech)
 	if bech != lower && bech != upper {
-		return "", nil, fmt.Errorf("string not all lowercase or all " +
-			"uppercase")
+		return "", nil, fmt.Errorf("string not all lowercase or all uppercase")
 	}
 
 	// We'll work with the lowercase string from now on.
@@ -77,7 +75,7 @@ func DecodeBech32(bech string) (string, []byte, error) {
 
 // Encode encodes a byte slice into a bech32 string with the
 // human-readable part hrb. Note that the bytes must each encode 5 bits (base32).
-func encodeBase32(hrp string, data []byte) (string, error) {
+func Encode(hrp string, data []byte) (string, error) {
 	// Calculate the checksum of the data and append it at the end.
 	checksum := bech32Checksum(hrp, data)
 	combined := append(data, checksum...)
@@ -91,16 +89,6 @@ func encodeBase32(hrp string, data []byte) (string, error) {
 			"%v", err)
 	}
 	return hrp + "1" + dataChars, nil
-}
-
-// EncodeBench32 encodes a binary address into a bech32 string.
-func EncodeBench32(hrp string, src []byte) (string, error) {
-	witness, err := convertBits(src[1:], 8, 5, true)
-	if err != nil {
-		return "", err
-	}
-	data := append(src[:1], witness...)
-	return encodeBase32(hrp, data)
 }
 
 // toBytes converts each character in the string 'chars' to the value of the
@@ -133,7 +121,7 @@ func toChars(data []byte) (string, error) {
 
 // ConvertBits converts a byte slice where each byte is encoding fromBits bits,
 // to a byte slice where each byte is encoding toBits bits.
-func convertBits(data []byte, fromBits, toBits uint8, pad bool) ([]byte, error) {
+func ConvertBits(data []byte, fromBits, toBits uint8, pad bool) ([]byte, error) {
 	if fromBits < 1 || fromBits > 8 || toBits < 1 || toBits > 8 {
 		return nil, fmt.Errorf("only bit groups between 1 and 8 allowed")
 	}

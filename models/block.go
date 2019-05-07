@@ -13,9 +13,8 @@ type TxInput struct {
 type TxOutput struct {
 	Index uint32 `db:"index"` // Output index
 	Value uint64 `db:"value"` // Satoshis
-	// TODO: Add type
-	Addr     []byte `db:"addr"` // Public key
-	AddrType uint8
+	Addr     []byte `db:"addr"` // Public key (TODO: rename Pkey?)
+	AddrType uint8 // TODO: rename PkeyType?
 	Script   []byte `db:"script"` // Where the magic happens
 }
 
