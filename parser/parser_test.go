@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"testing"
 	"github.com/chainswatch/bclib/serial"
+	"testing"
 )
 
 func TestParser(t *testing.T) {
@@ -18,7 +18,6 @@ func TestParser(t *testing.T) {
 			t.Fatalf("%d != %d", i, j)
 		}
 	}
-
 
 	raw, err := serial.HexToBinary([]byte("fde814"))
 	if err != nil {

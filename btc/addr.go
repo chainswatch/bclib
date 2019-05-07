@@ -3,10 +3,10 @@ package btc
 // TODO: Rename to script.go
 
 import (
-	log "github.com/sirupsen/logrus"
 	"fmt"
 	"github.com/chainswatch/bclib/serial"
 	"github.com/chainswatch/bclib/serial/bech32"
+	log "github.com/sirupsen/logrus"
 )
 
 // Check if OP is a PubkeyHash (length == 20)
@@ -171,7 +171,8 @@ func EncodeAddr(txType uint8, pkey []byte) (string, error) {
 	case txUnknown:
 		addr = ""
 	default:
-		return "", fmt.Errorf("EncodeAddr: Unable to encode addr from pkeyscript") }
+		return "", fmt.Errorf("EncodeAddr: Unable to encode addr from pkeyscript")
+	}
 	return addr, nil
 }
 

@@ -11,10 +11,10 @@ type TxInput struct {
 
 // TxOutput holds tx outputs
 type TxOutput struct {
-	Index uint32 `db:"index"` // Output index
-	Value uint64 `db:"value"` // Satoshis
-	Addr     []byte `db:"addr"` // Public key (TODO: rename Pkey?)
-	AddrType uint8 // TODO: rename PkeyType?
+	Index    uint32 `db:"index"` // Output index
+	Value    uint64 `db:"value"` // Satoshis
+	Addr     []byte `db:"addr"`  // Public key (TODO: rename Pkey?)
+	AddrType uint8  // TODO: rename PkeyType?
 	Script   []byte `db:"script"` // Where the magic happens
 }
 
@@ -27,7 +27,7 @@ type Tx struct {
 	Vin      []TxInput
 	Vout     []TxOutput
 	Locktime uint32 `db:"locktime"`
-	Segwit		bool
+	Segwit   bool
 }
 
 // BlockHeader contains general index records parameters
