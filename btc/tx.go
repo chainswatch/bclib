@@ -52,7 +52,7 @@ func DecodeTx(br parser.Reader) (*models.Tx, error) {
 		output.Value = br.ReadUint64()
 		scriptLength := br.ReadCompactSize()
 		output.Script = br.ReadBytes(scriptLength)
-		output.AddrType, output.Addr = getPkeyFromScript(output.Script) // TODO: Optimize
+		output.Type, output.Pkey = getPkeyFromScript(output.Script)
 		tx.Vout[i] = output
 	}
 
