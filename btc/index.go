@@ -12,8 +12,8 @@ import (
 )
 
 type blockFile struct {
-	fileNum      uint32
-	NBlocks      uint32
+	fileNum     uint32
+	NBlocks     uint32
 	Size        uint32
 	UndoSize    uint32
 	HeightFirst uint32
