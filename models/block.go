@@ -46,7 +46,6 @@ type BlockHeader struct {
 	NTime            uint32 `db:"n_time"`            // (Index)
 	NBits            uint32 `db:"n_bits"`            // (Index)
 	NNonce           uint32 `db:"n_nonce"`           // (Index)
-	TargetDifficulty uint32 `db:"target_difficulty"` //
 	NSize            uint32 `db:"n_size"`            // Block size
 }
 
