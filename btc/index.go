@@ -14,23 +14,23 @@ import (
 type blockFile struct {
 	fileNum      uint32
 	NBlocks      uint32
-	NSize        uint32
-	NUndoSize    uint32
-	NHeightFirst uint32
-	NHeightLast  uint32
-	NTimeFirst   uint32
-	NTimeLast    uint32
+	Size        uint32
+	UndoSize    uint32
+	HeightFirst uint32
+	HeightLast  uint32
+	TimeFirst   uint32
+	TimeLast    uint32
 }
 
 func decodeBlockFileIdx(br parser.Reader) *blockFile {
 	f := &blockFile{}
 	f.NBlocks = uint32(br.ReadVarint())
-	f.NSize = uint32(br.ReadVarint())
-	f.NUndoSize = uint32(br.ReadVarint())
-	f.NHeightFirst = uint32(br.ReadVarint())
-	f.NHeightLast = uint32(br.ReadVarint())
-	f.NTimeFirst = uint32(br.ReadVarint())
-	f.NTimeLast = uint32(br.ReadVarint())
+	f.Size = uint32(br.ReadVarint())
+	f.UndoSize = uint32(br.ReadVarint())
+	f.HeightFirst = uint32(br.ReadVarint())
+	f.HeightLast = uint32(br.ReadVarint())
+	f.TimeFirst = uint32(br.ReadVarint())
+	f.TimeLast = uint32(br.ReadVarint())
 	return f
 }
 
