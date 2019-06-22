@@ -12,25 +12,25 @@ import (
 )
 
 type blockFile struct {
-	fileNum      uint32
-	NBlocks      uint32
-	NSize        uint32
-	NUndoSize    uint32
-	NHeightFirst uint32
-	NHeightLast  uint32
-	NTimeFirst   uint32
-	NTimeLast    uint32
+	fileNum     uint32
+	NBlocks     uint32
+	Size        uint32
+	UndoSize    uint32
+	HeightFirst uint32
+	HeightLast  uint32
+	TimeFirst   uint32
+	TimeLast    uint32
 }
 
 func decodeBlockFileIdx(br parser.Reader) *blockFile {
 	f := &blockFile{}
 	f.NBlocks = uint32(br.ReadVarint())
-	f.NSize = uint32(br.ReadVarint())
-	f.NUndoSize = uint32(br.ReadVarint())
-	f.NHeightFirst = uint32(br.ReadVarint())
-	f.NHeightLast = uint32(br.ReadVarint())
-	f.NTimeFirst = uint32(br.ReadVarint())
-	f.NTimeLast = uint32(br.ReadVarint())
+	f.Size = uint32(br.ReadVarint())
+	f.UndoSize = uint32(br.ReadVarint())
+	f.HeightFirst = uint32(br.ReadVarint())
+	f.HeightLast = uint32(br.ReadVarint())
+	f.TimeFirst = uint32(br.ReadVarint())
+	f.TimeLast = uint32(br.ReadVarint())
 	return f
 }
 
@@ -79,6 +79,28 @@ func GetFlag(db *leveldb.DB, name []byte) (bool, error) {
 	return data[0] == []byte("1")[0], nil
 }
 
+// decode block header from index files
+func decodeBlockHeaderIdx(br parser.Reader) (bh models.BlockHeader) {
+	// Discard first varint
+	// FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
+	br.ReadVarint() // SerGetHash = 1 << 2
+
+	bh.NHeight = uint32(br.ReadVarint())
+	bh.NStatus = uint32(br.ReadVarint())
+	bh.NTx = uint32(br.ReadVarint())
+	if bh.NStatus&(blockHaveData|blockHaveUndo) > 0 {
+		bh.NFile = uint32(br.ReadVarint())
+	}
+	if bh.NStatus&blockHaveData > 0 {
+		bh.NDataPos = uint32(br.ReadVarint())
+	}
+	if bh.NStatus&blockHaveUndo > 0 {
+		bh.NUndoPos = uint32(br.ReadVarint())
+	}
+	decodeBlockHeader(&bh, br)
+	return
+}
+
 // OpenIndexDb gets transaction index record
 func OpenIndexDb() (*leveldb.DB, error) {
 	dataDir := os.Getenv("DATADIR")
@@ -87,59 +109,3 @@ func OpenIndexDb() (*leveldb.DB, error) {
 	})
 	return db, err
 }
-
-/*
-func GetBlockHeaders() {
-  var err error
-  indexDb, err = db.OpenIndexDb(btc.DataDir) // TODO: Error handling
-  if err != nil {
-    log.Warn("Error:", err)
-  }
-  defer indexDb.Close()
-
-  iter := indexDb.NewIterator(util.BytesPrefix([]byte("b")), nil)
-  for iter.Next() {
-    btc.HashBlock = iter.Key()
-    data := iter.Value()
-    // log.Info(data)
-    btc.parseBlockHeaderData(data)
-    // Copy, then insert in DB
-    // _, err = db.InsertHeader(btc.SqlDb, btc.BlockHeader)
-    if err != nil {
-      if !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-        log.Warn(err)
-      }
-    }
-  }
-  iter.Release()
-  err = iter.Error()
-  if err != nil {
-    log.Warn(err)
-  }
-}
-*/
-
-/*
-func getTransaction() {
-  f, err := db.GetFlag(btc.IndexDb, []byte("txindex"))
-  if err != nil {
-    log.Warn(err)
-  }
-  if !f {
-    fmt.Println("txindex is not enabled for your bitcoind")
-  }
-
-  result, err := db.GetTxIndexRecordByBigEndianHex(indexDb, args[1])
-  if err != nil {
-    log.Fatal(err)
-  }
-  fmt.Printf("%+v\n", result)
-
-  tx, err := blockchainparser.NewTxFromFile(datadir, magicId, uint32(result.NFile), result.NDataPos, result.NTxOffset)
-  if err != nil {
-    log.Fatal(err)
-  }
-
-  fmt.Printf("%+v\n", tx)
-}
-*/

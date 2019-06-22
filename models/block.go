@@ -33,21 +33,20 @@ type Tx struct {
 // BlockHeader contains general index records parameters
 // It defines the structure of the postgres table
 type BlockHeader struct {
-	NVersion         uint32 `db:"n_version"`         // Version
-	NHeight          uint32 `db:"n_height"`          //
-	NStatus          uint32 `db:"n_status"`          // ???
-	NTx              uint32 `db:"n_tx"`              // Number of txs
-	NFile            uint32 `db:"n_file"`            // File number
-	NDataPos         uint32 `db:"n_data_pos"`        // (Index)
-	NUndoPos         uint32 `db:"n_undo_pos"`        // (Index)
-	Hash             []byte `db:"hash_block"`        // current block hash (Added)
-	HashPrev         []byte `db:"hash_prev_block"`   // previous block hash (Index)
-	HashMerkleRoot   []byte `db:"hash_merkle_root"`  //
-	NTime            uint32 `db:"n_time"`            // (Index)
-	NBits            uint32 `db:"n_bits"`            // (Index)
-	NNonce           uint32 `db:"n_nonce"`           // (Index)
-	TargetDifficulty uint32 `db:"target_difficulty"` //
-	NSize            uint32 `db:"n_size"`            // Block size
+	NVersion       uint32 `db:"n_version"`        // Version
+	NHeight        uint32 `db:"n_height"`         //
+	NStatus        uint32 `db:"n_status"`         // ???
+	NTx            uint32 `db:"n_tx"`             // Number of txs
+	NFile          uint32 `db:"n_file"`           // File number
+	NDataPos       uint32 `db:"n_data_pos"`       // (Index)
+	NUndoPos       uint32 `db:"n_undo_pos"`       // (Index)
+	Hash           []byte `db:"hash_block"`       // current block hash (Added)
+	HashPrev       []byte `db:"hash_prev_block"`  // previous block hash (Index)
+	HashMerkleRoot []byte `db:"hash_merkle_root"` //
+	NTime          uint32 `db:"n_time"`           // (Index)
+	NBits          uint32 `db:"n_bits"`           // (Index)
+	NNonce         uint32 `db:"n_nonce"`          // (Index)
+	NSize          uint32 `db:"n_size"`           // Block size
 }
 
 // Block contains block infos

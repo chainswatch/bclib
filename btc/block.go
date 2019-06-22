@@ -47,27 +47,6 @@ func decodeBlockHeader(bh *models.BlockHeader, br parser.Reader) {
 	putBlockHash(bh)
 }
 
-func decodeBlockHeaderIdx(br parser.Reader) (bh models.BlockHeader) {
-	// Discard first varint
-	// FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
-	br.ReadVarint() // SerGetHash = 1 << 2
-
-	bh.NHeight = uint32(br.ReadVarint())
-	bh.NStatus = uint32(br.ReadVarint())
-	bh.NTx = uint32(br.ReadVarint())
-	if bh.NStatus&(blockHaveData|blockHaveUndo) > 0 {
-		bh.NFile = uint32(br.ReadVarint())
-	}
-	if bh.NStatus&blockHaveData > 0 {
-		bh.NDataPos = uint32(br.ReadVarint())
-	}
-	if bh.NStatus&blockHaveUndo > 0 {
-		bh.NUndoPos = uint32(br.ReadVarint())
-	}
-	decodeBlockHeader(&bh, br)
-	return
-}
-
 func decodeBlockTxs(b *models.Block, br parser.Reader) error {
 	b.Txs = nil
 

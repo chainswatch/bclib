@@ -14,9 +14,9 @@ import (
 	"strings"
 )
 
-// constructs a map of the form map[BlockHeight] = BlockHeader.
+// LoadHeaderIndex constructs a map of the form map[BlockHeight] = BlockHeader.
 // In particular, BlockHeader contains DataPos and FileNum
-func loadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
+func LoadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
 	db, err := OpenIndexDb()
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader,
 
 // LoadBlockToFile prints block content in a file
 func LoadBlockToFile(path string, height uint32) error {
-	lookup, err := loadHeaderIndex()
+	lookup, err := LoadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ type apply func(interface{}) (func(b *models.Block) error, error)
 
 // LoadFile allows to traverse the blocks by height order while applying a function argFn
 func LoadFile(fromh, toh uint32, newFn apply, argFn interface{}) error {
-	lookup, err := loadHeaderIndex()
+	lookup, err := LoadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {
 		return err
