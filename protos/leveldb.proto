@@ -4,13 +4,13 @@ package protos;
 
 message UtxoMsg {
 	uint64 value = 1;
-	uint64 utxo_id = 2;
-	uint32 pk_id = 3;
-	uint32 tx_id = 4;
+	uint64 uid = 2;
+	uint32 pid = 3;
+	uint32 tid = 4;
 }
 
 message TxMsg {
-	bytes tx_hash = 1;
+	bytes hash = 1;
 	uint32 height = 2;
 	repeated uint64 inputs = 3; // utxo_id
 	repeated uint64 outputs = 4; // utxo_id
@@ -19,12 +19,12 @@ message TxMsg {
 message PkMsg {
 	bytes pkey = 1;
 	uint32 type = 2;
-	uint32 w_id = 3;
-	repeated uint32 tx_id = 4; // TODO: Replace by txid?
+	uint32 wid = 3;
+	repeated uint32 tid = 4;
 }
 
 message WalletMsg {
 	string name = 1;
 	uint32 type = 2;
-	repeated uint32 pk_id = 3;
+	repeated uint32 pid = 3;
 }
