@@ -6,7 +6,8 @@ message UtxoMsg {
 	uint64 value = 1;
 	uint64 uid = 2;
 	uint32 pid = 3;
-	uint32 tid = 4;
+	uint32 tid_create = 4;
+	uint32 tid_spend = 5;
 }
 
 message TxMsg {
