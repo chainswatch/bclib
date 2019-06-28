@@ -6,7 +6,6 @@ import (
 )
 
 func TestParser(t *testing.T) {
-
 	for i := uint64(0); i < 10000; i++ {
 		b := CompactSize(i)
 		raw, err := New(b)

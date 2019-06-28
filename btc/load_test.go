@@ -91,6 +91,7 @@ func TestLoad(t *testing.T) {
 		t.Errorf("Only %d blocks read in blockfile 0", i)
 	}
 
+
 	err = LoadFile(0, 100000, dummyFunc, "")
 	if err != nil {
 		t.Fatal(err)
@@ -106,8 +107,13 @@ func TestLoad(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log.Info("Jump start")
 	err = LoadFile(200000, 202000, jumpFunc, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Used to be an error (because of orphan blocks)
+	err = LoadFile(478500, 478700, dummyFunc, "")
 	if err != nil {
 		t.Fatal(err)
 	}

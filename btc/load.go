@@ -32,7 +32,10 @@ func LoadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
 			return nil, err
 		}
 		tmp := decodeBlockHeaderIdx(buf)
-		lookup[tmp.NHeight] = &tmp
+		if tmp == nil {
+			continue
+		}
+		lookup[tmp.NHeight] = tmp
 	}
 	iter.Release()
 	return lookup, nil
