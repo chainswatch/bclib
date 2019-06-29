@@ -13,14 +13,14 @@ message UtxoMsg {
 message TxMsg {
 	bytes hash = 1;
 	uint32 height = 2;
-	uint32 wid = 4;
-	repeated uint64 inputs = 5; // utxo_id
-	repeated uint64 outputs = 6; // utxo_id
+	repeated uint64 inputs = 3; // utxo_id
+	repeated uint64 outputs = 4; // utxo_id
 }
 
 message PkMsg {
 	bytes pkey = 1;
 	uint32 type = 2;
+	uint32 wid = 3;
 	repeated uint32 tid = 4;
 }
 
