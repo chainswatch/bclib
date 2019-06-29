@@ -35,7 +35,7 @@ func decodeBlockFileIdx(br parser.Reader) *blockFile {
 }
 
 // Get block index record by hash
-func blockIndexRecord(db *leveldb.DB, h []byte) (bh models.BlockHeader, err error) {
+func blockIndexRecord(db *leveldb.DB, h []byte) (bh *models.BlockHeader, err error) {
 	data, err := db.Get(append([]byte("b"), h...), nil)
 	if err != nil {
 		return
@@ -80,25 +80,24 @@ func GetFlag(db *leveldb.DB, name []byte) (bool, error) {
 }
 
 // decode block header from index files
-func decodeBlockHeaderIdx(br parser.Reader) (bh models.BlockHeader) {
-	// Discard first varint
-	// FIXME: Not exactly sure why need to, but if we don't do this we won't get correct values
-	br.ReadVarint() // SerGetHash = 1 << 2
+func decodeBlockHeaderIdx(br parser.Reader) *models.BlockHeader {
+	bh := new(models.BlockHeader)
+
+	br.ReadVarint() // SerGetHash = 1 << 2 (client version)
 
 	bh.NHeight = uint32(br.ReadVarint())
 	bh.NStatus = uint32(br.ReadVarint())
 	bh.NTx = uint32(br.ReadVarint())
-	if bh.NStatus&(blockHaveData|blockHaveUndo) > 0 {
-		bh.NFile = uint32(br.ReadVarint())
+	if bh.NStatus&(blockHaveData|blockHaveUndo) == 0 {
+		return nil
 	}
-	if bh.NStatus&blockHaveData > 0 {
-		bh.NDataPos = uint32(br.ReadVarint())
-	}
-	if bh.NStatus&blockHaveUndo > 0 {
-		bh.NUndoPos = uint32(br.ReadVarint())
-	}
-	decodeBlockHeader(&bh, br)
-	return
+
+	bh.NFile = uint32(br.ReadVarint())
+	bh.NDataPos = uint32(br.ReadVarint())
+	bh.NUndoPos = uint32(br.ReadVarint())
+
+	decodeBlockHeader(bh, br)
+	return bh
 }
 
 // OpenIndexDb gets transaction index record

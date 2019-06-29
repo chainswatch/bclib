@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestRepository(t *testing.T) {
+func TestIndex(t *testing.T) {
 	tests := []struct {
 		name   string
 		height uint32
@@ -48,6 +48,17 @@ func TestRepository(t *testing.T) {
 		if b.NHeight != test.height {
 			t.Fatalf("%v: Height: %d != %d",
 				test.name, b.NHeight, test.height)
+		}
+	}
+
+	idx, err := LoadHeaderIndex(); 
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for k, v := range idx {
+		if k != v.NHeight {
+			t.Fatal()
 		}
 	}
 }

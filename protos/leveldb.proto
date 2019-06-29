@@ -6,7 +6,8 @@ message UtxoMsg {
 	uint64 value = 1;
 	uint64 uid = 2;
 	uint32 pid = 3;
-	uint32 tid = 4;
+	uint32 tid_create = 4;
+	uint32 tid_spend = 5;
 }
 
 message TxMsg {
@@ -27,4 +28,16 @@ message WalletMsg {
 	string name = 1;
 	uint32 type = 2;
 	repeated uint32 pid = 3;
+}
+
+message BlockMsg {
+  uint32  version = 1;
+  uint32  status = 2;
+  uint32  ntx = 3;
+  bytes   hash = 4;
+  bytes   hash_prev = 5;
+  uint32  ts = 6;
+  uint32  bits = 7;
+  uint32  nonce = 8;
+  uint32  size = 9;
 }
