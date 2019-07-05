@@ -33,11 +33,12 @@ message WalletMsg {
 message BlockMsg {
   uint32  version = 1;
   uint32  status = 2;
-  uint32  ntx = 3;
-  bytes   hash = 4;
-  bytes   hash_prev = 5;
-  uint32  ts = 6;
-  uint32  bits = 7;
-  uint32  nonce = 8;
-  uint32  size = 9;
+  uint32  tid = 3;
+  uint32  ntx = 4;
+  bytes   hash = 5;
+  bytes   hash_prev = 6;
+  uint32  ts = 7;
+  uint32  bits = 8;
+  uint32  nonce = 9;
+  uint32  size = 10;
 }
