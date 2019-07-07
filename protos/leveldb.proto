@@ -21,13 +21,13 @@ message PkMsg {
 	bytes pkey = 1;
 	uint32 type = 2;
 	uint32 wid = 3;
-	repeated uint32 tid = 4;
+	repeated uint32 tids = 4;
 }
 
 message WalletMsg {
 	string name = 1;
 	uint32 type = 2;
-	repeated uint32 pid = 3;
+	repeated uint32 pids = 3;
 }
 
 message BlockMsg {
