@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"bytes"
 )
 
 // LoadHeaderIndex constructs a map of the form map[BlockHeight] = BlockHeader.
@@ -25,7 +26,7 @@ func LoadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
 	iter := db.NewIterator(util.BytesPrefix([]byte("b")), nil)
 	lookup = make(map[uint32]*models.BlockHeader)
 	for iter.Next() {
-		// hashBlock := iter.Key()
+		blockHash := iter.Key()[1:]
 		data := iter.Value()
 		buf, err := parser.New(data)
 		if err != nil {
@@ -34,6 +35,12 @@ func LoadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
 		tmp := decodeBlockHeaderIdx(buf)
 		if tmp == nil {
 			continue
+		}
+		if bytes.Compare(blockHash, tmp.Hash) != 0 {
+			return nil, fmt.Errorf("LoadHeaderIndex: %x != %x (h: %d, len: %d %d)",
+			tmp.Hash, blockHash,
+			tmp.NHeight,
+			len(tmp.Hash), len(blockHash))
 		}
 		lookup[tmp.NHeight] = tmp
 	}

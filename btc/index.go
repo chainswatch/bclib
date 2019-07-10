@@ -91,10 +91,13 @@ func decodeBlockHeaderIdx(br parser.Reader) *models.BlockHeader {
 	if bh.NStatus&(blockHaveData|blockHaveUndo) == 0 {
 		return nil
 	}
-
 	bh.NFile = uint32(br.ReadVarint())
-	bh.NDataPos = uint32(br.ReadVarint())
-	bh.NUndoPos = uint32(br.ReadVarint())
+	if bh.NStatus&blockHaveData > 0 {
+		bh.NDataPos = uint32(br.ReadVarint())
+	}
+	if bh.NStatus&blockHaveUndo > 0 {
+		bh.NUndoPos = uint32(br.ReadVarint())
+	}
 
 	decodeBlockHeader(bh, br)
 	return bh

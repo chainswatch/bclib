@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"os"
 	"testing"
+	"bytes"
 )
 
 func TestIndex(t *testing.T) {
@@ -56,9 +57,27 @@ func TestIndex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for k, v := range idx {
-		if k != v.NHeight {
-			t.Fatal()
+	prev := make([]byte, 32)
+	//for h := uint32(0); h < uint32(len(idx)); h++ {
+	for h := uint32(0); h < 10; h++ {
+		v, exist := idx[h]
+		if !exist {
+			t.Fatalf("Index: Stopped at height %d", h)
 		}
+		if h != v.NHeight {
+			t.Fatalf("Wrong height: %d != %d", h, v.NHeight)
+		}
+		if h > 0 {
+			if bytes.Compare(prev, v.HashPrev) != 0 {
+				t.Errorf("Height %d: Wrong block hash: %x != %x (NVersion: %x, NBits: %x, %xx)",
+				v.NHeight,
+				serial.ReverseHex(prev),
+				v.HashPrev,
+				v.NVersion,
+				v.NBits,
+				v.HashMerkleRoot)
+			}
+		}
+		copy(prev, v.Hash)
 	}
 }
