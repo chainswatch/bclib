@@ -5,9 +5,10 @@ package protos;
 message UtxoMsg {
 	uint64 value = 1;
 	uint64 uid = 2;
-	uint32 pid = 3;
-	uint32 tid_create = 4;
-	uint32 tid_spend = 5;
+	uint32 pid = 3; // pid of input of spending tx
+  uint32 wid = 4;
+	uint32 tid_create = 5;
+	uint32 tid_spend = 6;
 }
 
 message TxMsg {
@@ -21,12 +22,12 @@ message PkMsg {
 	bytes pkey = 1;
 	uint32 type = 2;
 	uint32 wid = 3;
-	repeated uint32 tids = 4;
+	repeated uint32 tids = 4; // tids_in and tids_out?
 }
 
 message WalletMsg {
-	string name = 1;
-	uint32 type = 2;
+	string name = 1; // TODO: Delete?
+	uint32 type = 2; // TODO: Delete?
 	repeated uint32 pids = 3;
 }
 
