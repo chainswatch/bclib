@@ -6,47 +6,12 @@ import (
 
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/syndtr/goleveldb/leveldb/util"
 
 	"os"
 	"sort"
 	"strconv"
 	"strings"
-	"bytes"
 )
-
-// LoadHeaderIndex constructs a map of the form map[BlockHeight] = BlockHeader.
-// In particular, BlockHeader contains DataPos and FileNum
-func LoadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
-	db, err := OpenIndexDb()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-	iter := db.NewIterator(util.BytesPrefix([]byte("b")), nil)
-	lookup = make(map[uint32]*models.BlockHeader)
-	for iter.Next() {
-		blockHash := iter.Key()[1:]
-		data := iter.Value()
-		buf, err := parser.New(data)
-		if err != nil {
-			return nil, err
-		}
-		tmp := decodeBlockHeaderIdx(buf)
-		if tmp == nil {
-			continue
-		}
-		if bytes.Compare(blockHash, tmp.Hash) != 0 {
-			return nil, fmt.Errorf("LoadHeaderIndex: %x != %x (h: %d, len: %d %d)",
-			tmp.Hash, blockHash,
-			tmp.NHeight,
-			len(tmp.Hash), len(blockHash))
-		}
-		lookup[tmp.NHeight] = tmp
-	}
-	iter.Release()
-	return lookup, nil
-}
 
 func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader, files map[uint32]parser.Reader) error {
 	if bh.NHeight < 2048 {

@@ -6,8 +6,11 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb/util"
 
+	"bytes"
 	"encoding/binary"
+	"fmt"
 	"os"
 )
 
@@ -80,6 +83,7 @@ func GetFlag(db *leveldb.DB, name []byte) (bool, error) {
 }
 
 // decode block header from index files
+// https://bitcoin.stackexchange.com/questions/67515/format-of-a-block-keys-contents-in-bitcoinds-leveldb
 func decodeBlockHeaderIdx(br parser.Reader) *models.BlockHeader {
 	bh := new(models.BlockHeader)
 
@@ -110,4 +114,45 @@ func OpenIndexDb() (*leveldb.DB, error) {
 		ReadOnly: true,
 	})
 	return db, err
+}
+
+// LoadHeaderIndex constructs a map of the form map[BlockHeight] = BlockHeader.
+// In particular, BlockHeader contains DataPos and FileNum
+func LoadHeaderIndex() (lookup map[uint32]*models.BlockHeader, err error) {
+	db, err := OpenIndexDb()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	iter := db.NewIterator(util.BytesPrefix([]byte("b")), nil)
+	lookup = make(map[uint32]*models.BlockHeader)
+	for iter.Next() {
+		blockHash := iter.Key()[1:]
+		data := iter.Value()
+		buf, err := parser.New(data)
+		if err != nil {
+			return nil, err
+		}
+		tmp := decodeBlockHeaderIdx(buf)
+		if tmp == nil {
+			continue
+		}
+		if bytes.Compare(blockHash, tmp.Hash) != 0 {
+			return nil, fmt.Errorf("LoadHeaderIndex: %x != %x (h: %d, len: %d %d)",
+				tmp.Hash, blockHash,
+				tmp.NHeight,
+				len(tmp.Hash), len(blockHash))
+		}
+		v, exist := lookup[tmp.NHeight]
+		/*
+			if exist {
+				fmt.Printf("Height %d: Header Index already exists %b vs %b (%x, %x)\n", tmp.NHeight, v.NStatus, tmp.NStatus, v.Hash, tmp.Hash)
+			}
+		*/
+		if !exist || tmp.NStatus > v.NStatus {
+			lookup[tmp.NHeight] = tmp
+		}
+	}
+	iter.Release()
+	return lookup, nil
 }
