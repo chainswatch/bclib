@@ -41,29 +41,7 @@ func closeOldFile(bh *models.BlockHeader, lookup map[uint32]*models.BlockHeader,
 	return nil
 }
 
-// LoadBlockToFile prints block content in a file
-func LoadBlockToFile(path string, height uint32) error {
-	load, err := LoadBlock()
-	if err != nil {
-		return err
-	}
-	file, err := load(height)
-	file.Seek(4, 0)
-	nSize := file.ReadUint32()
-	log.Info("Size: ", nSize) // Only for block files
-	content := file.ReadBytes(uint64(nSize))
-
-	fout, err := os.Create(fmt.Sprintf("%s/block%d.dat", path, height))
-	if err != nil {
-		return err
-	}
-	if _, err := fout.Write(content); err != nil {
-		return err
-	}
-	return fout.Close()
-}
-
-func LoadBlock() (func(height uint32) (parser.Reader, error), error) {
+func loadRawBlock() (func(height uint32) (parser.Reader, error), error) {
 	lookup, err := LoadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {
@@ -98,21 +76,46 @@ func LoadBlock() (func(height uint32) (parser.Reader, error), error) {
 	}, nil
 }
 
-func LoadRawBlock() (func(height uint32) ([]byte, error), error) {
-	load, err := LoadBlock()
+// LoadBlockToFile prints block content in a file
+func LoadBlockToFile(path string, height uint32) error {
+	load, err := loadRawBlock()
+	if err != nil {
+		return err
+	}
+	file, err := load(height)
+	file.Seek(4, 0)
+	nSize := file.ReadUint32()
+	log.Info("Size: ", nSize) // Only for block files
+	content := file.ReadBytes(uint64(nSize))
+
+	fout, err := os.Create(fmt.Sprintf("%s/block%d.dat", path, height))
+	if err != nil {
+		return err
+	}
+	if _, err := fout.Write(content); err != nil {
+		return err
+	}
+	return fout.Close()
+}
+
+func LoadBlock() (func(height uint32) (*models.Block, error), error) {
+	load, err := loadRawBlock()
 	if err != nil {
 		return nil, err
 	}
-	return func(height uint32) ([]byte, error) {
+	return func(height uint32) (*models.Block, error) {
 		file, err := load(height)
 		if err != nil {
 			return nil, err
 		}
-		file.Seek(4, 0)
-		size := file.ReadUint32()
-		file.Seek(4, 0)
-		raw := file.ReadBytes(uint64(size))
-		return raw, nil
+
+		b, err := DecodeBlock(file)
+		if err != nil {
+			return nil, fmt.Errorf("LoadBlock(): Height %d: %s", height, err.Error())
+		}
+		b.NHeight = height // FIXME: DecodeBlock does not work for genesis block
+
+		return b, nil
 	}, nil
 }
 
@@ -132,16 +135,10 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn interface{}) error {
 	}
 
 	for h := fromh; h <= toh; h++ {
-		file, err := loadBlock(h)
+		b, err := loadBlock(h)
 		if err != nil {
 			return err
 		}
-
-		b, err := DecodeBlock(file)
-		if err != nil {
-			return fmt.Errorf("LoadBlock(): Height %d: %s", h, err.Error())
-		}
-		b.NHeight = h // FIXME: DecodeBlock does not work for genesis block
 
 		if err = fn(b); err != nil {
 			if strings.HasPrefix(err.Error(), "Jump to height ") {
