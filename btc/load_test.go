@@ -95,10 +95,10 @@ func TestLoad(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = loadBlock(0); err != nil {
+	if _, _, err = loadBlock(0); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = loadBlock(442019); err != nil {
+	if _, _, err = loadBlock(442019); err != nil {
 		t.Fatal(err)
 	}
 
