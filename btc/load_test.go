@@ -111,13 +111,13 @@ func TestLoad(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(raw) < 10 {
-		t.Errorf("Raw block length < 10: %d (%b)", len(raw), raw)
+		t.Errorf("Raw block length < 10: %d", len(raw))
 	}
 	if raw, err = loadRawBlock(442019); err != nil {
 		t.Fatal(err)
 	}
 	if len(raw) < 10 {
-		t.Errorf("Raw block length < 10: %d (%s)", len(raw), raw)
+		t.Errorf("Raw block length < 10: %d", len(raw))
 	}
 
 	err = LoadFile(0, 100000, dummyFunc, "")
