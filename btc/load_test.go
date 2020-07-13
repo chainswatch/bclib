@@ -91,6 +91,16 @@ func TestLoad(t *testing.T) {
 		t.Errorf("Only %d blocks read in blockfile 0", i)
 	}
 
+	loadBlock, err := LoadBlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = loadBlock(0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = loadBlock(442019); err != nil {
+		t.Fatal(err)
+	}
 
 	err = LoadFile(0, 100000, dummyFunc, "")
 	if err != nil {

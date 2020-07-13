@@ -87,12 +87,52 @@ func LoadBlockToFile(path string, height uint32) error {
 	return fout.Close()
 }
 
+func LoadBlock() (func(height uint32) (*models.Block, error), error) {
+	lookup, err := LoadHeaderIndex()
+	log.Info("Index is built: ", len(lookup))
+	if err != nil {
+		return nil, err
+	}
+	files := make(map[uint32]parser.Reader) // map[BlockHeight]
+
+	return func(height uint32) (*models.Block, error) {
+		bh, exist := lookup[height]
+		if !exist {
+			return nil, fmt.Errorf("LoadBlock(): File for height %d does not exist", height)
+		}
+		if bh.NHeight != height {
+			return nil, fmt.Errorf("LoadBlock(): Loaded header has wrong height %d != %d", bh.NHeight, height)
+		}
+		file, exist := files[bh.NFile]
+		if !exist { // file open ?
+			log.Info(fmt.Sprintf("Height: %d File: %d Length(files)= %d", bh.NHeight, bh.NFile, len(files)))
+			buf, err := parser.New(bh.NFile)
+			if err != nil {
+				return nil, err
+			}
+			files[bh.NFile] = buf
+			file = buf
+			if err = closeOldFile(bh, lookup, files); err != nil {
+				return nil, err
+			}
+		}
+		file.Seek(int64(bh.NDataPos-8), 0)
+
+		b, err := DecodeBlock(file)
+		if err != nil {
+			return nil, fmt.Errorf("LoadBlock(): Height %d: %s", height, err.Error())
+		}
+		b.NHeight = height // FIXME: DecodeBlock does not work for genesis block
+
+		return b, nil
+	}, nil
+}
+
 type apply func(interface{}) (func(b *models.Block) error, error)
 
 // LoadFile allows to traverse the blocks by height order while applying a function argFn
 func LoadFile(fromh, toh uint32, newFn apply, argFn interface{}) error {
-	lookup, err := LoadHeaderIndex()
-	log.Info("Index is built: ", len(lookup))
+	loadBlock, err := LoadBlock()
 	if err != nil {
 		return err
 	}
@@ -103,35 +143,12 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn interface{}) error {
 		return err
 	}
 
-	var bh = &models.BlockHeader{}
-	var exist bool
 	for h := fromh; h <= toh; h++ {
-		bh, exist = lookup[h]
-		if !exist { // header ?
-			return fmt.Errorf("File for height %d does not exist", h)
-		}
-		if bh.NHeight != h {
-			return fmt.Errorf("Loaded header has wrong height %d != %d", bh.NHeight, h)
-		}
-		file, exist := files[bh.NFile]
-		if !exist { // file open ?
-			log.Info(fmt.Sprintf("Height: %d File: %d Length(files)= %d", bh.NHeight, bh.NFile, len(files)))
-			buf, err := parser.New(bh.NFile)
-			if err != nil {
-				return err
-			}
-			files[bh.NFile] = buf
-			file = buf
-			if err = closeOldFile(bh, lookup, files); err != nil {
-				return err
-			}
-		}
-		file.Seek(int64(bh.NDataPos-8), 0)
-		b, err := DecodeBlock(file)
+		b, err := loadBlock(h)
 		if err != nil {
-			return fmt.Errorf("LoadFile(): Height %d: %s", h, err.Error())
+			return err
 		}
-		b.NHeight = h // FIXME: DecodeBlock does not work for genesis block
+
 		if err = fn(b); err != nil {
 			if strings.HasPrefix(err.Error(), "Jump to height ") {
 				s := strings.TrimPrefix(err.Error(), "Jump to height ")
