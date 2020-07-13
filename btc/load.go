@@ -47,7 +47,7 @@ func LoadBlockToFile(path string, height uint32) error {
 	if err != nil {
 		return err
 	}
-	file, _, err := load(height)
+	file, err := load(height)
 	file.Seek(4, 0)
 	nSize := file.ReadUint32()
 	log.Info("Size: ", nSize) // Only for block files
@@ -63,7 +63,7 @@ func LoadBlockToFile(path string, height uint32) error {
 	return fout.Close()
 }
 
-func LoadBlock() (func(height uint32) (parser.Reader, uint32, error), error) {
+func LoadBlock() (func(height uint32) (parser.Reader, error), error) {
 	lookup, err := LoadHeaderIndex()
 	log.Info("Index is built: ", len(lookup))
 	if err != nil {
@@ -71,30 +71,30 @@ func LoadBlock() (func(height uint32) (parser.Reader, uint32, error), error) {
 	}
 	files := make(map[uint32]parser.Reader) // map[BlockHeight]
 
-	return func(height uint32) (parser.Reader, uint32, error) {
+	return func(height uint32) (parser.Reader, error) {
 		bh, exist := lookup[height]
 		if !exist {
-			return nil, 0, fmt.Errorf("LoadBlock(): File for height %d does not exist", height)
+			return nil, fmt.Errorf("LoadBlock(): File for height %d does not exist", height)
 		}
 		if bh.NHeight != height {
-			return nil, 0, fmt.Errorf("LoadBlock(): Loaded header has wrong height %d != %d", bh.NHeight, height)
+			return nil, fmt.Errorf("LoadBlock(): Loaded header has wrong height %d != %d", bh.NHeight, height)
 		}
 		file, exist := files[bh.NFile]
 		if !exist { // file open ?
 			log.Info(fmt.Sprintf("Height: %d File: %d Length(files)= %d", bh.NHeight, bh.NFile, len(files)))
 			buf, err := parser.New(bh.NFile)
 			if err != nil {
-				return nil, 0, err
+				return nil, err
 			}
 			files[bh.NFile] = buf
 			file = buf
 			if err = closeOldFile(bh, lookup, files); err != nil {
-				return nil, 0, err
+				return nil, err
 			}
 		}
 		file.Seek(int64(bh.NDataPos-8), 0)
 
-		return file, bh.NSize, nil
+		return file, nil
 	}, nil
 }
 
@@ -104,11 +104,14 @@ func LoadRawBlock() (func(height uint32) ([]byte, error), error) {
 		return nil, err
 	}
 	return func(height uint32) ([]byte, error) {
-		file, size, err := load(height)
+		file, err := load(height)
 		if err != nil {
 			return nil, err
 		}
-		raw := file.ReadBytes(uint64(size + 8))
+		file.Seek(4, 0)
+		size := file.ReadUint32()
+		file.Seek(4, 0)
+		raw := file.ReadBytes(uint64(size))
 		return raw, nil
 	}, nil
 }
@@ -129,7 +132,7 @@ func LoadFile(fromh, toh uint32, newFn apply, argFn interface{}) error {
 	}
 
 	for h := fromh; h <= toh; h++ {
-		file, _, err := loadBlock(h)
+		file, err := loadBlock(h)
 		if err != nil {
 			return err
 		}

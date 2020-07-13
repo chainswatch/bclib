@@ -95,11 +95,29 @@ func TestLoad(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err = loadBlock(0); err != nil {
+	if _, err = loadBlock(0); err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err = loadBlock(442019); err != nil {
+	if _, err = loadBlock(442019); err != nil {
 		t.Fatal(err)
+	}
+
+	loadRawBlock, err := LoadRawBlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var raw []byte
+	if raw, err = loadRawBlock(0); err != nil {
+		t.Fatal(err)
+	}
+	if len(raw) < 10 {
+		t.Errorf("Raw block length < 10: %d (%b)", len(raw), raw)
+	}
+	if raw, err = loadRawBlock(442019); err != nil {
+		t.Fatal(err)
+	}
+	if len(raw) < 10 {
+		t.Errorf("Raw block length < 10: %d (%s)", len(raw), raw)
 	}
 
 	err = LoadFile(0, 100000, dummyFunc, "")
